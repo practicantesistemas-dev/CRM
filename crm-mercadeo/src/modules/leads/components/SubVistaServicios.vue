@@ -33,7 +33,11 @@ defineProps<{
 }>()
 </script>
 
+
 <style scoped>
+/* 💡 Corrección usando el alias de Vite */
+@reference "../../../style.css";
+
 .tarjeta-servicio {
   @apply flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100 transition-colors duration-200;
 }

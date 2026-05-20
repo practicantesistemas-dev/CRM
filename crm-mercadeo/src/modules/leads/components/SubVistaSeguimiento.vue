@@ -56,6 +56,9 @@ const enviarNota = (): void => {
 </script>
 
 <style scoped>
+/* 💡 Corrección usando el alias de Vite */
+@reference "../../../style.css";
+
 .bloque-nota {
   @apply p-2.5 bg-amber-50/60 border border-amber-100 rounded-lg;
 }
