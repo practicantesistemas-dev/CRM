@@ -2,7 +2,7 @@
 <template>
   <div v-if="contactoLocal" class="space-y-4">
 
-    <!-- KPIs -->
+    <!-- KPIs -->   
     <div class="grid grid-cols-2 gap-2 text-center">
       <div class="bg-slate-50 border p-2.5 rounded-xl">
         <span class="font-black text-base">
