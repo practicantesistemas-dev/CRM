@@ -1,4 +1,31 @@
 @import "tailwindcss";
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@source "../src/**/*.vue";
+@source "../src/modules/**/*.vue";
+
+@theme {
+  --color-sf-blue: #0176d3;
+  --color-sf-dark: #031b33;
+  --color-sf-bg: #f3f2f1;
+  --color-sf-border: #shadow-2xs;
+}
+
+/* Clases utilitarias personalizadas usando composición de Tailwind v4 */
+@utility btn-filtro-rol {
+  @apply px-3 py-1.5 text-[11px] font-bold rounded transition-all text-slate-500 cursor-pointer border border-transparent;
+}
+
+@utility btn-filtro-rol-activo {
+  @apply bg-white text-[#0176d3] shadow-xs border-slate-200;
+}
+
+@utility badge-estado-base {
+  @apply px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide text-center block w-full max-w-[120px] border;
+}
+
+@utility tab-nav-sf {
+  @apply flex-1 py-2.5 text-[11px] font-bold uppercase tracking-wider text-slate-400 bg-transparent text-center cursor-pointer border-b-2 border-transparent transition-all;
+}
+
+@utility tab-nav-sf-activa {
+  @apply text-[#0176d3] border-[#0176d3] font-black bg-white;
+}

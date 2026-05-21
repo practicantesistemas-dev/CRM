@@ -1,347 +1,512 @@
 
+
+<script setup lang="ts">
+import { ref, shallowRef, watch, computed } from 'vue'
+import VincularBeneficiario from '../components/vincular_beneficiario.vue'
+
+// --- ESTADOS DE CONTROL ---
+const panelIzquierdoVisible = ref<boolean>(true)
+const panelDerechoVisible = ref<boolean>(true)
+const modoVista = ref<'general' | 'particular'>('general')
+const subVistaActiva = ref<'automatizaciones' | 'servicios'>('automatizaciones')
+const isModalBeneficiarioOpen = ref<boolean>(false)
+
+// --- INTERFACES DE MODELO ---
+interface ServicioParticular { nombre: string; fecha: string; estado: 'Activo' | 'Terminado'; }
+interface Beneficiario { nombreCompleto: string; tipoDocumento: string; documento: string; edad: number; genero: string; telefono?: string; parentesco: string; }
+interface Contacto { idUnico: string; nombreCompleto: string; rol: 'titular' | 'beneficiario'; tipoDocumento: string; documento: string; telefono: string; whatsapp: string; email: string; ciudad: string; pais: string; canalOrigen: string; campana: string; estadoLead: string; ultimoContacto: string; proximoContacto: string; cantidadLlamadas: number; cantidadEmails: number; notes?: string; edad: number; genero: string; serviciosHistoricos: ServicioParticular[]; beneficiariosAsociados?: Beneficiario[]; }
+
+// --- FILTROS DE BÚSQUEDA ---
+const busqueda = ref<string>('')
+const filtroRol = ref<string>('todos')
+const filtroEstado = ref<string>('todos')
+const filtroOrigen = ref<string>('todos')
+const filtroCampana = ref<string>('todos')
+const filtroEdad = ref<string>('todos')
+const busquedaCriterioServicio = ref<string>('')
+
+const contactosFiltrados = shallowRef<Contacto[]>([])
+const contactoSeleccionado = ref<Contacto | null>(null)
+
+const calcularTotalMiembros = (c: Contacto): number => {
+  return 1 + (c.beneficiariosAsociados?.length || 0);
+}
+
+const capturarYVincularBeneficiario = (nuevoBeneficiario: Beneficiario) => {
+  if (!contactoSeleccionado.value) return;
+  if (!contactoSeleccionado.value.beneficiariosAsociados) {
+    contactoSeleccionado.value.beneficiariosAsociados = [];
+  }
+  if (calcularTotalMiembros(contactoSeleccionado.value) < 5) {
+    contactoSeleccionado.value.beneficiariosAsociados.push(nuevoBeneficiario);
+  }
+}
+
+const guardarNotaGestion = () => {
+  if (contactoSeleccionado.value) {
+    alert(`Gestión guardada exitosamente en el Plan Liga para ${contactoSeleccionado.value.nombreCompleto}`);
+  }
+}
+
+const serviciosHistoricosFiltrados = computed(() => {
+  if (!contactoSeleccionado.value) return []
+  const criterio = busquedaCriterioServicio.value.trim().toLowerCase()
+  if (!criterio) return contactoSeleccionado.value.serviciosHistoricos
+  return contactoSeleccionado.value.serviciosHistoricos.filter(serv => 
+    serv.nombre.toLowerCase().includes(criterio) || serv.fecha.includes(criterio)
+  )
+})
+
+const cargarData = () => {
+  const mock: Contacto[] = [
+    {
+      idUnico: "PL-2410",
+      nombreCompleto: "Carlos Mendoza",
+      rol: "titular",
+      tipoDocumento: "CC",
+      documento: "10293844",
+      telefono: "300-555-0192",
+      whatsapp: "+57 300 5550192",
+      email: "carlos.mendoza@constructora.com",
+      ciudad: "Pereira",
+      pais: "Colombia",
+      canalOrigen: "Facebook Ads",
+      campana: "Estética Mayo",
+      estadoLead: "Interesado",
+      ultimoContacto: "2026-05-19",
+      proximoContacto: "2026-05-24",
+      cantidadLlamadas: 4,
+      cantidadEmails: 12,
+      notes: "Interesado en revisión corporativa para el núcleo familiar.",
+      edad: 35,
+      genero: "Masculino",
+      serviciosHistoricos: [
+        { nombre: "Profilaxis de Entrada", fecha: "2026-03-15", estado: "Terminado" },
+        { nombre: "Ortodoncia de Avanzada", fecha: "2026-05-10", estado: "Activo" }
+      ],
+      beneficiariosAsociados: [
+        { nombreCompleto: "Laura Mendoza", tipoDocumento: "TI", documento: "110293", edad: 12, genero: "Femenino", parentesco: "Hijo(a)" }
+      ]
+    }
+  ]
+
+  contactosFiltrados.value = mock.filter(c => {
+    const coincideBusqueda = c.nombreCompleto.toLowerCase().includes(busqueda.value.toLowerCase()) || c.documento.includes(busqueda.value);
+    const coincideRol = filtroRol.value === 'todos' || c.rol === filtroRol.value;
+    const coincideEstado = filtroEstado.value === 'todos' || c.estadoLead === filtroEstado.value;
+    return coincideBusqueda && coincideRol && coincideEstado;
+  });
+}
+
+const seleccionarContacto = (contacto: Contacto) => {
+  contactoSeleccionado.value = contacto;
+  modoVista.value = 'particular'; 
+}
+
+const activarModoParticular = () => {
+  if (contactoSeleccionado.value) modoVista.value = 'particular';
+}
+
+watch([busqueda, filtroRol, filtroEstado], () => { cargarData() })
+cargarData()
+</script>
+
+
 <template>
-  <div class="min-h-screen bg-slate-50 font-sans flex flex-col">
-    
-    <header class="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center shadow-sm">
-      <div>
-        <h1 class="text-xl font-bold text-slate-900 tracking-tight">CRM MERCADEO</h1>
-        <p class="text-xs font-semibold text-blue-600 uppercase tracking-wider">Módulo: Gestión de Contactos</p>
+  <div class="min-h-screen bg-slate-50 font-sans flex flex-col text-slate-800 antialiased w-full overflow-hidden select-none">
+    <header class="bg-gradient-to-r from-blue-700 via-blue-800 to-blue-950 text-white h-14 px-5 flex justify-between items-center shadow-md shrink-0 z-30 border-b border-blue-900/40">
+      <div class="flex items-center gap-4">
+        <div class="flex items-center h-9">
+          <img 
+            src="/logo-liga-50.png" 
+            alt="Fundación La Liga" 
+            class="h-full w-auto object-contain brightness-0 invert select-none pointer-events-none"
+          />
+        </div>
+        <div class="h-6 w-px bg-blue-600/60"></div>
+        <div>
+          <span class="text-[9px] text-blue-200 block font-bold uppercase tracking-widest leading-none">Plataforma Institucional</span>
+          <h1 class="text-xs font-black tracking-wider text-white uppercase mt-0.5">CRM Mercadeo</h1>
+        </div>
+      </div>
+      
+      <div class="flex items-center gap-4 text-xs font-semibold">
+        <div class="h-8 w-px bg-blue-600/60"></div>
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center font-black text-white text-xs shadow-inner">
+            PL
+          </div>
+          <button @click="$emit('logout')" class="text-[10px] uppercase font-black tracking-wider text-blue-200 hover:text-pink-300 transition-colors cursor-pointer px-2 py-1 rounded hover:bg-white/5">
+            Salir
+          </button>
+        </div>
       </div>
     </header>
 
-    <div class="bg-white m-6 mb-0 p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col gap-4">
+    <div class="flex-1 flex p-3 gap-3 w-full min-h-0 relative overflow-hidden">
       
-      <div class="flex flex-wrap gap-4 items-center justify-between">
-        
-        <div class="flex-1 min-w-[320px]">
-          <label class="text-[11px] font-bold text-slate-700 uppercase block mb-1.5 tracking-wide">
-            Buscar Prospecto
-          </label>
-          <input 
-            v-model="busqueda" 
-            type="text" 
-            placeholder="Ingrese Cédula, Nombre completo o Teléfono..." 
-            class="w-full border-2 border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-blue-600 bg-white font-medium text-slate-800 placeholder-slate-400 shadow-sm transition-colors"
-          />
+      <section 
+        :class="[
+          'bg-white rounded-xl border border-slate-200/80 flex flex-col min-h-0 shadow-xs transition-all duration-300 relative shrink-0',
+          panelIzquierdoVisible ? 'w-80 opacity-100' : 'w-0 opacity-0 pointer-events-none border-none'
+        ]"
+      >
+        <div class="px-4 py-3 bg-slate-50 border-b border-slate-200 flex justify-between items-center shrink-0 rounded-t-xl">
+          <span class="text-[10px] font-black uppercase text-slate-500 tracking-widest">Bandeja de Inteligencia</span>
+          <span class="text-[10px] bg-blue-700 text-white font-mono px-2 py-0.5 rounded-md font-black shadow-xs">{{ contactosFiltrados.length }}</span>
         </div>
 
-        <div>
-          <label class="text-[11px] font-bold text-slate-600 uppercase block mb-1.5 tracking-wide">Tipo de Contacto</label>
-          <div class="flex gap-1 bg-slate-100 p-1 rounded-lg border border-slate-200">
-            <button @click="filtroRol = 'todos'" :class="['btn-filtro-rol', filtroRol === 'todos' ? 'activo' : '']">Todos</button>
-            <button @click="filtroRol = 'titular'" :class="['btn-filtro-rol', filtroRol === 'titular' ? 'activo' : '']">Titulares</button>
-            <button @click="filtroRol = 'beneficiario'" :class="['btn-filtro-rol', filtroRol === 'beneficiario' ? 'activo' : '']">Beneficiarios</button>
+        <div class="p-3 bg-white border-b border-slate-100 space-y-3 shrink-0 shadow-2xs">
+          <div class="relative">
+            <input 
+              v-model="busqueda" 
+              type="text" 
+              placeholder="Buscar Cédula, Nombre o Teléfono..." 
+              class="w-full bg-slate-50 text-slate-900 placeholder-slate-400 rounded-lg border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:bg-white focus:ring-1 focus:ring-blue-600 focus:border-blue-600 transition-all shadow-inner" 
+            />
+          </div>
+
+          <div>
+            <label class="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-1">Tipo de Contacto</label>
+            <div class="grid grid-cols-3 gap-1 bg-slate-100 p-1 rounded-lg border border-slate-200 text-xs font-bold text-center">
+              <button @click="filtroRol = 'todos'" :class="['py-1 rounded-md cursor-pointer transition-all', filtroRol === 'todos' ? 'bg-white text-blue-800 shadow-xs font-black' : 'text-slate-400 hover:text-slate-600']">Todos</button>
+              <button @click="filtroRol = 'titular'" :class="['py-1 rounded-md cursor-pointer transition-all', filtroRol === 'titular' ? 'bg-white text-blue-800 shadow-xs font-black' : 'text-slate-400 hover:text-slate-600']">Titulares</button>
+              <button @click="filtroRol = 'beneficiario'" :class="['py-1 rounded-md cursor-pointer transition-all', filtroRol === 'beneficiario' ? 'bg-white text-blue-800 shadow-xs font-black' : 'text-slate-400 hover:text-slate-600']">Benefic.</button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 text-xs pt-1">
+            <div class="space-y-0.5">
+              <label class="text-[8px] font-black text-slate-400 uppercase tracking-wider block">Estado Comercial</label>
+              <select v-model="filtroEstado" class="w-full bg-slate-50 border border-slate-200 rounded-md p-1.5 font-semibold text-slate-700 outline-none focus:bg-white focus:ring-1 focus:ring-blue-600 transition-all">
+                <option value="todos">Todos</option>
+                <option value="Prospecto">Prospecto</option>
+                <option value="Interesado">Interesado</option>
+                <option value="Cita Agendada">Cita Agendada</option>
+                <option value="Cliente Cerrado">Cliente Cerrado</option>
+              </select>
+            </div>
+            <div class="space-y-0.5">
+              <label class="text-[8px] font-black text-slate-400 uppercase tracking-wider block">Canal Origen</label>
+              <select v-model="filtroOrigen" class="w-full bg-slate-50 border border-slate-200 rounded-md p-1.5 font-semibold text-slate-700 outline-none focus:bg-white focus:ring-1 focus:ring-blue-600 transition-all">
+                <option value="todos">Todos</option>
+                <option value="Facebook Ads">Facebook Ads</option>
+                <option value="Google Ads">Google Ads</option>
+                <option value="WhatsApp Directo">WhatsApp Directo</option>
+              </select>
+            </div>
+            <div class="space-y-0.5">
+              <label class="text-[8px] font-black text-slate-400 uppercase tracking-wider block">Campaña Activa</label>
+              <select v-model="filtroCampana" class="w-full bg-slate-50 border border-slate-200 rounded-md p-1.5 font-semibold text-slate-700 outline-none focus:bg-white focus:ring-1 focus:ring-blue-600 transition-all">
+                <option value="todos">Todas</option>
+                <option value="Estética Mayo">Estética Mayo</option>
+                <option value="Ortodoncia">Ortodoncia</option>
+              </select>
+            </div>
+            <div class="space-y-0.5">
+              <label class="text-[8px] font-black text-slate-400 uppercase tracking-wider block">Segmento Edad</label>
+              <select v-model="filtroEdad" class="w-full bg-slate-50 border border-slate-200 rounded-md p-1.5 font-semibold text-slate-700 outline-none focus:bg-white focus:ring-1 focus:ring-blue-600 transition-all">
+                <option value="todos">Cualquiera</option>
+                <option value="joven">Jóvenes (&lt; 25)</option>
+                <option value="adulto">Adultos (25-50)</option>
+              </select>
+            </div>
           </div>
         </div>
-      </div>
 
-      <hr class="border-slate-100" />
-
-      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 text-xs">
-        
-        <div class="flex flex-col gap-1">
-          <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Estado Comercial</label>
-          <select v-model="filtroEstado" class="bg-slate-50 border border-slate-200 rounded-lg p-2 font-medium text-slate-700 shadow-sm focus:outline-none focus:border-blue-500 cursor-pointer">
-            <option value="todos">Todos los Estados</option>
-            <option value="Prospecto">Prospecto</option>
-            <option value="Interesado">Interesado</option>
-            <option value="Cita Agendada">Cita Agendada</option>
-            <option value="Cliente Cerrado">Cliente Cerrado</option>
-          </select>
-        </div>
-
-        <div class="flex flex-col gap-1">
-          <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Canal de Origen</label>
-          <select v-model="filtroOrigen" class="bg-slate-50 border border-slate-200 rounded-lg p-2 font-medium text-slate-700 shadow-sm focus:outline-none focus:border-blue-500 cursor-pointer">
-            <option value="todos">Todos los Orígenes</option>
-            <option value="Facebook Ads">Facebook Ads</option>
-            <option value="Google Ads">Google Ads</option>
-            <option value="WhatsApp Directo">WhatsApp Directo</option>
-            <option value="Referido">Referidos</option>
-          </select>
-        </div>
-
-        <div class="flex flex-col gap-1">
-          <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Campaña</label>
-          <select v-model="filtroCampana" class="bg-slate-50 border border-slate-200 rounded-lg p-2 font-medium text-slate-700 shadow-sm focus:outline-none focus:border-blue-500 cursor-pointer">
-            <option value="todos">Todas las Campañas</option>
-            <option value="Estética Mayo">Estética Mayo</option>
-            <option value="Ortodoncia">Ortodoncia</option>
-            <option value="Diseño de Sonrisa">Diseño de Sonrisa</option>
-          </select>
-        </div>
-
-        <div class="flex flex-col gap-1">
-          <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Género</label>
-          <select v-model="filtroSexo" class="bg-slate-50 border border-slate-200 rounded-lg p-2 font-medium text-slate-700 shadow-sm focus:outline-none focus:border-blue-500 cursor-pointer">
-            <option value="todos">Todos</option>
-            <option value="m">Masculino</option>
-            <option value="f">Femenino</option>
-          </select>
-        </div>
-
-        <div class="flex flex-col gap-1">
-          <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Edad Segmento</label>
-          <select v-model="filtroEdad" class="bg-slate-50 border border-slate-200 rounded-lg p-2 font-medium text-slate-700 shadow-sm focus:outline-none focus:border-blue-500 cursor-pointer">
-            <option value="todos">Cualquiera</option>
-            <option value="joven">Jóvenes (&lt; 25)</option>
-            <option value="adulto">Adultos (25 - 50)</option>
-            <option value="mayor">Mayores (&gt; 50)</option>
-          </select>
-        </div>
-
-        <div class="flex flex-col gap-1">
-          <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Registrados Desde</label>
-          <input 
-            v-model="filtroFechaDesde" 
-            type="date" 
-            class="bg-slate-50 border border-slate-200 rounded-lg p-1.5 font-medium text-slate-700 shadow-sm focus:outline-none focus:border-blue-500"
-          />
-        </div>
-      </div>
-
-      <div class="flex justify-end gap-2 pt-1">
-        <button 
-          @click="limpiarFiltros" 
-          class="px-4 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-lg transition-colors border border-slate-200"
-        >
-          Limpiar Filtros
-        </button>
-      </div>
-    </div>
-
-    <div class="flex-1 grid grid-cols-1 xl:grid-cols-3 gap-6 p-6 overflow-hidden">
-      
-      <section class="xl:col-span-2 flex flex-col gap-4">
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex-1 flex flex-col justify-between">
-          <table class="w-full text-left border-collapse">
-            <thead>
-              <tr class="bg-slate-50 text-slate-500 text-xs font-bold uppercase tracking-wider border-b border-slate-200">
-                <th class="p-4">Contacto / Campaña</th>
-                <th class="p-4">Tipo</th>
-                <th class="p-4">Teléfono</th>
-                <th class="p-4">Demografía</th>
-                <th class="p-4">Fecha Ingreso</th>
-                <th class="p-4">Estado Actual</th>
-                <th class="p-4 text-right">Acciones</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-100 text-sm text-slate-600">
-              <tr 
-                v-for="contacto in contactosFiltrados" 
-                :key="contacto.id" 
-                :class="['fila-contacto', contactoSeleccionado?.id === contacto.id ? 'seleccionada' : '']"
-                @click="seleccionarContacto(contacto)"
-              >
-                <td class="p-4">
-                  <div class="font-bold text-slate-800 text-sm">{{ contacto.nombre }}</div>
-                  <div class="text-xs font-semibold text-blue-600">Camp: {{ contacto.campana }}</div>
-                </td>
-                <td class="p-4">
-                  <span :class="['badge-rol', contacto.rol]">
-                    {{ contacto.rol }}
-                  </span>
-                </td>
-                <td class="p-4 text-xs font-mono font-semibold text-slate-700">
-                  {{ contacto.telefono }}
-                </td>
-                <td class="p-4 text-xs">
-                  <div class="font-semibold text-slate-700">{{ contacto.edad }} años</div>
-                  <div class="text-[10px] text-slate-400 font-bold uppercase">{{ contacto.sexo === 'm' ? 'Masculino' : 'Femenino' }}</div>
-                </td>
-                <td class="p-4 text-xs text-slate-500 font-medium">
-                  {{ contacto.fechaIngreso }}
-                </td>
-                <td class="p-4">
-                  <span :class="['badge-estado', contacto.estado.replace(' ', '-')]">
-                    {{ contacto.estado }}
-                  </span>
-                </td>
-                <td class="p-4 text-right text-blue-600 font-bold text-xs hover:underline">Gestionar</td>
-              </tr>
-              <tr v-if="contactosFiltrados.length === 0">
-                <td colspan="7" class="p-8 text-center text-slate-400 italic text-sm">
-                  Ningún prospecto coincide con la segmentación seleccionada.
-                </td>
-              </tr>
-            </tbody>
-          </table>
-
-          <div class="bg-slate-50 p-4 border-t border-slate-200 flex justify-between items-center text-xs">
-            <span class="text-slate-500 font-medium">Página {{ paginaActual }} de {{ totalPaginas }}</span>
-            <div class="flex gap-2">
-              <button @click="cambiarPagina(paginaActual - 1)" :disabled="paginaActual === 1" class="px-3 py-1.5 bg-white border rounded shadow-sm disabled:opacity-50 font-semibold">Anterior</button>
-              <button @click="cambiarPagina(paginaActual + 1)" :disabled="paginaActual === totalPaginas" class="px-3 py-1.5 bg-white border rounded shadow-sm disabled:opacity-50 font-semibold">Siguiente</button>
+        <div class="flex-1 overflow-y-auto divide-y divide-slate-100 custom-scroll">
+          <div 
+            v-for="contacto in contactosFiltrados" 
+            :key="contacto.idUnico" 
+            @click="seleccionarContacto(contacto)"
+            :class="['p-3.5 cursor-pointer transition-all border-l-4 relative', (modoVista === 'particular' && contactoSeleccionado?.idUnico === contacto.idUnico) ? 'bg-blue-50/50 border-pink-500' : 'border-transparent hover:bg-slate-50/80']"
+          >
+            <div class="flex justify-between items-start gap-2">
+              <div class="min-w-0">
+                <h4 class="font-black text-xs text-slate-900 truncate tracking-tight">{{ contacto.nombreCompleto }}</h4>
+                <p class="text-[10px] text-slate-400 mt-1 font-medium tracking-wide">{{ contacto.campana }}</p>
+              </div>
+              <span class="px-2 py-0.5 bg-slate-100 text-slate-600 border border-slate-200 rounded text-[9px] font-black uppercase shrink-0 tracking-wider">
+                {{ contacto.rol }}
+              </span>
             </div>
           </div>
         </div>
       </section>
 
-      <aside class="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col overflow-hidden">
-        <div v-if="contactoSeleccionado" class="flex flex-col h-full">
-          <div class="p-4 bg-slate-900 text-white">
-            <span class="text-[10px] bg-blue-600 text-white font-bold px-2 py-0.5 rounded uppercase tracking-wider">{{ contactoSeleccionado.origen }}</span>
-            <h2 class="text-base font-bold mt-1.5 tracking-tight">{{ contactoSeleccionado.nombre }}</h2>
+      <button @click="panelIzquierdoVisible = !panelIzquierdoVisible" class="bg-slate-200 text-slate-600 hover:bg-blue-700 hover:text-white w-4 h-12 self-center flex items-center justify-center rounded-r-md shadow-xs cursor-pointer z-40 shrink-0 transition-all border border-l-0 border-slate-300 -ml-3">
+        <span class="text-[8px] font-black font-mono">{{ panelIzquierdoVisible ? '◀' : '▶' }}</span>
+      </button>
+
+      <section class="flex-1 flex flex-col bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden min-h-0">
+        
+        <div class="flex border-b border-slate-200 bg-slate-50 px-4 pt-2.5 shrink-0 gap-1.5">
+          <button 
+            @click="modoVista = 'general'" 
+            :class="['px-4 py-2 text-[11px] font-black uppercase tracking-wider transition-all border-t border-x rounded-t-lg cursor-pointer', modoVista === 'general' ? 'border-slate-200 border-b-white bg-white text-blue-900' : 'border-transparent text-slate-400 hover:text-slate-600']"
+          >
+            Módulo General (Global)
+          </button>
+          <button 
+            @click="activarModoParticular" 
+            :disabled="!contactoSeleccionado"
+            :class="['px-4 py-2 text-[11px] font-black uppercase tracking-wider transition-all border-t border-x rounded-t-lg flex items-center gap-1.5', !contactoSeleccionado ? 'opacity-30 cursor-not-allowed text-slate-300' : 'cursor-pointer', modoVista === 'particular' ? 'border-slate-200 border-b-white bg-white text-pink-600' : 'border-transparent text-slate-400 hover:text-pink-500']"
+          >
+            Ficha Particular: {{ contactoSeleccionado ? contactoSeleccionado.nombreCompleto : 'Ninguno Seleccionado' }}
+          </button>
+        </div>
+
+        <div v-if="modoVista === 'general'" class="flex-1 flex flex-col min-h-0 overflow-y-auto p-5 bg-white">
+          
+          <div class="flex border-b border-slate-200 bg-slate-50/50 p-1 rounded-lg shrink-0 gap-1 max-w-md">
+            <button @click="subVistaActiva = 'automatizaciones'" :class="['flex-1 px-4 py-1.5 text-[10px] font-black uppercase tracking-wider transition-all rounded-md cursor-pointer text-center', subVistaActiva === 'automatizaciones' ? 'bg-white text-blue-800 shadow-2xs border border-slate-200/40' : 'text-slate-400 hover:text-slate-600']">
+              Workflows & Secuencias
+            </button>
+            <button @click="subVistaActiva = 'servicios'" :class="['flex-1 px-4 py-1.5 text-[10px] font-black uppercase tracking-wider transition-all rounded-md cursor-pointer text-center', subVistaActiva === 'servicios' ? 'bg-white text-blue-800 shadow-2xs border border-slate-200/40' : 'text-slate-400 hover:text-slate-600']">
+              Servicios Usados (Canal)
+            </button>
           </div>
 
-          <div class="flex border-b border-slate-200 bg-slate-50">
-            <button @click="subVistaActiva = 'servicios'" :class="['tab-nav', subVistaActiva === 'servicios' ? 'activa-servicios' : '']">Servicios</button>
-            <button @click="subVistaActiva = 'seguimiento'" :class="['tab-nav', subVistaActiva === 'seguimiento' ? 'activa-seguimiento' : '']">Historial Bitácora</button>
+          <div class="mt-4 flex-1 min-h-0">
+            <div v-if="subVistaActiva === 'automatizaciones'" class="space-y-4 animate-fadeIn">
+              <div class="p-5 bg-slate-50 rounded-xl border border-slate-200/60 max-w-2xl">
+                <span class="font-black text-slate-900 text-xs block tracking-wide uppercase text-blue-900">Secuencias Automatizadas</span>
+                <p class="text-xs text-slate-500 mt-1.5 leading-relaxed font-medium">Flujos estructurados del sistema según el estado del embudo comercial (Plan Liga Automation).</p>
+                
+                <div class="mt-4 flex flex-wrap items-center gap-2">
+                  <span class="px-2.5 py-1 bg-pink-50 text-pink-700 border border-pink-200 text-[10px] font-bold rounded-md uppercase tracking-wider">
+                    Trigger: Formulario Web
+                  </span>
+                  <span class="text-slate-400 text-xs font-bold">➔</span>
+                  <span class="px-2.5 py-1 bg-blue-50 text-blue-700 border border-blue-200 text-[10px] font-bold rounded-md uppercase tracking-wider">
+                    Acción: Notificación WhatsApp
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div v-if="subVistaActiva === 'servicios'" class="space-y-4 animate-fadeIn max-w-3xl">
+              <div class="border border-slate-200 rounded-xl overflow-hidden shadow-2xs bg-white">
+                <table class="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr class="bg-slate-50 text-slate-500 font-black uppercase text-[9px] border-b border-slate-200 tracking-wider">
+                      <th class="p-3.5 pl-5">Línea de Servicio Institucional</th>
+                      <th class="p-3.5 pr-5 text-right">Incidencia Global</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-100 text-slate-700 font-semibold">
+                    <tr class="hover:bg-slate-50/60 transition-colors">
+                      <td class="p-3.5 pl-5 font-bold text-slate-900">Diseño de Sonrisa Mockup</td>
+                      <td class="p-3.5 pr-5 text-right"><span class="px-2.5 py-0.5 bg-pink-50 text-pink-700 border border-pink-200 rounded-full text-[9px] font-black uppercase tracking-wider">Alta Demanda</span></td>
+                    </tr>
+                    <tr class="hover:bg-slate-50/60 transition-colors">
+                      <td class="p-3.5 pl-5 font-bold text-slate-900">Profilaxis de Entrada</td>
+                      <td class="p-3.5 pr-5 text-right"><span class="px-2.5 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-full text-[9px] font-black uppercase tracking-wider">Frecuente</span></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div v-else-if="modoVista === 'particular' && contactoSeleccionado" class="flex-1 flex flex-col min-h-0 bg-white p-5 overflow-y-auto custom-scroll">
+          <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
+            
+            <div class="xl:col-span-2 space-y-5">
+              <div class="pb-3 border-b border-slate-200">
+                <span class="text-[9px] bg-pink-50 text-pink-700 border border-pink-200 font-black px-3 py-1 rounded-md uppercase tracking-widest inline-block shadow-2xs">
+                  {{ contactoSeleccionado.estadoLead }}
+                </span>
+                <h2 class="text-xl font-black text-slate-900 tracking-tight mt-2.5">
+                  {{ contactoSeleccionado.nombreCompleto }}
+                </h2>
+                <p class="text-[10px] font-mono text-slate-400 mt-1 tracking-wider uppercase font-bold">Código Único: {{ contactoSeleccionado.idUnico }}</p>
+              </div>
+
+              <div>
+                <h3 class="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2.5 pb-1 border-b border-slate-100">Canales de Contactabilidad</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs font-semibold">
+                  <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/60">
+                    <span class="text-slate-400 font-black block text-[9px] uppercase tracking-wider">Línea Móvil Directa</span>
+                    <strong class="text-slate-800 font-mono text-xs block mt-1 font-bold">{{ contactoSeleccionado.telefono }}</strong>
+                  </div>
+                  <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/60">
+                    <span class="text-slate-400 font-black block text-[9px] uppercase tracking-wider">Enlace WhatsApp corporativo</span>
+                    <strong class="text-slate-800 font-mono text-xs block mt-1 font-bold">{{ contactoSeleccionado.whatsapp }}</strong>
+                  </div>
+                  <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/60 sm:col-span-2">
+                    <span class="text-slate-400 font-black block text-[9px] uppercase tracking-wider">Correo Electrónico Validado</span>
+                    <strong class="text-slate-800 text-xs block mt-1 truncate font-bold">{{ contactoSeleccionado.email }}</strong>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h3 class="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2.5 pb-1 border-b border-slate-100">Perfil Demográfico & Legal</h3>
+                <div class="grid grid-cols-2 gap-3 text-xs font-semibold">
+                  <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200/40">
+                    <span class="text-slate-400 block text-[9px] uppercase tracking-wider">Sexo / Género</span>
+                    <strong class="text-slate-800 block mt-0.5 font-bold">{{ contactoSeleccionado.genero }}</strong>
+                  </div>
+                  <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200/40">
+                    <span class="text-slate-400 block text-[9px] uppercase tracking-wider">Edad Cronológica</span>
+                    <strong class="text-slate-800 block mt-0.5 font-mono font-bold">{{ contactoSeleccionado.edad }} años</strong>
+                  </div>
+                  <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200/40">
+                    <span class="text-slate-400 block text-[9px] uppercase tracking-wider">Identificación Legal</span>
+                    <strong class="text-slate-800 block mt-0.5 font-mono font-bold">{{ contactoSeleccionado.tipoDocumento }} - {{ contactoSeleccionado.documento }}</strong>
+                  </div>
+                  <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200/40">
+                    <span class="text-slate-400 block text-[9px] uppercase tracking-wider">Ubicación Radicada</span>
+                    <strong class="text-slate-800 block mt-0.5 font-bold">{{ contactoSeleccionado.ciudad }}, {{ contactoSeleccionado.pais }}</strong>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h3 class="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2.5 pb-1 border-b border-slate-100">Origen & Atribución Comercial</h3>
+                <div class="grid grid-cols-2 gap-3 text-xs font-semibold">
+                  <div class="border border-slate-200 p-3 rounded-xl bg-slate-50/50">
+                    <span class="text-slate-400 block text-[9px] font-black uppercase tracking-wider">Campaña de Entrada</span>
+                    <strong class="text-slate-800 block mt-1 font-bold">{{ contactoSeleccionado.campana }}</strong>
+                  </div>
+                  <div class="border border-slate-200 p-3 rounded-xl bg-slate-50/50">
+                    <span class="text-slate-400 block text-[9px] font-black uppercase tracking-wider">Medio / Canal Origen</span>
+                    <strong class="text-slate-800 block mt-1 font-bold">{{ contactoSeleccionado.canalOrigen }}</strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="border-t xl:border-t-0 xl:border-l border-slate-200 pt-4 xl:pt-0 xl:pl-5 flex flex-col">
+              <h3 class="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-3 pb-1 border-b border-slate-100">
+                Portafolio de Servicios
+              </h3>
+              
+              <div class="mb-3">
+                <input 
+                  type="text" 
+                  v-model="busquedaCriterioServicio" 
+                  placeholder="Filtrar por servicio o fecha..." 
+                  class="w-full bg-slate-50 text-slate-800 placeholder-slate-400 rounded-lg border border-slate-200 px-3 py-1.5 text-xs focus:outline-none focus:bg-white focus:ring-1 focus:ring-blue-600 transition-all shadow-inner" 
+                />
+              </div>
+              
+              <div class="overflow-y-auto max-h-[300px] space-y-2 pr-1 custom-scroll font-semibold">
+                <div v-for="(serv, idx) in serviciosHistoricosFiltrados" :key="idx" class="p-3 bg-white border border-slate-200/80 rounded-xl flex justify-between items-center text-xs shadow-2xs">
+                  <div class="min-w-0">
+                    <strong class="text-slate-900 block font-bold truncate tracking-tight">{{ serv.nombre }}</strong>
+                    <span class="text-[9px] text-slate-400 font-mono block mt-0.5">Fecha: {{ serv.fecha }}</span>
+                  </div>
+                  <span :class="['text-[8px] px-2 py-0.5 rounded-md font-black uppercase border shrink-0 tracking-wider', serv.estado === 'Activo' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-50 text-slate-500 border-slate-200']">
+                    {{ serv.estado }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <button @click="panelDerechoVisible = !panelDerechoVisible" class="bg-slate-200 text-slate-600 hover:bg-blue-700 hover:text-white w-4 h-12 self-center flex items-center justify-center rounded-l-md shadow-xs cursor-pointer z-40 shrink-0 transition-all border border-r-0 border-slate-300 -ml-3">
+        <span class="text-[8px] font-black font-mono">{{ panelDerechoVisible ? '▶' : '◀' }}</span>
+      </button>
+
+      <section 
+        :class="[
+          'bg-white rounded-xl border border-slate-200/80 flex flex-col min-h-0 shadow-xs transition-all duration-300 relative shrink-0',
+          panelDerechoVisible ? 'w-72 opacity-100' : 'w-0 opacity-0 pointer-events-none border-none'
+        ]"
+      >
+        <div class="p-3 bg-slate-50 border-b border-slate-200 shrink-0 rounded-t-xl">
+          <h3 class="text-[10px] font-black uppercase tracking-widest text-slate-500">Gestión de Agenda & Bitácora</h3>
+        </div>
+        
+        <div v-if="contactoSeleccionado" class="p-3 space-y-4 text-xs overflow-y-auto flex-1 custom-scroll font-semibold">
+          
+          <div class="grid grid-cols-2 gap-2 text-center shrink-0">
+            <div class="bg-slate-50 border border-slate-200 p-2.5 rounded-xl">
+              <span class="block font-black text-slate-900 text-base font-mono">{{ contactoSeleccionado.cantidadLlamadas }}</span>
+              <span class="text-[8px] text-slate-400 uppercase font-black tracking-wider block mt-0.5">Llamadas Realizadas</span>
+            </div>
+            <div class="bg-slate-50 border border-slate-200 p-2.5 rounded-xl">
+              <span class="block font-black text-slate-900 text-base font-mono">{{ contactoSeleccionado.cantidadEmails }}</span>
+              <span class="text-[8px] text-slate-400 uppercase font-black tracking-wider block mt-0.5">Correos Enviados</span>
+            </div>
           </div>
 
-          <div class="p-4 flex-1 overflow-y-auto">
-            <SubVistaServicios 
-              v-if="subVistaActiva === 'servicios'" 
-              :contacto="contactoSeleccionado" 
-            />
-            <SubVistaSeguimiento 
-              v-else-if="subVistaActiva === 'seguimiento'" 
-              :contacto="contactoSeleccionado"
-              @nuevaNota="procesarNuevaNota"
-            />
+          <div v-if="contactoSeleccionado.rol === 'titular'" class="border-t border-slate-100 pt-3 space-y-2.5">
+            <div class="flex justify-between items-center">
+              <label class="text-[9px] font-black text-blue-900 uppercase tracking-wider block">Núcleo Familiar Vinculado</label>
+              <span class="text-[9px] font-mono bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-md font-black text-slate-600">
+                {{ calcularTotalMiembros(contactoSeleccionado) }} / 5 Cupos
+              </span>
+            </div>
+
+            <button 
+              v-if="calcularTotalMiembros(contactoSeleccionado) < 5"
+              @click="isModalBeneficiarioOpen = true"
+              class="w-full bg-blue-700 hover:bg-blue-800 text-white font-black text-[10px] py-2 px-3 uppercase tracking-widest rounded-lg cursor-pointer transition-colors text-center shadow-xs border border-blue-800"
+            >
+              Vincular Beneficiario
+            </button>
+            <div v-else class="text-[9px] text-slate-400 italic text-center p-2.5 bg-slate-50 rounded-xl border border-dashed border-slate-200 font-medium">
+              Límite familiar alcanzado (Máximo 5 miembros).
+            </div>
+
+            <div v-if="contactoSeleccionado.beneficiariosAsociados?.length" class="space-y-1.5">
+              <div v-for="(b, idx) in contactoSeleccionado.beneficiariosAsociados" :key="idx" class="bg-slate-50/60 p-2.5 rounded-xl border border-slate-200/60 flex justify-between items-center text-[11px] font-semibold">
+                <div class="truncate pr-1">
+                  <span class="font-bold text-slate-900 block truncate tracking-tight">{{ b.nombreCompleto }}</span>
+                  <span class="text-[9px] text-slate-400 font-medium block mt-0.5">Edad: {{ b.edad }} años · {{ b.parentesco }}</span>
+                </div>
+                <span class="text-[8px] bg-pink-50 text-pink-700 border border-pink-200 px-1.5 py-0.5 rounded-md font-black uppercase shrink-0 tracking-wider">BENEF.</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="border-t border-slate-100 pt-3 space-y-3.5">
+            <div>
+              <label class="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-1">Agendar Próximo Seguimiento</label>
+              <input type="date" v-model="contactoSeleccionado.proximoContacto" class="w-full bg-slate-50 text-slate-800 rounded-lg border border-slate-200 px-3 py-2 text-xs font-mono font-bold focus:outline-none focus:bg-white focus:ring-1 focus:ring-pink-500 transition-all shadow-inner" />
+            </div>
+
+            <div>
+              <label class="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-1">Bitácora / Notas de Evolución</label>
+              <textarea v-model="contactoSeleccionado.notes" rows="4" placeholder="Escribe los detalles de la llamada..." class="w-full bg-slate-50 text-slate-800 placeholder-slate-400 rounded-xl border border-slate-200 p-3 text-xs leading-relaxed font-semibold focus:outline-none focus:bg-white focus:ring-1 focus:ring-pink-500 transition-all resize-none shadow-inner"></textarea>
+            </div>
+
+            <button @click="guardarNotaGestion" class="w-full bg-gradient-to-r from-pink-500 to-pink-600 text-white rounded-xl py-2.5 font-black text-[10px] uppercase tracking-widest shadow-md hover:shadow-pink-100 transition-all cursor-pointer border border-pink-500/20">
+              Guardar Gestión Realizada
+            </button>
           </div>
         </div>
-        <div v-else class="flex-1 flex flex-col items-center justify-center p-6 text-center text-slate-400 bg-slate-50/50">
-          <p class="text-sm font-semibold text-slate-500">Ningún lead seleccionado</p>
-          <p class="text-xs text-slate-400 mt-1 max-w-[220px]">Seleccione un registro de la lista izquierda para auditar sus servicios y llamadas.</p>
+        
+        <div v-else class="flex-1 flex items-center justify-center p-5 text-center text-slate-300 text-[10px] font-black uppercase tracking-widest leading-loose">
+          Seleccione un registro<br>para agendar gestión.
         </div>
-      </aside>
+      </section>
 
     </div>
+
+    <VincularBeneficiario 
+      :is-open="isModalBeneficiarioOpen"
+      :titular-nombre="contactoSeleccionado?.nombreCompleto || ''"
+      :miembros-actuales="contactoSeleccionado ? calcularTotalMiembros(contactoSeleccionado) : 0"
+      @close="isModalBeneficiarioOpen = false"
+      @save="capturarYVincularBeneficiario"
+    />
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, shallowRef, watch } from 'vue'
-import SubVistaServicios from '../components/SubVistaServicios.vue'
-import SubVistaSeguimiento from '../components/SubVistaSeguimiento.vue'
-
-type RolContacto = 'todos' | 'titular' | 'beneficiario'
-type EstadoLead = 'Prospecto' | 'Interesado' | 'Cita Agendada' | 'Cliente Cerrado'
-type SubVista = 'servicios' | 'seguimiento'
-
-interface Contacto {
-  id: number; nombre: string; rol: 'titular' | 'beneficiario'; telefono: string;
-  edad: number; sexo: 'm' | 'f'; origen: string; campana: string;
-  estado: EstadoLead; servicios: string[]; historial: string[];
-  fechaIngreso: string;
-}
-
-const busqueda = ref<string>('')
-const filtroRol = ref<RolContacto>('todos')
-const filtroOrigen = ref<string>('todos')
-const filtroEstado = ref<string>('todos')
-const filtroCampana = ref<string>('todos')
-const filtroSexo = ref<string>('todos')
-const filtroEdad = ref<string>('todos')
-const filtroFechaDesde = ref<string>('')
-
-const paginaActual = ref<number>(1)
-const totalPaginas = ref<number>(3)
-
-const contactosFiltrados = shallowRef<Contacto[]>([])
-const contactoSeleccionado = ref<Contacto | null>(null)
-const subVistaActiva = ref<SubVista>('servicios')
-
-const simularApiBackend = () => {
-  contactosFiltrados.value = [
-    { 
-      id: 10 + paginaActual.value, 
-      nombre: `Carlos Mendoza`, 
-      rol: 'titular', 
-      telefono: '300-555-0192', 
-      edad: 34, 
-      sexo: 'm', 
-      fechaIngreso: '2026-03-15', 
-      origen: 'Facebook Ads', 
-      campana: 'Estética Mayo', 
-      estado: 'Interesado', 
-      servicios: ['Limpieza Avanzada'], 
-      historial: ['Llamar por la tarde. Interesado en promociones vigentes.'] 
-    },
-    { 
-      id: 20 + paginaActual.value, 
-      nombre: `Mariana Gómez`, 
-      rol: 'beneficiario', 
-      telefono: '315-777-4422', 
-      edad: 22, 
-      sexo: 'f', 
-      fechaIngreso: '2026-04-01', 
-      origen: 'Google Ads', 
-      campana: 'Ortodoncia', 
-      estado: 'Prospecto', 
-      servicios: [], 
-      historial: [] 
-    }
-  ]
-}
-
-const limpiarFiltros = () => {
-  busqueda.value = ''
-  filtroRol.value = 'todos'
-  filtroOrigen.value = 'todos'
-  filtroEstado.value = 'todos'
-  filtroCampana.value = 'todos'
-  filtroSexo.value = 'todos'
-  filtroEdad.value = 'todos'
-  filtroFechaDesde.value = ''
-}
-
-let timer: ReturnType<typeof setTimeout>
-watch(busqueda, () => {
-  clearTimeout(timer)
-  timer = setTimeout(() => { paginaActual.value = 1; simularApiBackend() }, 300)
-})
-
-watch([filtroRol, filtroOrigen, filtroEstado, filtroCampana, filtroSexo, filtroEdad, filtroFechaDesde, paginaActual], () => {
-  simularApiBackend()
-})
-
-simularApiBackend()
-
-const seleccionarContacto = (contacto: Contacto) => { contactoSeleccionado.value = contacto }
-const cambiarPagina = (p: number) => { if(p >= 1 && p <= totalPaginas.value) paginaActual.value = p }
-
-const procesarNuevaNota = (nota: string) => {
-  if (contactoSeleccionado.value) {
-    contactoSeleccionado.value.historial.unshift(nota)
-  }
-}
-</script>
-
 <style scoped>
-@reference "../../../style.css";
+.animate-fadeIn { animation: fadeIn 0.15s ease-out forwards; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(1px); } to { opacity: 1; transform: translateY(0); } }
 
-.btn-filtro-rol {
-  @apply px-3 py-1 text-xs font-semibold rounded transition-all text-slate-500;
-}
-.btn-filtro-rol.activo {
-  @apply bg-white text-slate-900 shadow-sm border border-slate-200;
-}
-.fila-contacto {
-  @apply hover:bg-slate-50 transition-colors cursor-pointer text-sm;
-}
-.fila-contacto.seleccionada {
-  @apply bg-blue-50/60 border-l-4 border-blue-600;
-}
-.badge-rol {
-  @apply px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider;
-}
-.badge-rol.titular { @apply bg-emerald-50 text-emerald-700 border border-emerald-200/50; }
-.badge-rol.beneficiario { @apply bg-purple-50 text-purple-700 border border-purple-200/50; }
-
-.badge-estado {
-  @apply px-2 py-0.5 rounded text-[11px] font-semibold tracking-wide;
-}
-.badge-estado.Prospecto { @apply bg-slate-100 text-slate-700; }
-.badge-estado.Interesado { @apply bg-amber-50 text-amber-700 border border-amber-200/40; }
-.badge-estado.Cita-Agendada { @apply bg-blue-50 text-blue-700 border border-blue-200/40; }
-.badge-estado.Cliente-Cerrado { @apply bg-emerald-50 text-emerald-700 border border-emerald-200/40; }
-
-.tab-nav {
-  @apply flex-1 py-3 text-xs font-semibold uppercase border-b-2 tracking-wider transition-all text-slate-400 bg-slate-50/50;
-}
-.activa-servicios { @apply border-blue-600 text-blue-600 bg-white font-bold; }
-.activa-seguimiento { @apply border-blue-600 text-blue-600 bg-white font-bold; }
+.custom-scroll::-webkit-scrollbar { width: 4px; }
+.custom-scroll::-webkit-scrollbar-track { background: #f1f5f9; }
+.custom-scroll::-webkit-scrollbar-thumb { background: #fbcfe8; border-radius: 4px; }
+.custom-scroll::-webkit-scrollbar-thumb:hover { background: #f472b6; }
 </style>
-
