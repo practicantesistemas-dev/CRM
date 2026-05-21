@@ -118,6 +118,10 @@
     </div>
 
   </div>
+
+  <div v-else class="text-slate-400 text-xs">
+  Selecciona un contacto para ver la bitácora
+</div>
 </template>
 
 <script setup lang="ts">

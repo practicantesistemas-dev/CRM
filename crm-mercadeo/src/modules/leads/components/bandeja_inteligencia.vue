@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, computed, onMounted, onUnmounted } from 'vue'
 
-// --- INTERFACES (Exactamente las tuyas) ---
+// --- INTERFACES ---
 interface ServicioParticular { nombre: string; fecha: string; estado: 'Activo' | 'Terminado'; }
 interface Beneficiario { nombreCompleto: string; tipoDocumento: string; documento: string; edad: number; genero: string; telefono?: string; parentesco: string; }
 interface Contacto { idUnico: string; nombreCompleto: string; rol: 'titular' | 'beneficiario'; tipoDocumento: string; documento: string; telefono: string; whatsapp: string; email: string; ciudad: string; pais: string; canalOrigen: string; campana: string; estadoLead: string; ultimoContacto: string; proximoContacto: string; cantidadLlamadas: number; cantidadEmails: number; notes?: string; edad: number; genero: string; serviciosHistoricos: ServicioParticular[]; beneficiariosAsociados?: Beneficiario[]; }
@@ -29,7 +29,52 @@ const emit = defineEmits<{
   (e: 'update:filtroEdad', val: string): void
 }>()
 
-// --- WATCHERS PARA SINCRONIZACIÓN EMIT/PROP ---
+// --- CONTROL DE MENÚS (TELETRANSPORTADOS) ---
+const filtrosAbiertos = ref(false)
+const subMenuActivo = ref<'rol' | 'estado' | 'origen' | 'campana' | 'edad' | null>(null) // Inicializado en null para que empiece limpio
+
+// Posicionamiento de la raíz del menú flotante
+const menuTop = ref(0)
+const menuLeft = ref(0)
+
+// Abre el contenedor principal calculando la posición exacta a la derecha del botón de ajustes
+const alternarMenuPrincipal = (event: MouseEvent) => {
+  filtrosAbiertos.value = !filtrosAbiertos.value
+  if (filtrosAbiertos.value) {
+    subMenuActivo.value = null // Empieza completamente cerrado por defecto hasta que selecciones uno
+    const target = event.currentTarget as HTMLElement
+    if (target) {
+      const rect = target.getBoundingClientRect()
+      menuTop.value = rect.top
+      menuLeft.value = rect.right + 8 
+    }
+  }
+}
+
+// Cierre seguro al hacer clic afuera del menú flotante o de las subopciones
+const clickAfueraDetectado = (e: MouseEvent) => {
+  const target = e.target as HTMLElement
+  if (filtrosAbiertos.value && !target.closest('.btn-ajustes-trigger') && !target.closest('.panel-flotante-root')) {
+    filtrosAbiertos.value = false
+    subMenuActivo.value = null
+  }
+}
+
+onMounted(() => document.addEventListener('click', clickAfueraDetectado))
+onUnmounted(() => document.removeEventListener('click', clickAfueraDetectado))
+
+// Conteo de filtros activos
+const conteoFiltrosActivos = computed(() => {
+  let activos = 0
+  if (filtroRolLocal.value !== 'todos') activos++
+  if (filtroEstadoLocal.value !== 'todos') activos++
+  if (filtroOrigenLocal.value !== 'todos') activos++
+  if (filtroCampanaLocal.value !== 'todos') activos++
+  if (filtroEdadLocal.value !== 'todos') activos++
+  return activos
+})
+
+// --- WATCHERS DE SINCRONIZACIÓN (V-MODEL) ---
 const busquedaLocal = ref(props.busqueda)
 const filtroRolLocal = ref(props.filtroRol)
 const filtroEstadoLocal = ref(props.filtroEstado)
@@ -53,72 +98,123 @@ watch(filtroEdadLocal, (val) => emit('update:filtroEdad', val))
 </script>
 
 <template>
-  <div class="px-4 py-3 bg-slate-50 border-b border-slate-200 flex justify-between items-center shrink-0 rounded-t-xl">
+  <div class="px-4 py-3 bg-slate-50 border-b border-slate-200 flex justify-between items-center shrink-0 rounded-t-xl relative z-10">
     <span class="text-[10px] font-black uppercase text-slate-500 tracking-widest">Bandeja de Inteligencia</span>
     <span class="text-[10px] bg-blue-700 text-white font-mono px-2 py-0.5 rounded-md font-black shadow-xs">
       {{ contactosFiltrados.length }}
     </span>
   </div>
 
-  <div class="p-3 bg-white border-b border-slate-100 space-y-3 shrink-0 shadow-2xs">
-    <div class="relative">
-      <input 
-        v-model="busquedaLocal" 
-        type="text" 
-        placeholder="Buscar Cédula, Nombre o Teléfono..." 
-        class="w-full bg-slate-50 text-slate-900 placeholder-slate-400 rounded-lg border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:bg-white focus:ring-1 focus:ring-blue-600 focus:border-blue-600 transition-all shadow-inner" 
-      />
-    </div>
-
-    <div>
-      <label class="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-1">Tipo de Contacto</label>
-      <div class="grid grid-cols-3 gap-1 bg-slate-100 p-1 rounded-lg border border-slate-200 text-xs font-bold text-center">
-        <button type="button" @click="filtroRolLocal = 'todos'" :class="['py-1 rounded-md cursor-pointer transition-all', filtroRolLocal === 'todos' ? 'bg-white text-blue-800 shadow-xs font-black' : 'text-slate-400 hover:text-slate-600']">Todos</button>
-        <button type="button" @click="filtroRolLocal = 'titular'" :class="['py-1 rounded-md cursor-pointer transition-all', filtroRolLocal === 'titular' ? 'bg-white text-blue-800 shadow-xs font-black' : 'text-slate-400 hover:text-slate-600']">Titulares</button>
-        <button type="button" @click="filtroRolLocal = 'beneficiario'" :class="['py-1 rounded-md cursor-pointer transition-all', filtroRolLocal === 'beneficiario' ? 'bg-white text-blue-800 shadow-xs font-black' : 'text-slate-400 hover:text-slate-600']">Benefic.</button>
+  <div class="p-3 bg-white border-b border-slate-100 shrink-0 relative z-20">
+    <div class="flex gap-2">
+      <div class="relative flex-1">
+        <input 
+          v-model="busquedaLocal" 
+          type="text" 
+          placeholder="Buscar Cédula, Nombre o Teléfono..." 
+          class="w-full bg-slate-50 text-slate-900 placeholder-slate-400 rounded-lg border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:bg-white focus:ring-1 focus:ring-blue-600 focus:border-blue-600 transition-all shadow-inner" 
+        />
       </div>
-    </div>
-
-    <div class="grid grid-cols-2 gap-2 text-xs pt-1">
-      <div class="space-y-0.5">
-        <label class="text-[8px] font-black text-slate-400 uppercase tracking-wider block">Estado Comercial</label>
-        <select v-model="filtroEstadoLocal" class="w-full bg-slate-50 border border-slate-200 rounded-md p-1.5 font-semibold text-slate-700 outline-none focus:bg-white focus:ring-1 focus:ring-blue-600 transition-all">
-          <option value="todos">Todos</option>
-          <option value="Prospecto">Prospecto</option>
-          <option value="Interesado">Interesado</option>
-          <option value="Cita Agendada">Cita Agendada</option>
-          <option value="Cliente Cerrado">Cliente Cerrado</option>
-        </select>
-      </div>
-      <div class="space-y-0.5">
-        <label class="text-[8px] font-black text-slate-400 uppercase tracking-wider block">Canal Origen</label>
-        <select v-model="filtroOrigenLocal" class="w-full bg-slate-50 border border-slate-200 rounded-md p-1.5 font-semibold text-slate-700 outline-none focus:bg-white focus:ring-1 focus:ring-blue-600 transition-all">
-          <option value="todos">Todos</option>
-          <option value="Facebook Ads">Facebook Ads</option>
-          <option value="Google Ads">Google Ads</option>
-          <option value="WhatsApp Directo">WhatsApp Directo</option>
-        </select>
-      </div>
-      <div class="space-y-0.5">
-        <label class="text-[8px] font-black text-slate-400 uppercase tracking-wider block">Campaña Activa</label>
-        <select v-model="filtroCampanaLocal" class="w-full bg-slate-50 border border-slate-200 rounded-md p-1.5 font-semibold text-slate-700 outline-none focus:bg-white focus:ring-1 focus:ring-blue-600 transition-all">
-          <option value="todos">Todas</option>
-          <option value="Estética Mayo">Estética Mayo</option>
-          <option value="Ortodoncia">Ortodoncia</option>
-        </select>
-      </div>
-      <div class="space-y-0.5">
-        <label class="text-[8px] font-black text-slate-400 uppercase tracking-wider block">Segmento Edad</label>
-        <select v-model="filtroEdadLocal" class="w-full bg-slate-50 border border-slate-200 rounded-md p-1.5 font-semibold text-slate-700 outline-none focus:bg-white focus:ring-1 focus:ring-blue-600 transition-all">
-          <option value="todos">Cualquiera</option>
-          <option value="joven">Jóvenes (&lt; 25)</option>
-          <option value="adulto">Adultos (25-50)</option>
-        </select>
-      </div>
+      
+      <button 
+        type="button"
+        @click="alternarMenuPrincipal"
+        :class="[
+          'btn-ajustes-trigger h-full px-2.5 rounded-lg border text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer select-none shrink-0',
+          filtrosAbiertos || conteoFiltrosActivos > 0 
+            ? 'bg-blue-50 border-blue-200 text-blue-700 shadow-xs' 
+            : 'bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100'
+        ]"
+      >
+        <span>⚙️</span>
+        <span v-if="conteoFiltrosActivos > 0" class="bg-blue-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full leading-none">
+          {{ conteoFiltrosActivos }}
+        </span>
+        <span class="text-[8px] font-mono transition-transform duration-200" :class="{ 'rotate-180': filtrosAbiertos }">
+          ▼
+        </span>
+      </button>
     </div>
   </div>
 
-  <div class="flex-1 divide-y divide-slate-100 overflow-y-auto">
+  <Teleport to="body">
+    <div 
+      v-if="filtrosAbiertos" 
+      class="panel-flotante-root fixed flex gap-2 z-[99999] pointer-events-auto items-start select-none animate-in fade-in slide-in-from-left-2 duration-150"
+      :style="{ top: `${menuTop}px`, left: `${menuLeft}px` }"
+    >
+      <div class="w-48 bg-white rounded-xl border border-slate-200/90 shadow-2xl p-1.5 space-y-0.5 shrink-0">
+        <div class="flex justify-between items-center pb-1.5 px-2 border-b border-slate-100 mb-1">
+          <span class="text-[9px] font-black text-slate-400 uppercase tracking-wider">Filtros</span>
+          <button @click="filtrosAbiertos = false; subMenuActivo = null" class="text-slate-400 hover:text-slate-600 text-xs font-bold px-1 rounded cursor-pointer">✕</button>
+        </div>
+
+        <button @click="subMenuActivo = 'rol'" :class="['w-full flex justify-between items-center py-2 px-2 rounded-lg text-left text-xs font-bold cursor-pointer transition-all', subMenuActivo === 'rol' ? 'bg-blue-50/70 text-blue-800' : 'text-slate-700 hover:bg-slate-50']">
+          <span class="truncate"> Tipo Contacto</span>
+          <span class="text-[9px] text-slate-400 font-mono">▶</span>
+        </button>
+
+        <button @click="subMenuActivo = 'estado'" :class="['w-full flex justify-between items-center py-2 px-2 rounded-lg text-left text-xs font-bold cursor-pointer transition-all', subMenuActivo === 'estado' ? 'bg-blue-50/70 text-blue-800' : 'text-slate-700 hover:bg-slate-50']">
+          <span class="truncate"> Estado Lead</span>
+          <span class="text-[9px] text-slate-400 font-mono">▶</span>
+        </button>
+
+        <button @click="subMenuActivo = 'origen'" :class="['w-full flex justify-between items-center py-2 px-2 rounded-lg text-left text-xs font-bold cursor-pointer transition-all', subMenuActivo === 'origen' ? 'bg-blue-50/70 text-blue-800' : 'text-slate-700 hover:bg-slate-50']">
+          <span class="truncate"> Canal Origen</span>
+          <span class="text-[9px] text-slate-400 font-mono">▶</span>
+        </button>
+
+        <button @click="subMenuActivo = 'campana'" :class="['w-full flex justify-between items-center py-2 px-2 rounded-lg text-left text-xs font-bold cursor-pointer transition-all', subMenuActivo === 'campana' ? 'bg-blue-50/70 text-blue-800' : 'text-slate-700 hover:bg-slate-50']">
+          <span class="truncate"> Campaña</span>
+          <span class="text-[9px] text-slate-400 font-mono">▶</span>
+        </button>
+
+        <button @click="subMenuActivo = 'edad'" :class="['w-full flex justify-between items-center py-2 px-2 rounded-lg text-left text-xs font-bold cursor-pointer transition-all', subMenuActivo === 'edad' ? 'bg-blue-50/70 text-blue-800' : 'text-slate-700 hover:bg-slate-50']">
+          <span class="truncate"> Segmento Edad</span>
+          <span class="text-[9px] text-slate-400 font-mono">▶</span>
+        </button>
+      </div>
+
+      <div v-if="subMenuActivo" class="w-48 bg-white border border-slate-200/90 shadow-2xl rounded-xl p-1.5 space-y-0.5 shrink-0 animate-in fade-in slide-in-from-left-1 duration-100">
+        
+        <template v-if="subMenuActivo === 'rol'">
+          <div @click="filtroRolLocal = 'todos'" class="py-1.5 px-2.5 hover:bg-slate-50 rounded-md flex justify-between cursor-pointer text-xs font-bold text-slate-600" :class="{'text-blue-700 bg-blue-50/60': filtroRolLocal === 'todos'}">Todos <span v-if="filtroRolLocal === 'todos'">✓</span></div>
+          <div @click="filtroRolLocal = 'titular'" class="py-1.5 px-2.5 hover:bg-slate-50 rounded-md flex justify-between cursor-pointer text-xs font-bold text-slate-600" :class="{'text-blue-700 bg-blue-50/60': filtroRolLocal === 'titular'}">Titulares <span v-if="filtroRolLocal === 'titular'">✓</span></div>
+          <div @click="filtroRolLocal = 'beneficiario'" class="py-1.5 px-2.5 hover:bg-slate-50 rounded-md flex justify-between cursor-pointer text-xs font-bold text-slate-600" :class="{'text-blue-700 bg-blue-50/60': filtroRolLocal === 'beneficiario'}">Beneficiarios <span v-if="filtroRolLocal === 'beneficiario'">✓</span></div>
+        </template>
+
+        <template v-if="subMenuActivo === 'estado'">
+          <div v-for="opt in ['todos', 'Prospecto', 'Interesado', 'Cita Agendada', 'Cliente Cerrado']" :key="opt" @click="filtroEstadoLocal = opt" class="py-1.5 px-2.5 hover:bg-slate-50 rounded-md flex justify-between cursor-pointer text-xs font-bold text-slate-600" :class="{'text-blue-700 bg-blue-50/60': filtroEstadoLocal === opt}">
+            {{ opt === 'todos' ? 'Todos' : opt }}
+            <span v-if="filtroEstadoLocal === opt">✓</span>
+          </div>
+        </template>
+
+        <template v-if="subMenuActivo === 'origen'">
+          <div v-for="opt in ['todos', 'Facebook Ads', 'Google Ads', 'WhatsApp Directo']" :key="opt" @click="filtroOrigenLocal = opt" class="py-1.5 px-2.5 hover:bg-slate-50 rounded-md flex justify-between cursor-pointer text-xs font-bold text-slate-600" :class="{'text-blue-700 bg-blue-50/60': filtroOrigenLocal === opt}">
+            {{ opt === 'todos' ? 'Todos' : opt }}
+            <span v-if="filtroOrigenLocal === opt">✓</span>
+          </div>
+        </template>
+
+        <template v-if="subMenuActivo === 'campana'">
+          <div v-for="opt in ['todos', 'Estética Mayo', 'Ortodoncia']" :key="opt" @click="filtroCampanaLocal = opt" class="py-1.5 px-2.5 hover:bg-slate-50 rounded-md flex justify-between cursor-pointer text-xs font-bold text-slate-600" :class="{'text-blue-700 bg-blue-50/60': filtroCampanaLocal === opt}">
+            {{ opt === 'todos' ? 'Todas' : opt }}
+            <span v-if="filtroCampanaLocal === opt">✓</span>
+          </div>
+        </template>
+
+        <template v-if="subMenuActivo === 'edad'">
+          <div @click="filtroEdadLocal = 'todos'" class="py-1.5 px-2.5 hover:bg-slate-50 rounded-md flex justify-between cursor-pointer text-xs font-bold text-slate-600" :class="{'text-blue-700 bg-blue-50/60': filtroEdadLocal === 'todos'}">Cualquiera <span v-if="filtroEdadLocal === 'todos'">✓</span></div>
+          <div @click="filtroEdadLocal = 'joven'" class="py-1.5 px-2.5 hover:bg-slate-50 rounded-md flex justify-between cursor-pointer text-xs font-bold text-slate-600" :class="{'text-blue-700 bg-blue-50/60': filtroEdadLocal === 'joven'}">Jóvenes (&lt; 25) <span v-if="filtroEdadLocal === 'joven'">✓</span></div>
+          <div @click="filtroEdadLocal = 'adulto'" class="py-1.5 px-2.5 hover:bg-slate-50 rounded-md flex justify-between cursor-pointer text-xs font-bold text-slate-600" :class="{'text-blue-700 bg-blue-50/60': filtroEdadLocal === 'adulto'}">Adultos (25-50) <span v-if="filtroEdadLocal === 'adulto'">✓</span></div>
+        </template>
+
+      </div>
+    </div>
+  </Teleport>
+
+  <div class="flex-1 divide-y divide-slate-100 overflow-y-auto relative z-10">
     <div 
       v-for="contacto in contactosFiltrados" 
       :key="contacto.idUnico" 
