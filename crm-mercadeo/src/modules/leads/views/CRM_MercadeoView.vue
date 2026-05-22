@@ -8,7 +8,6 @@
   import FichaParticular from '../components/ficha_particular.vue'
   import Bitacora from '../components/bitacora.vue'
   import GestionMasiva from '../components/gestion_masiva.vue' 
-  import VincularBeneficiario from '../components/vincular_beneficiario.vue'
 
   // Control de sub-pestañas internas del panel derecho
   const subTabDerechoActivo = ref<'bitacora' | 'gestion'>('bitacora')
@@ -118,12 +117,12 @@
   <template>
     <div class="h-screen max-h-screen bg-slate-50 font-sans flex flex-col text-slate-800 antialiased w-full overflow-hidden select-none">
       
-      <header class="bg-gradient-to-r from-blue-700 via-blue-800 to-blue-950 text-white h-16 px-5 flex justify-between items-center shadow-md shrink-0 z-30 border-b border-blue-900/40">
+      <header class="bg-gradient-to-r from-blue-700 via-blue-800 to-blue-950 text-white h-24 px-5 flex justify-between items-center shadow-md shrink-0 z-30 border-b border-blue-900/40">
   
         <div class="flex items-center gap-4">
 
           <!-- LOGO MÁS GRANDE -->
-          <div class="flex items-center h-12">
+          <div class="flex items-center h-20">
             <img 
               src="/logo-liga-50.png" 
               alt="Fundación La Liga" 
@@ -137,7 +136,7 @@
             <span class="text-[9px] text-blue-200 block font-bold uppercase tracking-widest leading-none">
               Plataforma Institucional
             </span>
-            <h1 class="text-xs font-black tracking-wider text-white uppercase mt-0.5">
+            <h1 class="text-lg font-black tracking-wider text-white uppercase mt-0.5">
               CRM Mercadeo
             </h1>
           </div>
@@ -243,6 +242,5 @@
 
       </div>
 
-      <VincularBeneficiario :is-open="isModalBeneficiarioOpen" :titular-nombre="contactoSeleccionado?.nombreCompleto || ''" :miembros-actuales="contactoSeleccionado ? calcularTotalMiembros(contactoSeleccionado) : 0" @close="isModalBeneficiarioOpen = false" @save="capturarYVincularBeneficiario" />
     </div>
   </template>
