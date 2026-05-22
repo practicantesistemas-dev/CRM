@@ -33,17 +33,15 @@ const emit = defineEmits<{
 }>()
 
 // --- ESTADOS DE CONFIGURACIÓN DE CARGAS ---
-const accionTitularesUnicos = ref('Activar')     // Acción para la nueva sección de Titulares
-const accionDocumento = ref('Activar')          // Acción para Beneficiarios
-const accionTitularInscripcion = ref('Activar') // Acción para determinar el rol del Titular en Inscripción
-const maxPersonasInscripcion = ref(5)          // Máximo de personas asignadas por inscripción
+const accionTitularesUnicos = ref('Activar')     
+const accionDocumento = ref('Activar')          
+const accionTitularInscripcion = ref('Activar') 
+const maxPersonasInscripcion = ref(5)          
 
 // --- ESTADO MENÚ DESPLEGABLE (CARGA MASIVA) ---
 const cargaMasivaAbierta = ref(false)
-// Se actualizó el tipo para admitir 'titulares'
 const seccionActiva = ref<'titulares' | 'beneficiarios' | 'inscripcion' | 'remplazo' | null>('titulares')
 
-// Coordenadas dinámicas para el submenú flotante de Carga Masiva
 const cargaTop = ref(0)
 const cargaLeft = ref(0)
 
@@ -59,11 +57,9 @@ const alternarCargaMasiva = (event: MouseEvent) => {
   }
 }
 
-// --- MANEJADOR DE ARCHIVOS PROCESANDO LOS PARÁMETROS ---
 const manejarArchivo = (event: Event, seccion: string) => {
   const target = event.target as HTMLInputElement
   if (target.files && target.files.length > 0) {
-    
     let accionFinal = 'Inscribir'
     let maxPersonasFinal: number | undefined = undefined
 
@@ -82,7 +78,6 @@ const manejarArchivo = (event: Event, seccion: string) => {
       maxPersonas: maxPersonasFinal,
       archivo: target.files[0]
     })
-    
     cargaMasivaAbierta.value = false 
   }
 }
@@ -120,6 +115,9 @@ const subMenuActivo = ref<'rol' | 'estado' | 'origen' | 'campana' | 'edad' | nul
 const menuTop = ref(0)
 const menuLeft = ref(0)
 
+const subMenuTop = ref(0)
+const subMenuLeft = ref(0)
+
 const alternarMenuPrincipal = (event: MouseEvent) => {
   filtrosAbiertos.value = !filtrosAbiertos.value
   if (filtrosAbiertos.value) {
@@ -133,9 +131,23 @@ const alternarMenuPrincipal = (event: MouseEvent) => {
   }
 }
 
+const abrirSubMenu = (event: MouseEvent, tipo: 'rol' | 'estado' | 'origen' | 'campana' | 'edad') => {
+  if (subMenuActivo.value === tipo) {
+    subMenuActivo.value = null
+    return
+  }
+  subMenuActivo.value = tipo
+  const target = event.currentTarget as HTMLElement
+  if (target) {
+    const rect = target.getBoundingClientRect()
+    subMenuTop.value = rect.top - 4 
+    subMenuLeft.value = rect.right + 8 
+  }
+}
+
 const clickAfueraDetectado = (e: MouseEvent) => {
   const target = e.target as HTMLElement
-  if (filtrosAbiertos.value && !target.closest('.btn-ajustes-trigger') && !target.closest('.panel-flotante-root')) {
+  if (filtrosAbiertos.value && !target.closest('.btn-ajustes-trigger') && !target.closest('.panel-flotante-root') && !target.closest('.panel-sub-flotante')) {
     filtrosAbiertos.value = false
     subMenuActivo.value = null
   }
@@ -184,6 +196,38 @@ const contactosRenderizados = computed(() => {
     return props.contactosFiltrados.filter(c => c.estadoLead === 'Prospecto')
   }
   return props.contactosFiltrados
+})
+
+// Textos legibles dinámicos
+const textoRolActivo = computed(() => {
+  if (filtroRolLocal.value === 'titular') return 'Titulares'
+  if (filtroRolLocal.value === 'beneficiario') return 'Beneficiarios'
+  return 'Filtrar por Rol'
+})
+
+const textoEstadoActivo = computed(() => {
+  if (filtroEstadoLocal.value === 'Prospecto') return 'Solo Prospectos'
+  if (filtroEstadoLocal.value === 'Cliente') return 'Solo Clientes'
+  return 'Filtrar por Estado'
+})
+
+const textoOrigenActivo = computed(() => {
+  if (filtroOrigenLocal.value === 'todos') return 'Canal de Origen'
+  return filtroOrigenLocal.value
+})
+
+const textoCampanaActiva = computed(() => {
+  if (filtroCampanaLocal.value === 'todos') return 'Filtrar Campaña'
+  if (filtroCampanaLocal.value === 'Registro Manual') return 'Manual'
+  if (filtroCampanaLocal.value === 'Campaña Black Friday') return 'Black Friday'
+  return 'Orgánica'
+})
+
+const textoEdadActiva = computed(() => {
+  if (filtroEdadLocal.value === 'menores') return 'Menores (< 18)'
+  if (filtroEdadLocal.value === 'adultos') return 'Adultos (18 - 60)'
+  if (filtroEdadLocal.value === 'mayores') return 'Mayores (> 60)'
+  return 'Rango de Edad'
 })
 </script>
 
@@ -302,8 +346,8 @@ const contactosRenderizados = computed(() => {
         <div class="flex items-center justify-between gap-1.5 bg-slate-50 p-1.5 rounded-lg border border-slate-100">
           <span class="text-[10px] text-slate-500 font-bold">Acción inicial:</span>
           <select v-model="accionTitularesUnicos" class="bg-white text-slate-800 text-[11px] font-bold rounded-md border border-slate-200 px-2 py-0.5 focus:outline-none">
-            <option value="Activar">Activar</option>
-            <option value="Desactivar">Desactivar</option>
+            <option value="Activar">Cargar como Activos</option>
+            <option value="Desactivar">Cargar como Leads</option>
           </select>
         </div>
         <label class="w-full flex items-center justify-center bg-[#00965e] hover:bg-[#008252] text-white font-black text-[10px] py-2 px-3 rounded-lg cursor-pointer text-center shadow-xs">
@@ -350,9 +394,7 @@ const contactosRenderizados = computed(() => {
       </div>
       
       <div v-if="seccionActiva === 'inscripcion'" class="space-y-2 pt-1">
-        <div class="flex items-center justify-between gap-1.5 bg-slate-50 p-1.5 rounded-lg border border-slate-100">
-  
-        </div>
+        
 
         <div class="flex items-center justify-between gap-1.5 bg-slate-50 p-1.5 rounded-lg border border-slate-100">
           <div class="flex flex-col">
@@ -394,5 +436,161 @@ const contactosRenderizados = computed(() => {
       </div>
     </div>
   </div>
-</Teleport>
+
+  <div 
+    v-if="filtrosAbiertos" 
+    class="panel-flotante-root fixed z-[99999] bg-white rounded-xl border border-slate-200/90 shadow-2xl p-2 w-[210px] text-left animate-in fade-in slide-in-from-left-2 duration-150 space-y-0.5"
+    :style="{ top: `${menuTop}px`, left: `${menuLeft}px` }"
+  >
+    <div class="px-2 py-1.5 border-b border-slate-100 mb-1 flex justify-between items-center">
+      <span class="text-[9px] font-black uppercase text-slate-400 tracking-wider">Filtros Avanzados</span>
+      <button @click="filtrosAbiertos = false; subMenuActivo = null" class="text-slate-400 hover:text-slate-600 text-xs font-black">✕</button>
+    </div>
+
+    <button 
+      @click="abrirSubMenu($event, 'rol')" 
+      :class="[
+        'w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-bold flex justify-between items-center transition-all cursor-pointer', 
+        subMenuActivo === 'rol' ? 'bg-blue-600 text-white shadow-sm font-extrabold' : 'text-slate-700 hover:bg-slate-100',
+        filtroRolLocal !== 'todos' && subMenuActivo !== 'rol' ? 'bg-blue-50 text-blue-700 font-bold border border-blue-100/50' : ''
+      ]"
+    >
+      <span class="truncate">{{ textoRolActivo }}</span>
+      <span class="text-[9px] font-mono opacity-50" :class="{ 'text-white/80': subMenuActivo === 'rol' }">▶</span>
+    </button>
+
+    <button 
+      @click="abrirSubMenu($event, 'estado')" 
+      :class="[
+        'w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-bold flex justify-between items-center transition-all cursor-pointer', 
+        subMenuActivo === 'estado' ? 'bg-blue-600 text-white shadow-sm font-extrabold' : 'text-slate-700 hover:bg-slate-100',
+        filtroEstadoLocal !== 'todos' && subMenuActivo !== 'estado' ? 'bg-blue-50 text-blue-700 font-bold border border-blue-100/50' : ''
+      ]"
+    >
+      <span class="truncate">{{ textoEstadoActivo }}</span>
+      <span class="text-[9px] font-mono opacity-50" :class="{ 'text-white/80': subMenuActivo === 'estado' }">▶</span>
+    </button>
+
+    <button 
+      @click="abrirSubMenu($event, 'origen')" 
+      :class="[
+        'w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-bold flex justify-between items-center transition-all cursor-pointer', 
+        subMenuActivo === 'origen' ? 'bg-blue-600 text-white shadow-sm font-extrabold' : 'text-slate-700 hover:bg-slate-100',
+        filtroOrigenLocal !== 'todos' && subMenuActivo !== 'origen' ? 'bg-blue-50 text-blue-700 font-bold border border-blue-100/50' : ''
+      ]"
+    >
+      <span class="truncate">{{ textoOrigenActivo }}</span>
+      <span class="text-[9px] font-mono opacity-50" :class="{ 'text-white/80': subMenuActivo === 'origen' }">▶</span>
+    </button>
+
+    <button 
+      @click="abrirSubMenu($event, 'campana')" 
+      :class="[
+        'w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-bold flex justify-between items-center transition-all cursor-pointer', 
+        subMenuActivo === 'campana' ? 'bg-blue-600 text-white shadow-sm font-extrabold' : 'text-slate-700 hover:bg-slate-100',
+        filtroCampanaLocal !== 'todos' && subMenuActivo !== 'campana' ? 'bg-blue-50 text-blue-700 font-bold border border-blue-100/50' : ''
+      ]"
+    >
+      <span class="truncate">{{ textoCampanaActiva }}</span>
+      <span class="text-[9px] font-mono opacity-50" :class="{ 'text-white/80': subMenuActivo === 'campana' }">▶</span>
+    </button>
+
+    <button 
+      @click="abrirSubMenu($event, 'edad')" 
+      :class="[
+        'w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-bold flex justify-between items-center transition-all cursor-pointer', 
+        subMenuActivo === 'edad' ? 'bg-blue-600 text-white shadow-sm font-extrabold' : 'text-slate-700 hover:bg-slate-100',
+        filtroEdadLocal !== 'todos' && subMenuActivo !== 'edad' ? 'bg-blue-50 text-blue-700 font-bold border border-blue-100/50' : ''
+      ]"
+    >
+      <span class="truncate">{{ textoEdadActiva }}</span>
+      <span class="text-[9px] font-mono opacity-50" :class="{ 'text-white/80': subMenuActivo === 'edad' }">▶</span>
+    </button>
+  </div>
+
+  <div 
+    v-if="filtrosAbiertos && subMenuActivo"
+    class="panel-sub-flotante fixed z-[100000] bg-white rounded-xl border border-slate-200/90 shadow-2xl p-1 w-[180px] text-left animate-in fade-in slide-in-from-left-1 duration-100 space-y-px"
+    :style="{ top: `${subMenuTop}px`, left: `${subMenuLeft}px` }"
+  >
+    <template v-if="subMenuActivo === 'rol'">
+      <button @click="filtroRolLocal = 'todos'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroRolLocal === 'todos' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 hover:bg-slate-50']">Todos los Roles</button>
+      <button @click="filtroRolLocal = 'titular'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroRolLocal === 'titular' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 hover:bg-slate-50']">Titulares</button>
+      <button @click="filtroRolLocal = 'beneficiario'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroRolLocal === 'beneficiario' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 hover:bg-slate-50']">Beneficiarios</button>
+    </template>
+
+    <template v-if="subMenuActivo === 'estado'">
+      <button @click="filtroEstadoLocal = 'todos'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroEstadoLocal === 'todos' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 hover:bg-slate-50']">Todos los Estados</button>
+      <button @click="filtroEstadoLocal = 'Prospecto'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroEstadoLocal === 'Prospecto' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 hover:bg-slate-50']">Solo Prospectos</button>
+      <button @click="filtroEstadoLocal = 'Cliente'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroEstadoLocal === 'Cliente' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 hover:bg-slate-50']">Solo Clientes</button>
+    </template>
+
+    <template v-if="subMenuActivo === 'origen'">
+      <button @click="filtroOrigenLocal = 'todos'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroOrigenLocal === 'todos' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 hover:bg-slate-50']">Todos los Orígenes</button>
+      <button @click="filtroOrigenLocal = 'Llamada Directa'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroOrigenLocal === 'Llamada Directa' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 hover:bg-slate-50']">Llamada Directa</button>
+      <button @click="filtroOrigenLocal = 'Formulario Web'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroOrigenLocal === 'Formulario Web' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 hover:bg-slate-50']">Formulario Web</button>
+      <button @click="filtroOrigenLocal = 'WhatsApp'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroOrigenLocal === 'WhatsApp' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 hover:bg-slate-50']">WhatsApp</button>
+    </template>
+
+    <template v-if="subMenuActivo === 'campana'">
+      <button @click="filtroCampanaLocal = 'todos'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroCampanaLocal === 'todos' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 hover:bg-slate-50']">Todas las Campañas</button>
+      <button @click="filtroCampanaLocal = 'Registro Manual'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroCampanaLocal === 'Registro Manual' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 hover:bg-slate-50']">Registro Manual</button>
+      <button @click="filtroCampanaLocal = 'Campaña Black Friday'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroCampanaLocal === 'Campaña Black Friday' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 hover:bg-slate-50']">Black Friday</button>
+      <button @click="filtroCampanaLocal = 'Inscripción Orgánica'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroCampanaLocal === 'Inscripción Orgánica' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 hover:bg-slate-50']">Inscripción Orgánica</button>
+    </template>
+
+    <template v-if="subMenuActivo === 'edad'">
+      <button @click="filtroEdadLocal = 'todos'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroEdadLocal === 'todos' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 hover:bg-slate-50']">Todas las Edades</button>
+      <button @click="filtroEdadLocal = 'menores'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroEdadLocal === 'menores' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 hover:bg-slate-50']">Menores (&lt; 18)</button>
+      <button @click="filtroEdadLocal = 'adultos'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroEdadLocal === 'adultos' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 hover:bg-slate-50']">Adultos (18 - 60)</button>
+      <button @click="filtroEdadLocal = 'mayores'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroEdadLocal === 'mayores' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 hover:bg-slate-50']">Adultos Mayores (&gt; 60)</button>
+    </template>
+  </div>
+
+  <div v-if="modalAgregarAbierto" class="fixed inset-0 z-[999999] bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-150">
+      <div class="px-4 py-3 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
+        <h3 class="text-xs font-black uppercase tracking-wider text-slate-700">Crear Registro Manual</h3>
+        <button @click="cerrarModalProspecto" class="text-slate-400 hover:text-slate-600 text-sm font-black cursor-pointer">✕</button>
+      </div>
+      
+      <div class="p-4 space-y-3 text-left">
+        <div>
+          <label class="block text-[10px] font-black uppercase tracking-wide text-slate-400 mb-1">Nombre Completo *</label>
+          <input v-model="nuevoProspecto.nombreCompleto" type="text" placeholder="Ej: Juan Pérez" class="w-full bg-slate-50 text-slate-900 rounded-lg border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:bg-white focus:ring-1 focus:ring-blue-600" />
+        </div>
+        <div class="grid grid-cols-3 gap-2">
+          <div class="col-span-1">
+            <label class="block text-[10px] font-black uppercase tracking-wide text-slate-400 mb-1">Tipo Doc.</label>
+            <select v-model="nuevoProspecto.tipoDocumento" class="w-full bg-slate-50 text-slate-900 rounded-lg border border-slate-200 px-2 py-2 text-xs focus:outline-none focus:bg-white">
+              <option value="CC">CC</option>
+              <option value="TI">TI</option>
+              <option value="CE">CE</option>
+              <option value="PAS">PAS</option>
+            </select>
+          </div>
+          <div class="col-span-2">
+            <label class="block text-[10px] font-black uppercase tracking-wide text-slate-400 mb-1">Número Documento *</label>
+            <input v-model="nuevoProspecto.documento" type="text" placeholder="Ej: 1020340" class="w-full bg-slate-50 text-slate-900 rounded-lg border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:bg-white focus:ring-1 focus:ring-blue-600" />
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-[10px] font-black uppercase tracking-wide text-slate-400 mb-1">Teléfono</label>
+            <input v-model="nuevoProspecto.telefono" type="text" placeholder="Ej: 300123" class="w-full bg-slate-50 text-slate-900 rounded-lg border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:bg-white" />
+          </div>
+          <div>
+            <label class="block text-[10px] font-black uppercase tracking-wide text-slate-400 mb-1">Email</label>
+            <input v-model="nuevoProspecto.email" type="email" placeholder="correo@ejemplo.com" class="w-full bg-slate-50 text-slate-900 rounded-lg border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:bg-white" />
+          </div>
+        </div>
+      </div>
+
+      <div class="px-4 py-3 bg-slate-50 border-t border-slate-100 flex justify-end gap-2">
+        <button @click="cerrarModalProspecto" class="px-3 py-2 text-xs font-bold text-slate-500 hover:text-slate-700 bg-white border border-slate-200 rounded-lg cursor-pointer">Cancelar</button>
+        <button @click="procesarGuardado" class="px-4 py-2 text-xs font-black text-white bg-blue-600 hover:bg-blue-700 rounded-lg cursor-pointer shadow-sm">Guardar Registro</button>
+      </div>
+    </div>
+  </div>
+ </Teleport>
 </template>
