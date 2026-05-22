@@ -28,36 +28,75 @@ const emit = defineEmits<{
   (e: 'update:filtroOrigen', val: string): void
   (e: 'update:filtroCampana', val: string): void
   (e: 'update:filtroEdad', val: string): void
+  (e: 'procesarCargaMasiva', data: { seccion: string; accion: string; maxPersonas?: number; archivo: File | null }): void
+  (e: 'descargarPlantilla', seccion: string): void
 }>()
+
+// --- ESTADOS DE CONFIGURACIÓN DE CARGAS ---
+const accionTitularesUnicos = ref('Activar')     // Acción para la nueva sección de Titulares
+const accionDocumento = ref('Activar')          // Acción para Beneficiarios
+const accionTitularInscripcion = ref('Activar') // Acción para determinar el rol del Titular en Inscripción
+const maxPersonasInscripcion = ref(5)          // Máximo de personas asignadas por inscripción
+
+// --- ESTADO MENÚ DESPLEGABLE (CARGA MASIVA) ---
+const cargaMasivaAbierta = ref(false)
+// Se actualizó el tipo para admitir 'titulares'
+const seccionActiva = ref<'titulares' | 'beneficiarios' | 'inscripcion' | 'remplazo' | null>('titulares')
+
+// Coordenadas dinámicas para el submenú flotante de Carga Masiva
+const cargaTop = ref(0)
+const cargaLeft = ref(0)
+
+const alternarCargaMasiva = (event: MouseEvent) => {
+  cargaMasivaAbierta.value = !cargaMasivaAbierta.value
+  if (cargaMasivaAbierta.value) {
+    const target = event.currentTarget as HTMLElement
+    if (target) {
+      const rect = target.getBoundingClientRect()
+      cargaTop.value = rect.top
+      cargaLeft.value = rect.right + 8 
+    }
+  }
+}
+
+// --- MANEJADOR DE ARCHIVOS PROCESANDO LOS PARÁMETROS ---
+const manejarArchivo = (event: Event, seccion: string) => {
+  const target = event.target as HTMLInputElement
+  if (target.files && target.files.length > 0) {
+    
+    let accionFinal = 'Inscribir'
+    let maxPersonasFinal: number | undefined = undefined
+
+    if (seccion === 'titulares') {
+      accionFinal = accionTitularesUnicos.value
+    } else if (seccion === 'beneficiarios') {
+      accionFinal = accionDocumento.value
+    } else if (seccion === 'inscripcion') {
+      accionFinal = accionTitularInscripcion.value 
+      maxPersonasFinal = maxPersonasInscripcion.value 
+    }
+
+    emit('procesarCargaMasiva', {
+      seccion,
+      accion: accionFinal,
+      maxPersonas: maxPersonasFinal,
+      archivo: target.files[0]
+    })
+    
+    cargaMasivaAbierta.value = false 
+  }
+}
 
 // --- ESTADO DEL MODAL AGREGAR PROSPECTO ---
 const modalAgregarAbierto = ref(false)
 const nuevoProspecto = ref({
-  nombreCompleto: '',
-  tipoDocumento: 'CC',
-  documento: '',
-  telefono: '',
-  whatsapp: '',
-  email: '',
-  canalOrigen: 'Llamada Directa',
-  campana: 'Registro Manual',
-  estadoLead: 'Prospecto',
-  rol: 'titular' as 'titular'
+  nombreCompleto: '', tipoDocumento: 'CC', documento: '', telefono: '', whatsapp: '', email: '', canalOrigen: 'Llamada Directa', campana: 'Registro Manual', estadoLead: 'Prospecto', rol: 'titular' as 'titular'
 })
 
 const cerrarModalProspecto = () => {
   modalAgregarAbierto.value = false
   nuevoProspecto.value = {
-    nombreCompleto: '',
-    tipoDocumento: 'CC',
-    documento: '',
-    telefono: '',
-    whatsapp: '',
-    email: '',
-    canalOrigen: 'Llamada Directa',
-    campana: 'Registro Manual',
-    estadoLead: 'Prospecto',
-    rol: 'titular'
+    nombreCompleto: '', tipoDocumento: 'CC', documento: '', telefono: '', whatsapp: '', email: '', canalOrigen: 'Llamada Directa', campana: 'Registro Manual', estadoLead: 'Prospecto', rol: 'titular'
   }
 }
 
@@ -78,7 +117,6 @@ const totalProspectos = computed(() => {
 // --- CONTROL DE MENÚS FILTROS ---
 const filtrosAbiertos = ref(false)
 const subMenuActivo = ref<'rol' | 'estado' | 'origen' | 'campana' | 'edad' | null>(null)
-
 const menuTop = ref(0)
 const menuLeft = ref(0)
 
@@ -101,6 +139,9 @@ const clickAfueraDetectado = (e: MouseEvent) => {
     filtrosAbiertos.value = false
     subMenuActivo.value = null
   }
+  if (cargaMasivaAbierta.value && !target.closest('.btn-carga-trigger') && !target.closest('.panel-carga-flotante')) {
+    cargaMasivaAbierta.value = false
+  }
 }
 
 onMounted(() => document.addEventListener('click', clickAfueraDetectado))
@@ -116,7 +157,7 @@ const conteoFiltrosActivos = computed(() => {
   return activos
 })
 
-// --- WATCHERS DE SINCRONIZACIÓN (V-MODEL) ---
+// --- WATCHERS DE SINCRONIZACIÓN ---
 const busquedaLocal = ref(props.busqueda)
 const filtroRolLocal = ref(props.filtroRol)
 const filtroEstadoLocal = ref(props.filtroEstado)
@@ -138,7 +179,6 @@ watch(filtroOrigenLocal, (val) => emit('update:filtroOrigen', val))
 watch(filtroCampanaLocal, (val) => emit('update:filtroCampana', val))
 watch(filtroEdadLocal, (val) => emit('update:filtroEdad', val))
 
-// --- COMPUTED FINAL PARA LA LISTA ---
 const contactosRenderizados = computed(() => {
   if (filtroEstadoLocal.value === 'Prospecto') {
     return props.contactosFiltrados.filter(c => c.estadoLead === 'Prospecto')
@@ -159,51 +199,34 @@ const contactosRenderizados = computed(() => {
     <div class="flex gap-2">
       <div class="relative flex-1">
         <input 
-          v-model="busquedaLocal" 
-          type="text" 
-          placeholder="Buscar Cédula, Nombre..." 
+          v-model="busquedaLocal" type="text" placeholder="Buscar Cédula, Nombre..." 
           class="w-full bg-slate-50 text-slate-900 placeholder-slate-400 rounded-lg border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:bg-white focus:ring-1 focus:ring-blue-600 focus:border-blue-600 transition-all shadow-inner" 
         />
       </div>
       
       <button 
-        type="button"
-        @click="modalAgregarAbierto = true"
-        title="Agregar Nuevo Prospecto"
+        type="button" @click="modalAgregarAbierto = true" title="Agregar Nuevo Prospecto"
         class="h-full px-3 bg-blue-600 text-white hover:bg-blue-700 active:scale-95 rounded-lg text-xs font-black transition-all flex items-center justify-center cursor-pointer select-none shrink-0 shadow-sm border border-blue-700"
       >
         <span>➕</span>
       </button>
 
       <button 
-        type="button"
-        @click="alternarMenuPrincipal"
-        :class="[
-          'btn-ajustes-trigger h-full px-2.5 rounded-lg border text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer select-none shrink-0',
-          filtrosAbiertos || conteoFiltrosActivos > 0 
-            ? 'bg-blue-50 border-blue-200 text-blue-700 shadow-xs' 
-            : 'bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100'
-        ]"
+        type="button" @click="alternarMenuPrincipal"
+        :class="['btn-ajustes-trigger h-full px-2.5 rounded-lg border text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer select-none shrink-0', filtrosAbiertos || conteoFiltrosActivos > 0 ? 'bg-blue-50 border-blue-200 text-blue-700 shadow-xs' : 'bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100']"
       >
         <span>⚙️</span>
         <span v-if="conteoFiltrosActivos > 0" class="bg-blue-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full leading-none">
           {{ conteoFiltrosActivos }}
         </span>
-        <span class="text-[8px] font-mono transition-transform duration-200" :class="{ 'rotate-180': filtrosAbiertos }">
-          ▼
-        </span>
+        <span class="text-[8px] font-mono transition-transform duration-200" :class="{ 'rotate-180': filtrosAbiertos }">▼</span>
       </button>
     </div>
 
     <div class="flex border border-slate-200/60 p-0.5 bg-slate-50 rounded-lg gap-0.5">
       <button 
         @click="filtroEstadoLocal = 'todos'"
-        :class="[
-          'flex-1 py-1.5 px-2 rounded-md text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5',
-          filtroEstadoLocal !== 'Prospecto' 
-            ? 'bg-white text-blue-700 shadow-xs' 
-            : 'text-slate-500 hover:text-slate-800'
-        ]"
+        :class="['flex-1 py-1.5 px-2 rounded-md text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5', filtroEstadoLocal !== 'Prospecto' ? 'bg-white text-blue-700 shadow-xs' : 'text-slate-500 hover:text-slate-800']"
       >
         <span>Contactos</span>
         <span :class="['px-1.5 py-0.5 font-mono text-[9px] rounded-md font-bold', filtroEstadoLocal !== 'Prospecto' ? 'bg-blue-100 text-blue-800' : 'bg-slate-200 text-slate-600']">
@@ -213,12 +236,7 @@ const contactosRenderizados = computed(() => {
 
       <button 
         @click="filtroEstadoLocal = 'Prospecto'"
-        :class="[
-          'flex-1 py-1.5 px-2 rounded-md text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5',
-          filtroEstadoLocal === 'Prospecto' 
-            ? 'bg-white text-amber-700 shadow-xs border border-slate-100' 
-            : 'text-slate-500 hover:text-slate-800'
-        ]"
+        :class="['flex-1 py-1.5 px-2 rounded-md text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5', filtroEstadoLocal === 'Prospecto' ? 'bg-white text-amber-700 shadow-xs border border-slate-100' : 'text-slate-500 hover:text-slate-800']"
       >
         <span>Prospectos</span>
         <span :class="['px-1.5 py-0.5 font-mono text-[9px] rounded-md font-bold', filtroEstadoLocal === 'Prospecto' ? 'bg-amber-100 text-amber-800' : 'bg-slate-200 text-slate-600']">
@@ -228,138 +246,21 @@ const contactosRenderizados = computed(() => {
     </div>
   </div>
 
-  <Teleport to="body">
-    <div v-if="modalAgregarAbierto" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center z-[100000] p-4 select-none animate-in fade-in duration-200">
-      <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-md overflow-hidden transform transition-all animate-in zoom-in-95 duration-150">
-        <div class="bg-slate-50 px-5 py-3.5 border-b border-slate-200 flex justify-between items-center">
-          <div class="flex items-center gap-2">
-            <span class="text-base">👤</span>
-            <h3 class="text-xs font-black uppercase text-slate-700 tracking-wider">Registrar Nuevo Prospecto</h3>
-          </div>
-          <button @click="cerrarModalProspecto" class="text-slate-400 hover:text-slate-600 text-sm font-bold p-1 cursor-pointer">✕</button>
-        </div>
-
-        <div class="p-5 space-y-3.5 text-left">
-          <div>
-            <label class="block text-[10px] font-black uppercase text-slate-400 tracking-wider mb-1">Nombre Completo *</label>
-            <input v-model="nuevoProspecto.nombreCompleto" type="text" placeholder="Ej. Juan Pérez" class="w-full bg-slate-50 text-slate-900 rounded-lg border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:bg-white focus:ring-1 focus:ring-blue-600" />
-          </div>
-
-          <div class="grid grid-cols-3 gap-2">
-            <div class="col-span-1">
-              <label class="block text-[10px] font-black uppercase text-slate-400 tracking-wider mb-1">Tipo Doc.</label>
-              <select v-model="nuevoProspecto.tipoDocumento" class="w-full bg-slate-50 text-slate-900 rounded-lg border border-slate-200 px-2 py-2 text-xs focus:outline-none focus:bg-white">
-                <option value="CC">C.C.</option>
-                <option value="TI">T.I.</option>
-                <option value="CE">C.E.</option>
-                <option value="PAS">Pasaporte</option>
-              </select>
-            </div>
-            <div class="col-span-2">
-              <label class="block text-[10px] font-black uppercase text-slate-400 tracking-wider mb-1">Número Documento *</label>
-              <input v-model="nuevoProspecto.documento" type="text" placeholder="Ej. 1023456" class="w-full bg-slate-50 text-slate-900 rounded-lg border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:bg-white focus:ring-1 focus:ring-blue-600" />
-            </div>
-          </div>
-
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <label class="block text-[10px] font-black uppercase text-slate-400 tracking-wider mb-1">Teléfono</label>
-              <input v-model="nuevoProspecto.telefono" type="text" placeholder="Opcional" class="w-full bg-slate-50 text-slate-900 rounded-lg border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:bg-white" />
-            </div>
-            <div>
-              <label class="block text-[10px] font-black uppercase text-slate-400 tracking-wider mb-1">WhatsApp</label>
-              <input v-model="nuevoProspecto.whatsapp" type="text" placeholder="Ej. 3001234567" class="w-full bg-slate-50 text-slate-900 rounded-lg border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:bg-white" />
-            </div>
-          </div>
-
-          <div>
-            <label class="block text-[10px] font-black uppercase text-slate-400 tracking-wider mb-1">Correo Electrónico</label>
-            <input v-model="nuevoProspecto.email" type="email" placeholder="juan@correo.com" class="w-full bg-slate-50 text-slate-900 rounded-lg border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:bg-white" />
-          </div>
-
-          <div>
-            <label class="block text-[10px] font-black uppercase text-slate-400 tracking-wider mb-1">Canal de Origen</label>
-            <select v-model="nuevoProspecto.canalOrigen" class="w-full bg-slate-50 text-slate-900 rounded-lg border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:bg-white">
-              <option value="Llamada Directa"> Llamada Directa</option>
-              <option value="WhatsApp Directo"> WhatsApp Directo</option>
-              <option value="Facebook Ads"> Facebook Ads</option>
-              <option value="Google Ads"> Google Ads</option>
-              <option value="Recomendado"> Recomendado Clínico</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="bg-slate-50 px-5 py-3 border-t border-slate-200 flex justify-end gap-2">
-          <button @click="cerrarModalProspecto" class="px-4 py-2 bg-white hover:bg-slate-100 text-slate-500 rounded-lg text-xs font-bold border border-slate-200 transition-all cursor-pointer">Cancelar</button>
-          <button @click="procesarGuardado" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-black transition-all shadow-xs cursor-pointer">Guardar Prospecto</button>
-        </div>
-      </div>
+  <div class="px-3 pt-2 pb-1 shrink-0 bg-white">
+    <div 
+      @click="alternarCargaMasiva"
+      :class="['btn-carga-trigger w-full flex justify-between items-center py-2 px-3 border rounded-xl cursor-pointer select-none transition-all text-left', cargaMasivaAbierta ? 'bg-blue-50 border-blue-200 text-blue-700 font-bold shadow-xs' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50']"
+    >
+      <span class="text-[11px] font-black uppercase tracking-wider">Carga Masiva de Archivos</span>
+      <span class="text-[10px] font-mono">
+        {{ cargaMasivaAbierta ? '◀' : '▶' }}
+      </span>
     </div>
-  </Teleport>
-
-  <Teleport to="body">
-    <div v-if="filtrosAbiertos" class="panel-flotante-root fixed flex gap-2 z-[99999] pointer-events-auto items-start select-none animate-in fade-in slide-in-from-left-2 duration-150" :style="{ top: `${menuTop}px`, left: `${menuLeft}px` }">
-      <div class="w-48 bg-white rounded-xl border border-slate-200/90 shadow-2xl p-1.5 space-y-0.5 shrink-0">
-        <div class="flex justify-between items-center pb-1.5 px-2 border-b border-slate-100 mb-1">
-          <span class="text-[9px] font-black text-slate-400 uppercase tracking-wider">Filtros</span>
-          <button @click="filtrosAbiertos = false; subMenuActivo = null" class="text-slate-400 hover:text-slate-600 text-xs font-bold px-1 rounded cursor-pointer">✕</button>
-        </div>
-        <button @click="subMenuActivo = 'rol'" :class="['w-full flex justify-between items-center py-2 px-2 rounded-lg text-left text-xs font-bold cursor-pointer transition-all', subMenuActivo === 'rol' ? 'bg-blue-50/70 text-blue-800' : 'text-slate-700 hover:bg-slate-50']">
-          <span class="truncate">Tipo Contacto</span><span class="text-[9px] text-slate-400 font-mono">▶</span>
-        </button>
-        <button @click="subMenuActivo = 'estado'" :class="['w-full flex justify-between items-center py-2 px-2 rounded-lg text-left text-xs font-bold cursor-pointer transition-all', subMenuActivo === 'estado' ? 'bg-blue-50/70 text-blue-800' : 'text-slate-700 hover:bg-slate-50']">
-          <span class="truncate">Estado Lead</span><span class="text-[9px] text-slate-400 font-mono">▶</span>
-        </button>
-        <button @click="subMenuActivo = 'origen'" :class="['w-full flex justify-between items-center py-2 px-2 rounded-lg text-left text-xs font-bold cursor-pointer transition-all', subMenuActivo === 'origen' ? 'bg-blue-50/70 text-blue-800' : 'text-slate-700 hover:bg-slate-50']">
-          <span class="truncate">Canal Origen</span><span class="text-[9px] text-slate-400 font-mono">▶</span>
-        </button>
-        <button @click="subMenuActivo = 'campana'" :class="['w-full flex justify-between items-center py-2 px-2 rounded-lg text-left text-xs font-bold cursor-pointer transition-all', subMenuActivo === 'campana' ? 'bg-blue-50/70 text-blue-800' : 'text-slate-700 hover:bg-slate-50']">
-          <span class="truncate">Campaña</span><span class="text-[9px] text-slate-400 font-mono">▶</span>
-        </button>
-        <button @click="subMenuActivo = 'edad'" :class="['w-full flex justify-between items-center py-2 px-2 rounded-lg text-left text-xs font-bold cursor-pointer transition-all', subMenuActivo === 'edad' ? 'bg-blue-50/70 text-blue-800' : 'text-slate-700 hover:bg-slate-50']">
-          <span class="truncate">Segmento Edad</span><span class="text-[9px] text-slate-400 font-mono">▶</span>
-        </button>
-      </div>
-
-      <div v-if="subMenuActivo" class="w-48 bg-white border border-slate-200/90 shadow-2xl rounded-xl p-1.5 space-y-0.5 shrink-0 animate-in fade-in slide-in-from-left-1 duration-100">
-        <template v-if="subMenuActivo === 'rol'">
-          <div @click="filtroRolLocal = 'todos'" class="py-1.5 px-2.5 hover:bg-slate-50 rounded-md flex justify-between cursor-pointer text-xs font-bold text-slate-600" :class="{'text-blue-700 bg-blue-50/60': filtroRolLocal === 'todos'}">Todos <span v-if="filtroRolLocal === 'todos'">✓</span></div>
-          <div @click="filtroRolLocal = 'titular'" class="py-1.5 px-2.5 hover:bg-slate-50 rounded-md flex justify-between cursor-pointer text-xs font-bold text-slate-600" :class="{'text-blue-700 bg-blue-50/60': filtroRolLocal === 'titular'}">Titulares <span v-if="filtroRolLocal === 'titular'">✓</span></div>
-          <div @click="filtroRolLocal = 'beneficiario'" class="py-1.5 px-2.5 hover:bg-slate-50 rounded-md flex justify-between cursor-pointer text-xs font-bold text-slate-600" :class="{'text-blue-700 bg-blue-50/60': filtroRolLocal === 'beneficiario'}">Beneficiarios <span v-if="filtroRolLocal === 'beneficiario'">✓</span></div>
-        </template>
-
-        <template v-if="subMenuActivo === 'estado'">
-          <div v-for="opt in ['todos', 'Prospecto', 'Interesado', 'Cita Agendada', 'Cliente Cerrado']" :key="opt" @click="filtroEstadoLocal = opt" class="py-1.5 px-2.5 hover:bg-slate-50 rounded-md flex justify-between cursor-pointer text-xs font-bold text-slate-600" :class="{'text-blue-700 bg-blue-50/60': filtroEstadoLocal === opt}">
-            {{ opt === 'todos' ? 'Todos los Estados' : opt }} <span v-if="filtroEstadoLocal === opt">✓</span>
-          </div>
-        </template>
-
-        <template v-if="subMenuActivo === 'origen'">
-          <div v-for="opt in ['todos', 'Facebook Ads', 'Google Ads', 'WhatsApp Directo']" :key="opt" @click="filtroOrigenLocal = opt" class="py-1.5 px-2.5 hover:bg-slate-50 rounded-md flex justify-between cursor-pointer text-xs font-bold text-slate-600" :class="{'text-blue-700 bg-blue-50/60': filtroOrigenLocal === opt}">
-            {{ opt === 'todos' ? 'Todos' : opt }} <span v-if="filtroOrigenLocal === opt">✓</span>
-          </div>
-        </template>
-
-        <template v-if="subMenuActivo === 'campana'">
-          <div v-for="opt in ['todos', 'Estética Mayo', 'Ortodoncia']" :key="opt" @click="filtroCampanaLocal = opt" class="py-1.5 px-2.5 hover:bg-slate-50 rounded-md flex justify-between cursor-pointer text-xs font-bold text-slate-600" :class="{'text-blue-700 bg-blue-50/60': filtroCampanaLocal === opt}">
-            {{ opt === 'todos' ? 'Todas' : opt }} <span v-if="filtroCampanaLocal === opt">✓</span>
-          </div>
-        </template>
-
-        <template v-if="subMenuActivo === 'edad'">
-          <div @click="filtroEdadLocal = 'todos'" class="py-1.5 px-2.5 hover:bg-slate-50 rounded-md flex justify-between cursor-pointer text-xs font-bold text-slate-600" :class="{'text-blue-700 bg-blue-50/60': filtroEdadLocal === 'todos'}">Cualquiera <span v-if="filtroEdadLocal === 'todos'">✓</span></div>
-          <div @click="filtroEdadLocal = 'joven'" class="py-1.5 px-2.5 hover:bg-slate-50 rounded-md flex justify-between cursor-pointer text-xs font-bold text-slate-600" :class="{'text-blue-700 bg-blue-50/60': filtroEdadLocal === 'joven'}">Jóvenes (&lt; 25) <span v-if="filtroEdadLocal === 'joven'">✓</span></div>
-          <div @click="filtroEdadLocal = 'adulto'" class="py-1.5 px-2.5 hover:bg-slate-50 rounded-md flex justify-between cursor-pointer text-xs font-bold text-slate-600" :class="{'text-blue-700 bg-blue-50/60': filtroEdadLocal === 'adulto'}">Adultos (25-50) <span v-if="filtroEdadLocal === 'adulto'">✓</span></div>
-        </template>
-      </div>
-    </div>
-  </Teleport>
+  </div>
 
   <div class="flex-1 divide-y divide-slate-100 overflow-y-auto relative z-10">
     <div 
-      v-for="contacto in contactosRenderizados" 
-      :key="contacto.idUnico" 
-      @click="emit('seleccionar', contacto)"
+      v-for="contacto in contactosRenderizados" :key="contacto.idUnico" @click="emit('seleccionar', contacto)"
       :class="['p-3.5 cursor-pointer transition-all border-l-4 relative', (modoVista === 'particular' && contactoSeleccionado?.idUnico === contacto.idUnico) ? 'bg-blue-50/50 border-pink-500' : 'border-transparent hover:bg-slate-50/80']"
     >
       <div class="flex justify-between items-start gap-2">
@@ -367,7 +268,7 @@ const contactosRenderizados = computed(() => {
           <h4 class="font-black text-xs text-slate-900 truncate tracking-tight">{{ contacto.nombreCompleto }}</h4>
           <div class="flex items-center gap-1.5 mt-1">
             <span class="text-[10px] text-slate-400 font-medium tracking-wide">{{ contacto.campana }}</span>
-            <span v-if="contacto.estadoLead === 'Prospecto'" class="text-[9px] bg-amber-50 text-amber-700 border border-amber-200 px-1.5 py-px rounded font-black uppercase tracking-tight animate-in fade-in duration-200">
+            <span v-if="contacto.estadoLead === 'Prospecto'" class="text-[9px] bg-amber-50 text-amber-700 border border-amber-200 px-1.5 py-px rounded font-black uppercase tracking-tight">
               {{ contacto.estadoLead }}
             </span>
           </div>
@@ -377,9 +278,121 @@ const contactosRenderizados = computed(() => {
         </span>
       </div>
     </div>
+  </div>
 
-    <div v-if="contactosRenderizados.length === 0" class="p-8 text-center text-slate-400 text-xs font-medium">
-      No se encontraron registros en esta categoría.
+ <Teleport to="body">
+  <div 
+    v-if="cargaMasivaAbierta" 
+    class="panel-carga-flotante fixed z-[99999] bg-white rounded-xl border border-slate-200/90 shadow-2xl p-3 w-[295px] space-y-2 text-left animate-in fade-in slide-in-from-left-2 duration-150"
+    :style="{ top: `${cargaTop}px`, left: `${cargaLeft}px` }"
+  >
+    <div class="flex justify-between items-center pb-2 border-b border-slate-100 mb-1">
+      <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Opciones de Importación</span>
+      <button @click="cargaMasivaAbierta = false" class="text-slate-400 hover:text-slate-600 text-xs font-black px-1 rounded cursor-pointer">✕</button>
+    </div>
+
+    <div class="border border-slate-200/70 rounded-xl p-2.5 bg-white">
+      <div class="flex justify-between items-center mb-1.5">
+        <span class="text-xs font-black text-slate-700">Titulares</span>
+        <button @click="seccionActiva = seccionActiva === 'titulares' ? null : 'titulares'" class="text-[10px] text-blue-600 font-bold">
+          {{ seccionActiva === 'titulares' ? 'Ocultar' : 'Configurar' }}
+        </button>
+      </div>
+      <div v-if="seccionActiva === 'titulares'" class="space-y-2 pt-1">
+        <div class="flex items-center justify-between gap-1.5 bg-slate-50 p-1.5 rounded-lg border border-slate-100">
+          <span class="text-[10px] text-slate-500 font-bold">Acción inicial:</span>
+          <select v-model="accionTitularesUnicos" class="bg-white text-slate-800 text-[11px] font-bold rounded-md border border-slate-200 px-2 py-0.5 focus:outline-none">
+            <option value="Activar">Activar</option>
+            <option value="Desactivar">Desactivar</option>
+          </select>
+        </div>
+        <label class="w-full flex items-center justify-center bg-[#00965e] hover:bg-[#008252] text-white font-black text-[10px] py-2 px-3 rounded-lg cursor-pointer text-center shadow-xs">
+          SUBIR ARCHIVO XLSX
+          <input type="file" accept=".xlsx, .xls" class="hidden" @change="manejarArchivo($event, 'titulares')" />
+        </label>
+        <button type="button" @click="emit('descargarPlantilla', 'titulares')" class="w-full bg-[#f0f4f9] hover:bg-[#e4eafd] text-[#0033a0] font-black text-[10px] py-2 px-3 rounded-lg border border-slate-100 text-center">
+          DESCARGAR PLANTILLA BASE
+        </button>
+      </div>
+    </div>
+
+    <div class="border border-slate-200/70 rounded-xl p-2.5 bg-white">
+      <div class="flex justify-between items-center mb-1.5">
+        <span class="text-xs font-black text-slate-700">Beneficiarios</span>
+        <button @click="seccionActiva = seccionActiva === 'beneficiarios' ? null : 'beneficiarios'" class="text-[10px] text-blue-600 font-bold">
+          {{ seccionActiva === 'beneficiarios' ? 'Ocultar' : 'Configurar' }}
+        </button>
+      </div>
+      <div v-if="seccionActiva === 'beneficiarios'" class="space-y-2 pt-1">
+        <div class="flex items-center justify-between gap-1.5 bg-slate-50 p-1.5 rounded-lg border border-slate-100">
+          <span class="text-[10px] text-slate-500 font-bold">Acción:</span>
+          <select v-model="accionDocumento" class="bg-white text-slate-800 text-[11px] font-bold rounded-md border border-slate-200 px-2 py-0.5 focus:outline-none">
+            <option value="Activar">Activar</option>
+            <option value="Desactivar">Desactivar</option>
+          </select>
+        </div>
+        <label class="w-full flex items-center justify-center bg-[#00965e] hover:bg-[#008252] text-white font-black text-[10px] py-2 px-3 rounded-lg cursor-pointer text-center shadow-xs">
+          SUBIR ARCHIVO XLSX
+          <input type="file" accept=".xlsx, .xls" class="hidden" @change="manejarArchivo($event, 'beneficiarios')" />
+        </label>
+        <button type="button" @click="emit('descargarPlantilla', 'beneficiarios')" class="w-full bg-[#f0f4f9] hover:bg-[#e4eafd] text-[#0033a0] font-black text-[10px] py-2 px-3 rounded-lg border border-slate-100 text-center">
+          DESCARGAR PLANTILLA BASE
+        </button>
+      </div>
+    </div>
+
+    <div class="border border-slate-200/70 rounded-xl p-2.5 bg-white">
+      <div class="flex justify-between items-center mb-1.5">
+        <span class="text-xs font-black text-slate-700">Inscripción</span>
+        <button @click="seccionActiva = seccionActiva === 'inscripcion' ? null : 'inscripcion'" class="text-[10px] text-blue-600 font-bold">
+          {{ seccionActiva === 'inscripcion' ? 'Ocultar' : 'Configurar' }}
+        </button>
+      </div>
+      
+      <div v-if="seccionActiva === 'inscripcion'" class="space-y-2 pt-1">
+        <div class="flex items-center justify-between gap-1.5 bg-slate-50 p-1.5 rounded-lg border border-slate-100">
+  
+        </div>
+
+        <div class="flex items-center justify-between gap-1.5 bg-slate-50 p-1.5 rounded-lg border border-slate-100">
+          <div class="flex flex-col">
+            <span class="text-[10px] text-slate-700 font-black">Cupos por Inscripción:</span>
+            <span class="text-[8px] text-slate-400 font-medium">Límite permitido por archivo</span>
+          </div>
+          <select v-model="maxPersonasInscripcion" class="bg-white text-slate-800 text-[11px] font-bold rounded-md border border-slate-200 px-2 py-0.5 focus:outline-none">
+            <option :value="1">1 Persona</option>
+            <option :value="2">2 Personas</option>
+            <option :value="3">3 Personas</option>
+            <option :value="4">4 Personas</option>
+            <option :value="5">5 Personas (Máx)</option>
+          </select>
+        </div>
+
+        <label class="w-full flex items-center justify-center bg-[#00965e] hover:bg-[#008252] text-white font-black text-[10px] py-2 px-3 rounded-lg cursor-pointer text-center shadow-xs">
+          SUBIR ARCHIVO XLSX
+          <input type="file" accept=".xlsx, .xls" class="hidden" @change="manejarArchivo($event, 'inscripcion')" />
+        </label>
+
+        <button type="button" @click="emit('descargarPlantilla', 'inscripcion')" class="w-full bg-[#f0f4f9] hover:bg-[#e4eafd] text-[#0033a0] font-black text-[10px] py-2 px-3 rounded-lg border border-slate-100 text-center">
+          DESCARGAR PLANTILLA BASE
+        </button>
+      </div>
+    </div>
+
+    <div class="border border-slate-200/70 rounded-xl p-2.5 bg-white">
+      <div class="flex justify-between items-center mb-1.5">
+        <span class="text-xs font-black text-slate-700">Remplazo</span>
+        <button @click="seccionActiva = seccionActiva === 'remplazo' ? null : 'remplazo'" class="text-[10px] text-blue-600 font-bold">
+          {{ seccionActiva === 'remplazo' ? 'Ocultar' : 'Configurar' }}
+        </button>
+      </div>
+      <div v-if="seccionActiva === 'remplazo'" class="pt-1 space-y-2">
+        <label class="w-full flex items-center justify-center bg-[#00965e] hover:bg-[#008252] text-white font-black text-[10px] py-2 px-3 rounded-lg cursor-pointer text-center shadow-xs">
+          SUBIR ARCHIVO XLSX
+          <input type="file" accept=".xlsx, .xls" class="hidden" @change="manejarArchivo($event, 'remplazo')" />
+        </label>
+      </div>
     </div>
   </div>
+</Teleport>
 </template>
