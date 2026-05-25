@@ -222,7 +222,7 @@
         >
           <div class="flex border-b border-slate-200 bg-slate-50 rounded-t-xl overflow-hidden shrink-0 p-1 gap-1">
             <button @click="subTabDerechoActivo = 'bitacora'" :class="['flex-1 py-1.5 text-[10px] font-black uppercase tracking-wider transition-all text-center rounded-lg cursor-pointer', subTabDerechoActivo === 'bitacora' ? 'bg-white text-pink-600 shadow-2xs border border-slate-200/40' : 'text-slate-400 hover:text-slate-600']">Bitácora</button>
-            <button @click="subTabDerechoActivo = 'gestion'" :class="['flex-1 py-1.5 text-[10px] font-black uppercase tracking-wider transition-all text-center rounded-lg cursor-pointer', subTabDerechoActivo === 'gestion' ? 'bg-white text-blue-800 shadow-2xs border border-slate-200/40' : 'text-slate-400 hover:text-slate-600']">Gestión Masiva</button>
+            <button @click="subTabDerechoActivo = 'gestion'" :class="['flex-1 py-1.5 text-[10px] font-black uppercase tracking-wider transition-all text-center rounded-lg cursor-pointer', subTabDerechoActivo === 'gestion' ? 'bg-white text-blue-800 shadow-2xs border border-slate-200/40' : 'text-slate-400 hover:text-slate-600']">Gestión</button>
           </div>
           
           <div 
