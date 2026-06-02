@@ -346,8 +346,8 @@ const textoEdadActiva = computed(() => {
         <div class="flex items-center justify-between gap-1.5 bg-slate-50 p-1.5 rounded-lg border border-slate-100">
           <span class="text-[10px] text-slate-500 font-bold">Acción inicial:</span>
           <select v-model="accionTitularesUnicos" class="bg-white text-slate-800 text-[11px] font-bold rounded-md border border-slate-200 px-2 py-0.5 focus:outline-none">
-            <option value="Activar">Cargar como Activos</option>
-            <option value="Desactivar">Cargar como Leads</option>
+            <option value="Activar">Activar</option>
+            <option value="Desactivar">Desactivar</option>
           </select>
         </div>
         <label class="w-full flex items-center justify-center bg-[#00965e] hover:bg-[#008252] text-white font-black text-[10px] py-2 px-3 rounded-lg cursor-pointer text-center shadow-xs">

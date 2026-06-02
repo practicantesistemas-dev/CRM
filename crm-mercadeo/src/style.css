@@ -1,6 +1,6 @@
 @import "tailwindcss";
-@source "../src/**/*.vue";
-@source "../src/modules/**/*.vue";
+@source "./**/*.vue";
+@source "./modules/**/*.vue";
 
 @theme {
   --color-sf-blue: #0176d3;
