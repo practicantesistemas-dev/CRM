@@ -4,7 +4,7 @@ import { ref, watch, computed, onMounted, onUnmounted } from 'vue'
 // --- INTERFACES ---
 interface ServicioParticular { nombre: string; fecha: string; estado: 'Activo' | 'Terminado'; }
 interface Beneficiario { nombreCompleto: string; tipoDocumento: string; documento: string; edad: number; genero: string; telefono?: string; parentesco: string; }
-interface Contacto { idUnico: string; nombreCompleto: string; rol: 'titular' | 'beneficiario' | 'proveedor' | 'empresa'; tipoDocumento: string; documento: string; telefono: string; whatsapp: string; email: string; ciudad: string; pais: string; canalOrigen: string; campana: string; estadoLead: string; ultimoContacto: string; proximoContacto: string; cantidadLlamadas: number; cantidadEmails: number; notes?: string; edad: number; genero: string; serviciosHistoricos: ServicioParticular[]; beneficiariosAsociados?: Beneficiario[]; categoria?: string; ocupacion?: string; fechaNacimiento?: string; cargo?: string; }
+interface Contacto { idUnico: string; nombreCompleto: string; rol: 'titular' | 'beneficiario'; tipoDocumento: string; documento: string; telefono: string; whatsapp: string; email: string; ciudad: string; pais: string; canalOrigen: string; campana: string; estadoLead: string; ultimoContacto: string; proximoContacto: string; cantidadLlamadas: number; cantidadEmails: number; notes?: string; edad: number; genero: string; serviciosHistoricos: ServicioParticular[]; beneficiariosAsociados?: Beneficiario[]; }
 
 // --- PROPS Y EMITS ---
 const props = defineProps<{
@@ -36,13 +36,11 @@ const emit = defineEmits<{
 const accionTitularesUnicos = ref('Activar')     
 const accionDocumento = ref('Activar')          
 const accionTitularInscripcion = ref('Activar') 
-const maxPersonasInscripcion = ref(5)           
-const accionProveedores = ref('Activar') // NUEVO
-const accionEmpresas = ref('Activar') // NUEVO
+const maxPersonasInscripcion = ref(5)          
 
 // --- ESTADO MENÚ DESPLEGABLE (CARGA MASIVA) ---
 const cargaMasivaAbierta = ref(false)
-const seccionActiva = ref<'titulares' | 'beneficiarios' | 'inscripcion' | 'remplazo' | 'proveedores' | 'empresas' | null>('titulares')
+const seccionActiva = ref<'titulares' | 'beneficiarios' | 'inscripcion' | 'remplazo' | null>('titulares')
 
 const cargaTop = ref(0)
 const cargaLeft = ref(0)
@@ -72,10 +70,6 @@ const manejarArchivo = (event: Event, seccion: string) => {
     } else if (seccion === 'inscripcion') {
       accionFinal = accionTitularInscripcion.value 
       maxPersonasFinal = maxPersonasInscripcion.value 
-    } else if (seccion === 'proveedores') {
-      accionFinal = accionProveedores.value
-    } else if (seccion === 'empresas') {
-      accionFinal = accionEmpresas.value
     }
 
     emit('procesarCargaMasiva', {
@@ -88,45 +82,22 @@ const manejarArchivo = (event: Event, seccion: string) => {
   }
 }
 
-// --- ESTADO DEL MODAL AGREGAR PROSPECTO / REGISTROS ---
+// --- ESTADO DEL MODAL AGREGAR PROSPECTO ---
 const modalAgregarAbierto = ref(false)
-const tipoRegistro = ref<'contacto' | 'proveedor' | 'empresa'>('contacto') // Control dinámico del tipo de formulario
-
 const nuevoProspecto = ref({
-  nombreCompleto: '', 
-  tipoDocumento: 'CC', 
-  documento: '', 
-  telefono: '', 
-  whatsapp: '', 
-  email: '', 
-  canalOrigen: 'Llamada Directa', 
-  campana: 'Registro Manual', 
-  estadoLead: 'Prospecto', 
-  rol: 'titular' as 'titular' | 'proveedor' | 'empresa',
-  categoria: '',
-  ocupacion: '',
-  fechaNacimiento: '',
-  cargo: ''
+  nombreCompleto: '', tipoDocumento: 'CC', documento: '', telefono: '', whatsapp: '', email: '', canalOrigen: 'Llamada Directa', campana: 'Registro Manual', estadoLead: 'Prospecto', rol: 'titular' as 'titular'
 })
-
-const abrirModalConTipo = (tipo: 'contacto' | 'proveedor' | 'empresa') => {
-  tipoRegistro.value = tipo
-  nuevoProspecto.value.rol = tipo === 'contacto' ? 'titular' : tipo
-  nuevoProspecto.value.campana = tipo === 'contacto' ? 'Registro Manual' : `Alta Manual ${tipo}`
-  modalAgregarAbierto.value = true
-}
 
 const cerrarModalProspecto = () => {
   modalAgregarAbierto.value = false
   nuevoProspecto.value = {
-    nombreCompleto: '', tipoDocumento: 'CC', documento: '', telefono: '', whatsapp: '', email: '', canalOrigen: 'Llamada Directa', campana: 'Registro Manual', estadoLead: 'Prospecto', rol: 'titular',
-    categoria: '', ocupacion: '', fechaNacimiento: '', cargo: ''
+    nombreCompleto: '', tipoDocumento: 'CC', documento: '', telefono: '', whatsapp: '', email: '', canalOrigen: 'Llamada Directa', campana: 'Registro Manual', estadoLead: 'Prospecto', rol: 'titular'
   }
 }
 
 const procesarGuardado = () => {
   if (!nuevoProspecto.value.nombreCompleto || !nuevoProspecto.value.documento) {
-    alert('Por favor, ingresa al menos el Nombre/Razón Social y el Documento.')
+    alert('Por favor, ingresa al menos el Nombre y el Documento.')
     return
   }
   emit('guardarNuevoProspecto', { ...nuevoProspecto.value, idUnico: 'ID-' + Date.now() })
@@ -143,6 +114,7 @@ const filtrosAbiertos = ref(false)
 const subMenuActivo = ref<'rol' | 'estado' | 'origen' | 'campana' | 'edad' | null>(null)
 const menuTop = ref(0)
 const menuLeft = ref(0)
+
 const subMenuTop = ref(0)
 const subMenuLeft = ref(0)
 
@@ -230,8 +202,6 @@ const contactosRenderizados = computed(() => {
 const textoRolActivo = computed(() => {
   if (filtroRolLocal.value === 'titular') return 'Titulares'
   if (filtroRolLocal.value === 'beneficiario') return 'Beneficiarios'
-  if (filtroRolLocal.value === 'proveedor') return 'Proveedores'
-  if (filtroRolLocal.value === 'empresa') return 'Empresas'
   return 'Filtrar por Rol'
 })
 
@@ -278,19 +248,12 @@ const textoEdadActiva = computed(() => {
         />
       </div>
       
-      <div class="relative group shrink-0">
-        <button 
-          type="button" title="Agregar Registro Manual"
-          class="h-full px-3 bg-blue-600 text-white hover:bg-blue-700 active:scale-95 rounded-lg text-xs font-black transition-all flex items-center justify-center cursor-pointer select-none shadow-sm border border-blue-700"
-        >
-          <span>➕</span>
-        </button>
-        <div class="absolute right-0 mt-1 w-44 bg-white border border-slate-200 rounded-xl shadow-xl hidden group-hover:block z-50 py-1 overflow-hidden animate-in fade-in duration-100">
-          <button @click="abrirModalConTipo('contacto')" class="w-full text-left px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2">👤 Nuevo Contacto</button>
-          <button @click="abrirModalConTipo('proveedor')" class="w-full text-left px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2">📦 Nuevo Proveedor</button>
-          <button @click="abrirModalConTipo('empresa')" class="w-full text-left px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2">🏢 Nueva Empresa</button>
-        </div>
-      </div>
+      <button 
+        type="button" @click="modalAgregarAbierto = true" title="Agregar Nuevo Prospecto"
+        class="h-full px-3 bg-blue-600 text-white hover:bg-blue-700 active:scale-95 rounded-lg text-xs font-black transition-all flex items-center justify-center cursor-pointer select-none shrink-0 shadow-sm border border-blue-700"
+      >
+        <span>➕</span>
+      </button>
 
       <button 
         type="button" @click="alternarMenuPrincipal"
@@ -361,233 +324,118 @@ const textoEdadActiva = computed(() => {
     </div>
   </div>
 
-  <div v-if="modalAgregarAbierto" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center z-[100000] p-4 animate-in fade-in duration-200">
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-md overflow-hidden text-left animate-in zoom-in-95 duration-150">
-      <div class="px-4 py-3 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
-        <span class="text-xs font-black uppercase text-slate-600 tracking-wider">Añadir Nuevo {{ tipoRegistro.toUpperCase() }}</span>
-        <button @click="cerrarModalProspecto" class="text-slate-400 hover:text-slate-600 text-sm font-bold cursor-pointer">✕</button>
+ <Teleport to="body">
+  <div 
+    v-if="cargaMasivaAbierta" 
+    class="panel-carga-flotante fixed z-[99999] bg-white rounded-xl border border-slate-200/90 shadow-2xl p-3 w-[295px] space-y-2 text-left animate-in fade-in slide-in-from-left-2 duration-150"
+    :style="{ top: `${cargaTop}px`, left: `${cargaLeft}px` }"
+  >
+    <div class="flex justify-between items-center pb-2 border-b border-slate-100 mb-1">
+      <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Opciones de Importación</span>
+      <button @click="cargaMasivaAbierta = false" class="text-slate-400 hover:text-slate-600 text-xs font-black px-1 rounded cursor-pointer">✕</button>
+    </div>
+
+    <div class="border border-slate-200/70 rounded-xl p-2.5 bg-white">
+      <div class="flex justify-between items-center mb-1.5">
+        <span class="text-xs font-black text-slate-700">Titulares</span>
+        <button @click="seccionActiva = seccionActiva === 'titulares' ? null : 'titulares'" class="text-[10px] text-blue-600 font-bold">
+          {{ seccionActiva === 'titulares' ? 'Ocultar' : 'Configurar' }}
+        </button>
+      </div>
+      <div v-if="seccionActiva === 'titulares'" class="space-y-2 pt-1">
+        <div class="flex items-center justify-between gap-1.5 bg-slate-50 p-1.5 rounded-lg border border-slate-100">
+          <span class="text-[10px] text-slate-500 font-bold">Acción inicial:</span>
+          <select v-model="accionTitularesUnicos" class="bg-white text-slate-800 text-[11px] font-bold rounded-md border border-slate-200 px-2 py-0.5 focus:outline-none">
+            <option value="Activar">Activar</option>
+            <option value="Desactivar">Desactivar</option>
+          </select>
+        </div>
+        <label class="w-full flex items-center justify-center bg-[#00965e] hover:bg-[#008252] text-white font-black text-[10px] py-2 px-3 rounded-lg cursor-pointer text-center shadow-xs">
+          SUBIR ARCHIVO XLSX
+          <input type="file" accept=".xlsx, .xls" class="hidden" @change="manejarArchivo($event, 'titulares')" />
+        </label>
+        <button type="button" @click="emit('descargarPlantilla', 'titulares')" class="w-full bg-[#f0f4f9] hover:bg-[#e4eafd] text-[#0033a0] font-black text-[10px] py-2 px-3 rounded-lg border border-slate-100 text-center">
+          DESCARGAR PLANTILLA BASE
+        </button>
+      </div>
+    </div>
+
+    <div class="border border-slate-200/70 rounded-xl p-2.5 bg-white">
+      <div class="flex justify-between items-center mb-1.5">
+        <span class="text-xs font-black text-slate-700">Beneficiarios</span>
+        <button @click="seccionActiva = seccionActiva === 'beneficiarios' ? null : 'beneficiarios'" class="text-[10px] text-blue-600 font-bold">
+          {{ seccionActiva === 'beneficiarios' ? 'Ocultar' : 'Configurar' }}
+        </button>
+      </div>
+      <div v-if="seccionActiva === 'beneficiarios'" class="space-y-2 pt-1">
+        <div class="flex items-center justify-between gap-1.5 bg-slate-50 p-1.5 rounded-lg border border-slate-100">
+          <span class="text-[10px] text-slate-500 font-bold">Acción:</span>
+          <select v-model="accionDocumento" class="bg-white text-slate-800 text-[11px] font-bold rounded-md border border-slate-200 px-2 py-0.5 focus:outline-none">
+            <option value="Activar">Activar</option>
+            <option value="Desactivar">Desactivar</option>
+          </select>
+        </div>
+        <label class="w-full flex items-center justify-center bg-[#00965e] hover:bg-[#008252] text-white font-black text-[10px] py-2 px-3 rounded-lg cursor-pointer text-center shadow-xs">
+          SUBIR ARCHIVO XLSX
+          <input type="file" accept=".xlsx, .xls" class="hidden" @change="manejarArchivo($event, 'beneficiarios')" />
+        </label>
+        <button type="button" @click="emit('descargarPlantilla', 'beneficiarios')" class="w-full bg-[#f0f4f9] hover:bg-[#e4eafd] text-[#0033a0] font-black text-[10px] py-2 px-3 rounded-lg border border-slate-100 text-center">
+          DESCARGAR PLANTILLA BASE
+        </button>
+      </div>
+    </div>
+
+    <div class="border border-slate-200/70 rounded-xl p-2.5 bg-white">
+      <div class="flex justify-between items-center mb-1.5">
+        <span class="text-xs font-black text-slate-700">Inscripción</span>
+        <button @click="seccionActiva = seccionActiva === 'inscripcion' ? null : 'inscripcion'" class="text-[10px] text-blue-600 font-bold">
+          {{ seccionActiva === 'inscripcion' ? 'Ocultar' : 'Configurar' }}
+        </button>
       </div>
       
-      <div class="p-4 space-y-3 max-h-[80vh] overflow-y-auto">
-        <div class="flex flex-col gap-1">
-          <label class="text-[10px] font-black uppercase text-slate-400 tracking-wide">Nombre Completo / Razón Social</label>
-          <input v-model="nuevoProspecto.nombreCompleto" type="text" class="w-full bg-slate-50 text-slate-900 border border-slate-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-blue-600" placeholder="Ej. Carlos Mendoza o Distribuidora S.A.S" />
+      <div v-if="seccionActiva === 'inscripcion'" class="space-y-2 pt-1">
+        
+
+        <div class="flex items-center justify-between gap-1.5 bg-slate-50 p-1.5 rounded-lg border border-slate-100">
+          <div class="flex flex-col">
+            <span class="text-[10px] text-slate-700 font-black">Cupos por Inscripción:</span>
+            <span class="text-[8px] text-slate-400 font-medium">Límite permitido por archivo</span>
+          </div>
+          <select v-model="maxPersonasInscripcion" class="bg-white text-slate-800 text-[11px] font-bold rounded-md border border-slate-200 px-2 py-0.5 focus:outline-none">
+            <option :value="1">1 Persona</option>
+            <option :value="2">2 Personas</option>
+            <option :value="3">3 Personas</option>
+            <option :value="4">4 Personas</option>
+            <option :value="5">5 Personas (Máx)</option>
+          </select>
         </div>
 
-        <div class="grid grid-cols-3 gap-2">
-          <div class="flex flex-col gap-1">
-            <label class="text-[10px] font-black uppercase text-slate-400 tracking-wide">Tipo Doc</label>
-            <select v-model="nuevoProspecto.tipoDocumento" class="w-full bg-slate-50 text-slate-900 border border-slate-200 rounded-lg px-2 py-1.5 text-xs focus:outline-none">
-              <option value="CC">CC</option>
-              <option value="NIT">NIT</option>
-              <option value="CE">CE</option>
-              <option value="PP">Pasaporte</option>
-            </select>
-          </div>
-          <div class="flex flex-col gap-1 col-span-2">
-            <label class="text-[10px] font-black uppercase text-slate-400 tracking-wide">Documento / Identificación</label>
-            <input v-model="nuevoProspecto.documento" type="text" class="w-full bg-slate-50 text-slate-900 border border-slate-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none" placeholder="Número de documento" />
-          </div>
-        </div>
+        <label class="w-full flex items-center justify-center bg-[#00965e] hover:bg-[#008252] text-white font-black text-[10px] py-2 px-3 rounded-lg cursor-pointer text-center shadow-xs">
+          SUBIR ARCHIVO XLSX
+          <input type="file" accept=".xlsx, .xls" class="hidden" @change="manejarArchivo($event, 'inscripcion')" />
+        </label>
 
-        <div class="grid grid-cols-2 gap-2">
-          <div class="flex flex-col gap-1">
-            <label class="text-[10px] font-black uppercase text-slate-400 tracking-wide">Categoría</label>
-            <input v-model="nuevoProspecto.categoria" type="text" class="w-full bg-slate-50 text-slate-900 border border-slate-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none" placeholder="Ej. VIP, Recurrente" />
-          </div>
-          <div class="flex flex-col gap-1">
-            <label class="text-[10px] font-black uppercase text-slate-400 tracking-wide">Ocupación</label>
-            <input v-model="nuevoProspecto.ocupacion" type="text" class="w-full bg-slate-50 text-slate-900 border border-slate-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none" placeholder="Ej. Ingeniero, Médico" />
-          </div>
-        </div>
-
-        <div class="grid grid-cols-2 gap-2">
-          <div class="flex flex-col gap-1">
-            <label class="text-[10px] font-black uppercase text-slate-400 tracking-wide">Fecha de Nacimiento</label>
-            <input v-model="nuevoProspecto.fechaNacimiento" type="date" class="w-full bg-slate-50 text-slate-900 border border-slate-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none" />
-          </div>
-          <div class="flex flex-col gap-1">
-            <label class="text-[10px] font-black uppercase text-slate-400 tracking-wide">Cargo / Posición</label>
-            <input v-model="nuevoProspecto.cargo" type="text" class="w-full bg-slate-50 text-slate-900 border border-slate-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none" placeholder="Ej. Director de Compras" />
-          </div>
-        </div>
-
-        <div class="grid grid-cols-2 gap-2">
-          <div class="flex flex-col gap-1">
-            <label class="text-[10px] font-black uppercase text-slate-400 tracking-wide">Teléfono</label>
-            <input v-model="nuevoProspecto.telefono" type="text" class="w-full bg-slate-50 text-slate-900 border border-slate-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none" placeholder="Móvil" />
-          </div>
-          <div class="flex flex-col gap-1">
-            <label class="text-[10px] font-black uppercase text-slate-400 tracking-wide">WhatsApp</label>
-            <input v-model="nuevoProspecto.whatsapp" type="text" class="w-full bg-slate-50 text-slate-900 border border-slate-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none" placeholder="Link de WhatsApp" />
-          </div>
-        </div>
-
-        <div class="flex flex-col gap-1">
-          <label class="text-[10px] font-black uppercase text-slate-400 tracking-wide">Correo Electrónico</label>
-          <input v-model="nuevoProspecto.email" type="email" class="w-full bg-slate-50 text-slate-900 border border-slate-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none" placeholder="correo@ejemplo.com" />
-        </div>
+        <button type="button" @click="emit('descargarPlantilla', 'inscripcion')" class="w-full bg-[#f0f4f9] hover:bg-[#e4eafd] text-[#0033a0] font-black text-[10px] py-2 px-3 rounded-lg border border-slate-100 text-center">
+          DESCARGAR PLANTILLA BASE
+        </button>
       </div>
+    </div>
 
-      <div class="px-4 py-3 bg-slate-50 border-t border-slate-200 flex justify-end gap-2">
-        <button @click="cerrarModalProspecto" class="px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-bold text-slate-500 hover:bg-slate-100 cursor-pointer">Cancelar</button>
-        <button @click="procesarGuardado" class="px-3 py-1.5 rounded-lg bg-blue-600 border border-blue-700 text-xs font-black text-white hover:bg-blue-700 cursor-pointer shadow-xs">Guardar e Inyectar</button>
+    <div class="border border-slate-200/70 rounded-xl p-2.5 bg-white">
+      <div class="flex justify-between items-center mb-1.5">
+        <span class="text-xs font-black text-slate-700">Remplazo</span>
+        <button @click="seccionActiva = seccionActiva === 'remplazo' ? null : 'remplazo'" class="text-[10px] text-blue-600 font-bold">
+          {{ seccionActiva === 'remplazo' ? 'Ocultar' : 'Configurar' }}
+        </button>
+      </div>
+      <div v-if="seccionActiva === 'remplazo'" class="pt-1 space-y-2">
+        <label class="w-full flex items-center justify-center bg-[#00965e] hover:bg-[#008252] text-white font-black text-[10px] py-2 px-3 rounded-lg cursor-pointer text-center shadow-xs">
+          SUBIR ARCHIVO XLSX
+          <input type="file" accept=".xlsx, .xls" class="hidden" @change="manejarArchivo($event, 'remplazo')" />
+        </label>
       </div>
     </div>
   </div>
-
-  <Teleport to="body">
-    <div 
-      v-if="cargaMasivaAbierta" 
-      class="panel-carga-flotante fixed z-[99999] bg-white rounded-xl border border-slate-200/90 shadow-2xl p-3 w-[295px] max-h-[85vh] overflow-y-auto space-y-2 text-left animate-in fade-in slide-in-from-left-2 duration-150"
-      :style="{ top: `${cargaTop}px`, left: `${cargaLeft}px` }"
-    >
-      <div class="flex justify-between items-center pb-2 border-b border-slate-100 mb-1">
-        <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Opciones de Importación Masiva</span>
-        <button @click="cargaMasivaAbierta = false" class="text-slate-400 hover:text-slate-600 text-xs font-black px-1 rounded cursor-pointer">✕</button>
-      </div>
-
-      <div class="border border-slate-200/70 rounded-xl p-2.5 bg-white">
-        <div class="flex justify-between items-center mb-1.5">
-          <span class="text-xs font-black text-slate-700">Titulares</span>
-          <button @click="seccionActiva = seccionActiva === 'titulares' ? null : 'titulares'" class="text-[10px] text-blue-600 font-bold">
-            {{ seccionActiva === 'titulares' ? 'Ocultar' : 'Configurar' }}
-          </button>
-        </div>
-        <div v-if="seccionActiva === 'titulares'" class="space-y-2 pt-1">
-          <div class="flex items-center justify-between gap-1.5 bg-slate-50 p-1.5 rounded-lg border border-slate-100">
-            <span class="text-[10px] text-slate-500 font-bold">Acción inicial:</span>
-            <select v-model="accionTitularesUnicos" class="bg-white text-slate-800 text-[11px] font-bold rounded-md border border-slate-200 px-2 py-0.5 focus:outline-none">
-              <option value="Activar">Activar</option>
-              <option value="Desactivar">Desactivar</option>
-            </select>
-          </div>
-          <label class="w-full flex items-center justify-center bg-[#00965e] hover:bg-[#008252] text-white font-black text-[10px] py-2 px-3 rounded-lg cursor-pointer text-center shadow-xs">
-            SUBIR ARCHIVO XLSX
-            <input type="file" accept=".xlsx, .xls" class="hidden" @change="manejarArchivo($event, 'titulares')" />
-          </label>
-          <button type="button" @click="emit('descargarPlantilla', 'titulares')" class="w-full bg-[#f0f4f9] hover:bg-[#e4eafd] text-[#0033a0] font-black text-[10px] py-2 px-3 rounded-lg border border-slate-100 text-center">
-            DESCARGAR PLANTILLA BASE
-          </button>
-        </div>
-      </div>
-
-      <div class="border border-slate-200/70 rounded-xl p-2.5 bg-white">
-        <div class="flex justify-between items-center mb-1.5">
-          <span class="text-xs font-black text-slate-700">Beneficiarios</span>
-          <button @click="seccionActiva = seccionActiva === 'beneficiarios' ? null : 'beneficiarios'" class="text-[10px] text-blue-600 font-bold">
-            {{ seccionActiva === 'beneficiarios' ? 'Ocultar' : 'Configurar' }}
-          </button>
-        </div>
-        <div v-if="seccionActiva === 'beneficiarios'" class="space-y-2 pt-1">
-          <div class="flex items-center justify-between gap-1.5 bg-slate-50 p-1.5 rounded-lg border border-slate-100">
-            <span class="text-[10px] text-slate-500 font-bold">Acción:</span>
-            <select v-model="accionDocumento" class="bg-white text-slate-800 text-[11px] font-bold rounded-md border border-slate-200 px-2 py-0.5 focus:outline-none">
-              <option value="Activar">Activar</option>
-              <option value="Desactivar">Desactivar</option>
-            </select>
-          </div>
-          <label class="w-full flex items-center justify-center bg-[#00965e] hover:bg-[#008252] text-white font-black text-[10px] py-2 px-3 rounded-lg cursor-pointer text-center shadow-xs">
-            SUBIR ARCHIVO XLSX
-            <input type="file" accept=".xlsx, .xls" class="hidden" @change="manejarArchivo($event, 'beneficiarios')" />
-          </label>
-          <button type="button" @click="emit('descargarPlantilla', 'beneficiarios')" class="w-full bg-[#f0f4f9] hover:bg-[#e4eafd] text-[#0033a0] font-black text-[10px] py-2 px-3 rounded-lg border border-slate-100 text-center">
-            DESCARGAR PLANTILLA BASE
-          </button>
-        </div>
-      </div>
-
-      <div class="border border-slate-200/70 rounded-xl p-2.5 bg-white">
-        <div class="flex justify-between items-center mb-1.5">
-          <span class="text-xs font-black text-slate-700">📦 Carga Proveedores</span>
-          <button @click="seccionActiva = seccionActiva === 'proveedores' ? null : 'proveedores'" class="text-[10px] text-blue-600 font-bold">
-            {{ seccionActiva === 'proveedores' ? 'Ocultar' : 'Configurar' }}
-          </button>
-        </div>
-        <div v-if="seccionActiva === 'proveedores'" class="space-y-2 pt-1">
-          <div class="flex items-center justify-between gap-1.5 bg-slate-50 p-1.5 rounded-lg border border-slate-100">
-            <span class="text-[10px] text-slate-500 font-bold">Estado Inicial:</span>
-            <select v-model="accionProveedores" class="bg-white text-slate-800 text-[11px] font-bold rounded-md border border-slate-200 px-2 py-0.5 focus:outline-none">
-              <option value="Activar">Activo</option>
-              <option value="Desactivar">Inactivo</option>
-            </select>
-          </div>
-          <label class="w-full flex items-center justify-center bg-[#0033a0] hover:bg-[#002270] text-white font-black text-[10px] py-2 px-3 rounded-lg cursor-pointer text-center shadow-xs">
-            CARGAR PROVEEDORES (.XLSX)
-            <input type="file" accept=".xlsx, .xls" class="hidden" @change="manejarArchivo($event, 'proveedores')" />
-          </label>
-        </div>
-      </div>
-
-      <div class="border border-slate-200/70 rounded-xl p-2.5 bg-white">
-        <div class="flex justify-between items-center mb-1.5">
-          <span class="text-xs font-black text-slate-700">🏢 Carga Empresas</span>
-          <button @click="seccionActiva = seccionActiva === 'empresas' ? null : 'empresas'" class="text-[10px] text-blue-600 font-bold">
-            {{ seccionActiva === 'empresas' ? 'Ocultar' : 'Configurar' }}
-          </button>
-        </div>
-        <div v-if="seccionActiva === 'empresas'" class="space-y-2 pt-1">
-          <div class="flex items-center justify-between gap-1.5 bg-slate-50 p-1.5 rounded-lg border border-slate-100">
-            <span class="text-[10px] text-slate-500 font-bold">Estado B2B:</span>
-            <select v-model="accionEmpresas" class="bg-white text-slate-800 text-[11px] font-bold rounded-md border border-slate-200 px-2 py-0.5 focus:outline-none">
-              <option value="Activar">Activo</option>
-              <option value="Desactivar">Inactivo</option>
-            </select>
-          </div>
-          <label class="w-full flex items-center justify-center bg-[#0033a0] hover:bg-[#002270] text-white font-black text-[10px] py-2 px-3 rounded-lg cursor-pointer text-center shadow-xs">
-            CARGAR EMPRESAS (.XLSX)
-            <input type="file" accept=".xlsx, .xls" class="hidden" @change="manejarArchivo($event, 'empresas')" />
-          </label>
-        </div>
-      </div>
-
-      <div class="border border-slate-200/70 rounded-xl p-2.5 bg-white">
-        <div class="flex justify-between items-center mb-1.5">
-          <span class="text-xs font-black text-slate-700">Inscripción</span>
-          <button @click="seccionActiva = seccionActiva === 'inscripcion' ? null : 'inscripcion'" class="text-[10px] text-blue-600 font-bold">
-            {{ seccionActiva === 'inscripcion' ? 'Ocultar' : 'Configurar' }}
-          </button>
-        </div>
-        <div v-if="seccionActiva === 'inscripcion'" class="space-y-2 pt-1">
-          <div class="flex items-center justify-between gap-1.5 bg-slate-50 p-1.5 rounded-lg border border-slate-100">
-            <div class="flex flex-col">
-              <span class="text-[10px] text-slate-700 font-black">Cupos por Inscripción:</span>
-              <span class="text-[8px] text-slate-400 font-medium">Límite permitido por archivo</span>
-            </div>
-            <select v-model="maxPersonasInscripcion" class="bg-white text-slate-800 text-[11px] font-bold rounded-md border border-slate-200 px-2 py-0.5 focus:outline-none">
-              <option :value="1">1 Persona</option>
-              <option :value="2">2 Personas</option>
-              <option :value="3">3 Personas</option>
-              <option :value="4">4 Personas</option>
-              <option :value="5">5 Personas (Máx)</option>
-            </select>
-          </div>
-          <label class="w-full flex items-center justify-center bg-[#00965e] hover:bg-[#008252] text-white font-black text-[10px] py-2 px-3 rounded-lg cursor-pointer text-center shadow-xs">
-            SUBIR ARCHIVO XLSX
-            <input type="file" accept=".xlsx, .xls" class="hidden" @change="manejarArchivo($event, 'inscripcion')" />
-          </label>
-          <button type="button" @click="emit('descargarPlantilla', 'inscripcion')" class="w-full bg-[#f0f4f9] hover:bg-[#e4eafd] text-[#0033a0] font-black text-[10px] py-2 px-3 rounded-lg border border-slate-100 text-center">
-            DESCARGAR PLANTILLA BASE
-          </button>
-        </div>
-      </div>
-
-      <div class="border border-slate-200/70 rounded-xl p-2.5 bg-white">
-        <div class="flex justify-between items-center mb-1.5">
-          <span class="text-xs font-black text-slate-700">Remplazo</span>
-          <button @click="seccionActiva = seccionActiva === 'remplazo' ? null : 'remplazo'" class="text-[10px] text-blue-600 font-bold">
-            {{ seccionActiva === 'remplazo' ? 'Ocultar' : 'Configurar' }}
-          </button>
-        </div>
-        <div v-if="seccionActiva === 'remplazo'" class="pt-1 space-y-2">
-          <label class="w-full flex items-center justify-center bg-[#00965e] hover:bg-[#008252] text-white font-black text-[10px] py-2 px-3 rounded-lg cursor-pointer text-center shadow-xs">
-            SUBIR ARCHIVO XLSX
-            <input type="file" accept=".xlsx, .xls" class="hidden" @change="manejarArchivo($event, 'remplazo')" />
-          </label>
-        </div>
-      </div>
-    </div>
-  </Teleport>
 
   <div 
     v-if="filtrosAbiertos" 
@@ -599,27 +447,62 @@ const textoEdadActiva = computed(() => {
       <button @click="filtrosAbiertos = false; subMenuActivo = null" class="text-slate-400 hover:text-slate-600 text-xs font-black">✕</button>
     </div>
 
-    <button @click="abrirSubMenu($event, 'rol')" :class="['w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-bold flex justify-between items-center transition-all cursor-pointer', subMenuActivo === 'rol' ? 'bg-blue-600 text-white shadow-sm font-extrabold' : 'text-slate-700 hover:bg-slate-100', filtroRolLocal !== 'todos' && subMenuActivo !== 'rol' ? 'bg-blue-50 text-blue-700 font-bold border border-blue-100/50' : '']">
+    <button 
+      @click="abrirSubMenu($event, 'rol')" 
+      :class="[
+        'w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-bold flex justify-between items-center transition-all cursor-pointer', 
+        subMenuActivo === 'rol' ? 'bg-blue-600 text-white shadow-sm font-extrabold' : 'text-slate-700 hover:bg-slate-100',
+        filtroRolLocal !== 'todos' && subMenuActivo !== 'rol' ? 'bg-blue-50 text-blue-700 font-bold border border-blue-100/50' : ''
+      ]"
+    >
       <span class="truncate">{{ textoRolActivo }}</span>
       <span class="text-[9px] font-mono opacity-50" :class="{ 'text-white/80': subMenuActivo === 'rol' }">▶</span>
     </button>
 
-    <button @click="abrirSubMenu($event, 'estado')" :class="['w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-bold flex justify-between items-center transition-all cursor-pointer', subMenuActivo === 'estado' ? 'bg-blue-600 text-white shadow-sm font-extrabold' : 'text-slate-700 hover:bg-slate-100', filtroEstadoLocal !== 'todos' && subMenuActivo !== 'estado' ? 'bg-blue-50 text-blue-700 font-bold border border-blue-100/50' : '']">
+    <button 
+      @click="abrirSubMenu($event, 'estado')" 
+      :class="[
+        'w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-bold flex justify-between items-center transition-all cursor-pointer', 
+        subMenuActivo === 'estado' ? 'bg-blue-600 text-white shadow-sm font-extrabold' : 'text-slate-700 hover:bg-slate-100',
+        filtroEstadoLocal !== 'todos' && subMenuActivo !== 'estado' ? 'bg-blue-50 text-blue-700 font-bold border border-blue-100/50' : ''
+      ]"
+    >
       <span class="truncate">{{ textoEstadoActivo }}</span>
       <span class="text-[9px] font-mono opacity-50" :class="{ 'text-white/80': subMenuActivo === 'estado' }">▶</span>
     </button>
 
-    <button @click="abrirSubMenu($event, 'origen')" :class="['w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-bold flex justify-between items-center transition-all cursor-pointer', subMenuActivo === 'origen' ? 'bg-blue-600 text-white shadow-sm font-extrabold' : 'text-slate-700 hover:bg-slate-100', filtroOrigenLocal !== 'todos' && subMenuActivo !== 'origen' ? 'bg-blue-50 text-blue-700 font-bold border border-blue-100/50' : '']">
+    <button 
+      @click="abrirSubMenu($event, 'origen')" 
+      :class="[
+        'w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-bold flex justify-between items-center transition-all cursor-pointer', 
+        subMenuActivo === 'origen' ? 'bg-blue-600 text-white shadow-sm font-extrabold' : 'text-slate-700 hover:bg-slate-100',
+        filtroOrigenLocal !== 'todos' && subMenuActivo !== 'origen' ? 'bg-blue-50 text-blue-700 font-bold border border-blue-100/50' : ''
+      ]"
+    >
       <span class="truncate">{{ textoOrigenActivo }}</span>
       <span class="text-[9px] font-mono opacity-50" :class="{ 'text-white/80': subMenuActivo === 'origen' }">▶</span>
     </button>
 
-    <button @click="abrirSubMenu($event, 'campana')" :class="['w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-bold flex justify-between items-center transition-all cursor-pointer', subMenuActivo === 'campana' ? 'bg-blue-600 text-white shadow-sm font-extrabold' : 'text-slate-700 hover:bg-slate-100', filtroCampanaLocal !== 'todos' && subMenuActivo !== 'campana' ? 'bg-blue-50 text-blue-700 font-bold border border-blue-100/50' : '']">
+    <button 
+      @click="abrirSubMenu($event, 'campana')" 
+      :class="[
+        'w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-bold flex justify-between items-center transition-all cursor-pointer', 
+        subMenuActivo === 'campana' ? 'bg-blue-600 text-white shadow-sm font-extrabold' : 'text-slate-700 hover:bg-slate-100',
+        filtroCampanaLocal !== 'todos' && subMenuActivo !== 'campana' ? 'bg-blue-50 text-blue-700 font-bold border border-blue-100/50' : ''
+      ]"
+    >
       <span class="truncate">{{ textoCampanaActiva }}</span>
       <span class="text-[9px] font-mono opacity-50" :class="{ 'text-white/80': subMenuActivo === 'campana' }">▶</span>
     </button>
 
-    <button @click="abrirSubMenu($event, 'edad')" :class="['w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-bold flex justify-between items-center transition-all cursor-pointer', subMenuActivo === 'edad' ? 'bg-blue-600 text-white shadow-sm font-extrabold' : 'text-slate-700 hover:bg-slate-100', filtroEdadLocal !== 'todos' && subMenuActivo !== 'edad' ? 'bg-blue-50 text-blue-700 font-bold border border-blue-100/50' : '']">
+    <button 
+      @click="abrirSubMenu($event, 'edad')" 
+      :class="[
+        'w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-bold flex justify-between items-center transition-all cursor-pointer', 
+        subMenuActivo === 'edad' ? 'bg-blue-600 text-white shadow-sm font-extrabold' : 'text-slate-700 hover:bg-slate-100',
+        filtroEdadLocal !== 'todos' && subMenuActivo !== 'edad' ? 'bg-blue-50 text-blue-700 font-bold border border-blue-100/50' : ''
+      ]"
+    >
       <span class="truncate">{{ textoEdadActiva }}</span>
       <span class="text-[9px] font-mono opacity-50" :class="{ 'text-white/80': subMenuActivo === 'edad' }">▶</span>
     </button>
@@ -634,8 +517,6 @@ const textoEdadActiva = computed(() => {
       <button @click="filtroRolLocal = 'todos'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroRolLocal === 'todos' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 hover:bg-slate-50']">Todos los Roles</button>
       <button @click="filtroRolLocal = 'titular'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroRolLocal === 'titular' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 hover:bg-slate-50']">Titulares</button>
       <button @click="filtroRolLocal = 'beneficiario'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroRolLocal === 'beneficiario' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 hover:bg-slate-50']">Beneficiarios</button>
-      <button @click="filtroRolLocal = 'proveedor'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroRolLocal === 'proveedor' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 hover:bg-slate-50']">Proveedores</button>
-      <button @click="filtroRolLocal = 'empresa'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroRolLocal === 'empresa' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 hover:bg-slate-50']">Empresas</button>
     </template>
 
     <template v-if="subMenuActivo === 'estado'">
@@ -665,4 +546,51 @@ const textoEdadActiva = computed(() => {
       <button @click="filtroEdadLocal = 'mayores'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroEdadLocal === 'mayores' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 hover:bg-slate-50']">Adultos Mayores (&gt; 60)</button>
     </template>
   </div>
+
+  <div v-if="modalAgregarAbierto" class="fixed inset-0 z-[999999] bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-150">
+      <div class="px-4 py-3 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
+        <h3 class="text-xs font-black uppercase tracking-wider text-slate-700">Crear Registro Manual</h3>
+        <button @click="cerrarModalProspecto" class="text-slate-400 hover:text-slate-600 text-sm font-black cursor-pointer">✕</button>
+      </div>
+      
+      <div class="p-4 space-y-3 text-left">
+        <div>
+          <label class="block text-[10px] font-black uppercase tracking-wide text-slate-400 mb-1">Nombre Completo *</label>
+          <input v-model="nuevoProspecto.nombreCompleto" type="text" placeholder="Ej: Juan Pérez" class="w-full bg-slate-50 text-slate-900 rounded-lg border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:bg-white focus:ring-1 focus:ring-blue-600" />
+        </div>
+        <div class="grid grid-cols-3 gap-2">
+          <div class="col-span-1">
+            <label class="block text-[10px] font-black uppercase tracking-wide text-slate-400 mb-1">Tipo Doc.</label>
+            <select v-model="nuevoProspecto.tipoDocumento" class="w-full bg-slate-50 text-slate-900 rounded-lg border border-slate-200 px-2 py-2 text-xs focus:outline-none focus:bg-white">
+              <option value="CC">CC</option>
+              <option value="TI">TI</option>
+              <option value="CE">CE</option>
+              <option value="PAS">PAS</option>
+            </select>
+          </div>
+          <div class="col-span-2">
+            <label class="block text-[10px] font-black uppercase tracking-wide text-slate-400 mb-1">Número Documento *</label>
+            <input v-model="nuevoProspecto.documento" type="text" placeholder="Ej: 1020340" class="w-full bg-slate-50 text-slate-900 rounded-lg border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:bg-white focus:ring-1 focus:ring-blue-600" />
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-[10px] font-black uppercase tracking-wide text-slate-400 mb-1">Teléfono</label>
+            <input v-model="nuevoProspecto.telefono" type="text" placeholder="Ej: 300123" class="w-full bg-slate-50 text-slate-900 rounded-lg border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:bg-white" />
+          </div>
+          <div>
+            <label class="block text-[10px] font-black uppercase tracking-wide text-slate-400 mb-1">Email</label>
+            <input v-model="nuevoProspecto.email" type="email" placeholder="correo@ejemplo.com" class="w-full bg-slate-50 text-slate-900 rounded-lg border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:bg-white" />
+          </div>
+        </div>
+      </div>
+
+      <div class="px-4 py-3 bg-slate-50 border-t border-slate-100 flex justify-end gap-2">
+        <button @click="cerrarModalProspecto" class="px-3 py-2 text-xs font-bold text-slate-500 hover:text-slate-700 bg-white border border-slate-200 rounded-lg cursor-pointer">Cancelar</button>
+        <button @click="procesarGuardado" class="px-4 py-2 text-xs font-black text-white bg-blue-600 hover:bg-blue-700 rounded-lg cursor-pointer shadow-sm">Guardar Registro</button>
+      </div>
+    </div>
+  </div>
+ </Teleport>
 </template>

@@ -2,13 +2,13 @@
 import { ref, computed } from 'vue'
 
 // --- INTERFACES DE MODELO ---
-export interface ServicioParticular { 
+interface ServicioParticular { 
   nombre: string; 
   fecha: string; 
   estado: 'Activo' | 'Terminado'; 
 }
 
-export interface Beneficiario { 
+interface Beneficiario { 
   nombreCompleto: string; 
   tipoDocumento: string; 
   documento: string; 
@@ -18,14 +18,7 @@ export interface Beneficiario {
   parentesco: string; 
 }
 
-export interface InteraccionesRedes {
-  instagram?: number;
-  facebook?: number;
-  linkedin?: number;
-  whatsapp?: number;
-}
-
-export interface Contacto { 
+interface Contacto { 
   idUnico: string; 
   nombreCompleto: string; 
   rol: 'titular' | 'beneficiario'; 
@@ -43,13 +36,13 @@ export interface Contacto {
   proximoContacto: string; 
   cantidadLlamadas: number; 
   cantidadEmails: number; 
-  cantidadInteraccionesRedes?: InteraccionesRedes;
+  cantidadInteraccionesRedes?: { instagram?: number; facebook?: number; linkedin?: number; whatsapp?: number };
   notes?: string; 
   edad: number; 
   genero: string; 
   serviciosHistoricos: ServicioParticular[]; 
   beneficiariosAsociados?: Beneficiario[]; 
-  bitacora?: unknown[]; 
+  bitacora?: any[]; 
 }
 
 // --- PROPS & EMITS ---
@@ -57,7 +50,7 @@ const props = defineProps<{
   contacto: Contacto
 }>()
 
-defineEmits<{
+const emit = defineEmits<{
   (e: 'abrir-modal-beneficiario'): void
 }>()
 
@@ -71,29 +64,23 @@ const fechaDesde = ref('')
 const fechaHasta = ref('')
 
 const serviciosHistoricosFiltrados = computed(() => {
-  const servicios = props.contacto.serviciosHistoricos
-  if (!servicios?.length) return []
-
+  let servicios = props.contacto.serviciosHistoricos || []
   const queryNombre = filtroNombre.value.trim().toLowerCase()
-  const desdeTime = fechaDesde.value ? new Date(`${fechaDesde.value}T00:00:00`).getTime() : null
-  const hastaTime = fechaHasta.value ? new Date(`${fechaHasta.value}T23:59:59`).getTime() : null
-
-  return servicios.filter(serv => {
-    // Filtro por Nombre
-    if (queryNombre && !serv.nombre.toLowerCase().includes(queryNombre)) {
-      return false
-    }
-
-    // Filtro por Fechas
-    if (desdeTime || hastaTime) {
+  if (queryNombre) {
+    servicios = servicios.filter(serv => serv.nombre.toLowerCase().includes(queryNombre))
+  }
+  if (fechaDesde.value || fechaHasta.value) {
+    servicios = servicios.filter(serv => {
       const fechaServicio = new Date(serv.fecha).getTime()
-      if (isNaN(fechaServicio)) return false 
-      if (desdeTime && fechaServicio < desdeTime) return false
-      if (hastaTime && fechaServicio > hastaTime) return false
-    }
-
-    return true
-  })
+      if (isNaN(fechaServicio)) return true 
+      const desde = fechaDesde.value ? new Date(fechaDesde.value).getTime() : null
+      const hasta = fechaHasta.value ? new Date(fechaHasta.value).getTime() : null
+      if (desde && fechaServicio < desde) return false
+      if (hasta && fechaServicio > hasta) return false
+      return true
+    })
+  }
+  return servicios
 })
 
 const limpiarFiltros = () => {
@@ -104,25 +91,15 @@ const limpiarFiltros = () => {
 
 // --- MÉTRICAS Y TOP SERVICIOS ---
 const totalServicios = computed(() => props.contacto.serviciosHistoricos?.length || 0)
-const serviciosActivosContador = computed(() => 
-  props.contacto.serviciosHistoricos?.filter(s => s.estado === 'Activo').length || 0
-)
+const serviciosActivosContador = computed(() => props.contacto.serviciosHistoricos?.filter(s => s.estado === 'Activo').length || 0)
 
 const serviciosMasUsados = computed(() => {
-  const servicios = props.contacto.serviciosHistoricos
-  if (!servicios?.length) return []
-
+  const servicios = props.contacto.serviciosHistoricos || []
   const mapeoFrecuencia: Record<string, number> = {}
-  for (const s of servicios) {
-    mapeoFrecuencia[s.nombre] = (mapeoFrecuencia[s.nombre] || 0) + 1
-  }
+  servicios.forEach(s => { mapeoFrecuencia[s.nombre] = (mapeoFrecuencia[s.nombre] || 0) + 1 })
   
-  const listaOrdenada = Object.entries(mapeoFrecuencia)
-    .map(([nombre, cantidad]) => ({ nombre, cantidad }))
-    .sort((a, b) => b.cantidad - a.cantidad)
-    .slice(0, 3)
-
-  const maximoConteo = listaOrdenada[0]?.cantidad || 1
+  const conteos = Object.values(mapeoFrecuencia)
+  const maximoConteo = conteos.length > 0 ? Math.max(...conteos) : 1
 
   const coloresBarras = [
     'from-blue-600 to-indigo-600 shadow-blue-100',
@@ -130,24 +107,33 @@ const serviciosMasUsados = computed(() => {
     'from-slate-500 to-slate-600 shadow-slate-100'
   ]
 
-  return listaOrdenada.map((item, index) => ({
-    ...item,
-    porcentaje: `${(item.cantidad / maximoConteo) * 100}%`,
-    colorClass: coloresBarras[index] || 'from-slate-500 to-slate-600'
-  }))
+  return Object.entries(mapeoFrecuencia)
+    .map(([nombre, cantidad], index) => ({
+      nombre,
+      cantidad,
+      porcentaje: `${(cantidad / maximoConteo) * 100}%`,
+      colorClass: coloresBarras[index] || 'from-slate-500 to-slate-600'
+    }))
+    .sort((a, b) => b.cantidad - a.cantidad)
+    .slice(0, 3) 
 })
 
 // --- MÉTRICAS DE REDES ---
 const metricasRedes = computed(() => {
-  const redes = props.contacto.cantidadInteraccionesRedes
+  const whatsappInt = props.contacto.cantidadInteraccionesRedes?.whatsapp ?? 32
+  const instagramInt = props.contacto.cantidadInteraccionesRedes?.instagram ?? 14
+  const correoInt = props.contacto.cantidadEmails ?? 12
+  const facebookInt = props.contacto.cantidadInteraccionesRedes?.facebook ?? 16
+
   const lista = [
-    { nombre: 'WhatsApp', cantidad: redes?.whatsapp ?? 32, color: 'bg-emerald-500', porcentaje: '50%' },
-    { nombre: 'Instagram', cantidad: redes?.instagram ?? 14, color: 'bg-sky-500', porcentaje: '25%' },
-    { nombre: 'Correo', cantidad: props.contacto.cantidadEmails ?? 12, color: 'bg-amber-500', porcentaje: '20%' },
-    { nombre: 'Facebook', cantidad: redes?.facebook ?? 16, color: 'bg-blue-600', porcentaje: '15%' }
+    { nombre: ' whatsapp', cantidad: whatsappInt, color: 'bg-emerald-500', porcentaje: '50%' },
+    { nombre: ' Instagram', cantidad: instagramInt, color: 'bg-sky-500', porcentaje: '25%' },
+    { nombre: ' Correo', cantidad: correoInt, color: 'bg-amber-500', porcentaje: '20%' },
+    { nombre: ' Facebook', cantidad: facebookInt, color: 'bg-blue-600', porcentaje: '15%' }
   ]
 
-  return lista.sort((a, b) => b.cantidad - a.cantidad)
+  // Ordena usando una resta simple convirtiendo a número puro
+  return lista.sort((x: { cantidad: number }, y: { cantidad: number }) => Number(y.cantidad) - Number(x.cantidad))
 })
 </script>
 
@@ -189,6 +175,7 @@ const metricasRedes = computed(() => {
     <div class="flex-1 mt-5 min-h-0 overflow-hidden">
       
       <div v-if="pestañaActiva === 'datos'" class="grid grid-cols-1 md:grid-cols-12 gap-5 h-full overflow-y-auto pr-1 custom-scrollbar animate-fadeIn items-start">
+        
         <div class="md:col-span-6 space-y-4">
           <div>
             <h3 class="text-[9px] font-black uppercase text-slate-400 tracking-widest mb-2 pb-1 border-b border-slate-100">
@@ -240,14 +227,16 @@ const metricasRedes = computed(() => {
         </div>
       </div>
 
-      <div v-if="pestañaActiva === 'servicios'" class="flex flex-col h-full min-h-0 bg-slate-50/50 p-1 rounded-xl">
+      <div v-if="pestañaActiva === 'servicios'" class="flex flex-col h-full min-h-0 bg-slate-50/50 border border-slate-200 rounded-2xl p-4 shadow-xs animate-fadeIn">
         
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 pb-4 border-b border-slate-200 shrink-0 items-stretch">
+          
           <div class="lg:col-span-4 flex flex-col justify-between bg-white border border-slate-200/80 p-3.5 rounded-xl shadow-xs">
             <div>
               <h3 class="text-sm font-black uppercase text-slate-900 tracking-tight">Historial de Catálogo</h3>
               <p class="text-[10px] text-slate-400 font-medium leading-tight mt-0.5">Métricas de recurrencia y control de contratos del cliente.</p>
             </div>
+            
             <div class="flex items-center gap-2 font-mono text-[10px] mt-3 lg:mt-0">
               <span class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-lg font-black shadow-2xs">Activos: {{ serviciosActivosContador }}</span>
               <span class="bg-slate-100 text-slate-700 border border-slate-200 px-2 py-0.5 rounded-lg font-black shadow-2xs">Total: {{ totalServicios }}</span>
@@ -256,8 +245,10 @@ const metricasRedes = computed(() => {
 
           <div class="lg:col-span-8 bg-white border border-slate-200/80 rounded-xl p-3.5 flex flex-col justify-center shadow-xs">
             <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-2">📊 Top Servicios más contratados (Historial de uso)</span>
+            
             <div v-if="serviciosMasUsados.length" class="space-y-2">
               <div v-for="item in serviciosMasUsados" :key="item.nombre" class="flex items-center gap-3">
+                
                 <div class="flex-1 bg-slate-100 rounded-lg h-7 relative overflow-hidden border border-slate-200/40 shadow-inner">
                   <div 
                     class="h-full bg-gradient-to-r flex items-center pl-3 transition-all duration-700 shadow-xs" 
@@ -269,9 +260,11 @@ const metricasRedes = computed(() => {
                     </span>
                   </div>
                 </div>
+
                 <div class="shrink-0 font-mono text-[10px] font-black bg-slate-50 text-slate-600 border border-slate-200 h-7 px-2.5 flex items-center justify-center rounded-lg shadow-2xs">
                   {{ item.cantidad }} u.
                 </div>
+
               </div>
             </div>
             <div v-else class="text-center py-4 text-[10px] text-slate-400 font-semibold">
@@ -357,7 +350,9 @@ const metricasRedes = computed(() => {
           </table>
         </div>
 
-      </div> </div>
+      </div>
+
+    </div>
   </div>
 </template>
 
