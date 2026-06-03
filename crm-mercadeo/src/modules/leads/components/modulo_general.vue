@@ -363,29 +363,27 @@ const serviciosFiltrados = computed(() => {
 
     </div>
 
-   <div v-if="vistaActiva === 'analytics'" class="w-full h-full">
+<div v-if="vistaActiva === 'analytics'" class="w-full h-full">
+  <main class="min-h-screen bg-gray-50 p-6 md:p-12">
+    <div class="max-w-7xl mx-auto">
       
-      <main class="min-h-screen bg-gray-50 p-6 md:p-12">
-        <div class="max-w-7xl mx-auto">
-          
-          <h1 class="text-3xl font-bold text-gray-800 mb-6">
-            Informe de Gestión de Ordenamiento
-          </h1>
+      <h1 class="text-3xl font-bold text-gray-800 mb-6">
+        Informe de Plan de Uso
+      </h1>
 
-          <div class="w-full h-[85vh] min-h-[600px] border border-gray-200 rounded-xl overflow-hidden shadow-lg bg-white mt-6">
-            <iframe 
-              src="https://us-east-1.online.tableau.com/t/laliga-amasalvarvidas/views/Ordenamiento-GestionOrdenamiento/Inicio-Informe-GestionOrdenamiento?:embed=yes&:toolbar=no"
-              width="100%" 
-              height="100%" 
-              frameborder="0"
-              allowfullscreen>
-            </iframe>
-          </div>
-          
-        </div>
-      </main>
-
+      <div class="w-full h-[85vh] min-h-[600px] border border-gray-200 rounded-xl overflow-hidden shadow-lg bg-white mt-6">
+        <iframe 
+          src="https://us-east-1.online.tableau.com/t/laliga-amasalvarvidas/views/Produccion-PlanLigaUso/Inicio-Informe-PlanLigaUso?:embed=yes&:toolbar=bottom"
+          width="100%" 
+          height="100%" 
+          frameborder="0"
+          allowfullscreen>
+        </iframe>
+      </div>
+      
     </div>
+  </main>
+</div>
 
   </div>
 </template>
