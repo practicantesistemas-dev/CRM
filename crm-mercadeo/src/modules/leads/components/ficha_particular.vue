@@ -20,6 +20,8 @@ interface Beneficiario {
 
 interface Contacto { 
   idUnico: string; 
+  nombre: string;
+  apellidos: string;
   nombreCompleto: string; 
   rol: 'titular' | 'beneficiario'; 
   tipoDocumento: string; 
@@ -27,8 +29,15 @@ interface Contacto {
   telefono: string; 
   whatsapp: string; 
   email: string; 
+  empresaAsociada?: string;
+  categoria?: string;
+  ocupacion?: string;
+  cargo?: string;
+  fechaNacimiento?: string;
   ciudad: string; 
   pais: string; 
+  estado: string; // Estado de gestión del contacto
+  etiquetas?: string[];
   canalOrigen: string; 
   campana: string; 
   estadoLead: string; 
@@ -37,7 +46,8 @@ interface Contacto {
   cantidadLlamadas: number; 
   cantidadEmails: number; 
   cantidadInteraccionesRedes?: { instagram?: number; facebook?: number; linkedin?: number; whatsapp?: number };
-  notes?: string; 
+  notes?: string; // Historial de notas principal
+  historialNotas?: Array<{ fecha: string; autor: string; texto: string }>; // Listado de notas
   edad: number; 
   genero: string; 
   serviciosHistoricos: ServicioParticular[]; 
@@ -126,13 +136,12 @@ const metricasRedes = computed(() => {
   const facebookInt = props.contacto.cantidadInteraccionesRedes?.facebook ?? 16
 
   const lista = [
-    { nombre: ' whatsapp', cantidad: whatsappInt, color: 'bg-emerald-500', porcentaje: '50%' },
-    { nombre: ' Instagram', cantidad: instagramInt, color: 'bg-sky-500', porcentaje: '25%' },
-    { nombre: ' Correo', cantidad: correoInt, color: 'bg-amber-500', porcentaje: '20%' },
-    { nombre: ' Facebook', cantidad: facebookInt, color: 'bg-blue-600', porcentaje: '15%' }
+    { nombre: 'WhatsApp', cantidad: whatsappInt, color: 'bg-emerald-500', porcentaje: '50%' },
+    { nombre: 'Instagram', cantidad: instagramInt, color: 'bg-sky-500', porcentaje: '25%' },
+    { nombre: 'Correo', cantidad: correoInt, color: 'bg-amber-500', porcentaje: '20%' },
+    { nombre: 'Facebook', cantidad: facebookInt, color: 'bg-blue-600', porcentaje: '15%' }
   ]
 
-  // Ordena usando una resta simple convirtiendo a número puro
   return lista.sort((x: { cantidad: number }, y: { cantidad: number }) => Number(y.cantidad) - Number(x.cantidad))
 })
 </script>
@@ -146,7 +155,7 @@ const metricasRedes = computed(() => {
           {{ contacto.estadoLead }}
         </span>
         <h2 class="text-xl font-black text-slate-900 tracking-tight mt-1">
-          {{ contacto.nombreCompleto }}
+          {{ contacto.nombreCompleto || `${contacto.nombre} ${contacto.apellidos}` }}
         </h2>
       </div>
 
@@ -176,7 +185,19 @@ const metricasRedes = computed(() => {
       
       <div v-if="pestañaActiva === 'datos'" class="grid grid-cols-1 md:grid-cols-12 gap-5 h-full overflow-y-auto pr-1 custom-scrollbar animate-fadeIn items-start">
         
-        <div class="md:col-span-6 space-y-4">
+        <div class="md:col-span-7 space-y-4">
+          
+          <div>
+            <h3 class="text-[9px] font-black uppercase text-slate-400 tracking-widest mb-2 pb-1 border-b border-slate-100">
+              Identificación Básica
+            </h3>
+            <div class="bg-slate-50/60 border border-slate-200/60 rounded-xl p-3 text-xs grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div class="flex justify-between items-center border-b border-slate-100/60 sm:border-0 pb-1 sm:pb-0"><span class="text-slate-400 font-bold">Nombre:</span><strong class="text-slate-800">{{ contacto.nombre }}</strong></div>
+              <div class="flex justify-between items-center border-b border-slate-100/60 sm:border-0 pb-1 sm:pb-0"><span class="text-slate-400 font-bold">Apellidos:</span><strong class="text-slate-800">{{ contacto.apellidos }}</strong></div>
+              <div class="flex justify-between items-center sm:col-span-2"><span class="text-slate-400 font-bold">Categoría:</span><strong class="text-blue-600 bg-blue-50/60 px-2 py-0.5 rounded font-black text-[10px] uppercase">{{ contacto.categoria || 'Sin Categoría' }}</strong></div>
+            </div>
+          </div>
+
           <div>
             <h3 class="text-[9px] font-black uppercase text-slate-400 tracking-widest mb-2 pb-1 border-b border-slate-100">
               Canales Directos de Comunicación
@@ -184,47 +205,112 @@ const metricasRedes = computed(() => {
             <div class="bg-slate-50/60 border border-slate-200/60 rounded-xl p-3 text-xs space-y-2.5">
               <div class="flex justify-between items-center"><span class="text-slate-400 font-bold">Teléfono:</span><strong class="text-slate-800 font-mono text-[11px]">{{ contacto.telefono }}</strong></div>
               <div class="flex justify-between items-center"><span class="text-slate-400 font-bold">WhatsApp Corp:</span><strong class="text-emerald-600 font-mono text-[11px]">➔ {{ contacto.whatsapp }}</strong></div>
-              <div class="flex justify-between items-center"><span class="text-slate-400 font-bold">Email Asociado:</span><strong class="text-slate-800 truncate max-w-[200px]">{{ contacto.email }}</strong></div>
+              <div class="flex justify-between items-center"><span class="text-slate-400 font-bold">Email Asociado:</span><strong class="text-slate-800 truncate max-w-[240px]">{{ contacto.email }}</strong></div>
             </div>
           </div>
 
           <div>
-            <div class="flex justify-between items-center mb-2 pb-1 border-b border-slate-100">
-              <h3 class="text-[9px] font-black uppercase text-slate-400 tracking-widest">
-                Información Sociodemográfica y Legal
-              </h3>
+            <h3 class="text-[9px] font-black uppercase text-slate-400 tracking-widest mb-2 pb-1 border-b border-slate-100">
+              Entorno Profesional y Corporativo
+            </h3>
+            <div class="bg-slate-50/60 border border-slate-200/60 rounded-xl p-3 text-xs grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div class="flex justify-between items-center"><span class="text-slate-400 font-bold">Empresa:</span><strong class="text-slate-800 truncate max-w-[140px]">{{ contacto.empresaAsociada || 'N/A' }}</strong></div>
+              <div class="flex justify-between items-center"><span class="text-slate-400 font-bold">Ocupación:</span><strong class="text-slate-800 truncate max-w-[140px]">{{ contacto.ocupacion || 'N/A' }}</strong></div>
+              <div class="flex justify-between items-center sm:col-span-2 border-t border-slate-100/60 pt-2"><span class="text-slate-400 font-bold">Cargo:</span><strong class="text-slate-800">{{ contacto.cargo || 'No Definido' }}</strong></div>
             </div>
+          </div>
+
+          <div>
+            <h3 class="text-[9px] font-black uppercase text-slate-400 tracking-widest mb-2 pb-1 border-b border-slate-100">
+              Información Sociodemográfica y Legal
+            </h3>
             <div class="grid grid-cols-2 gap-2 text-xs">
               <div class="bg-slate-50/40 p-2.5 rounded-xl border border-slate-200/40"><span class="text-slate-400 block text-[8px] uppercase tracking-wide">Género / Edad</span><strong class="text-slate-800 text-[11px] font-bold">{{ contacto.genero }}, {{ contacto.edad }} años</strong></div>
-              <div class="bg-slate-50/40 p-2.5 rounded-xl border border-slate-200/40"><span class="text-slate-400 block text-[8px] uppercase tracking-wide">Identificación</span><strong class="text-slate-800 text-[11px] font-mono font-bold">{{ contacto.tipoDocumento }}-{{ contacto.documento }}</strong></div>
+              <div class="bg-slate-50/40 p-2.5 rounded-xl border border-slate-200/40"><span class="text-slate-400 block text-[8px] uppercase tracking-wide">F. Nacimiento</span><strong class="text-slate-800 text-[11px] font-mono font-bold">{{ contacto.fechaNacimiento || 'N/A' }}</strong></div>
               <div class="bg-slate-50/40 p-2.5 rounded-xl border border-slate-200/40 col-span-2"><span class="text-slate-400 block text-[8px] uppercase tracking-wide">Ubicación Registrada</span><strong class="text-slate-800 text-[11px] font-bold">{{ contacto.ciudad }}, {{ contacto.pais }}</strong></div>
             </div>
           </div>
+
         </div>
 
-        <div class="md:col-span-6">
-          <div class="border border-slate-200 rounded-2xl bg-white p-4 shadow-sm">
+        <div class="md:col-span-5 space-y-4">
+          
+          <div class="border border-slate-200/80 rounded-2xl bg-white p-4 shadow-2xs">
             <div class="pb-2 border-b border-slate-100 mb-3">
               <div class="flex items-center justify-between">
-                <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest block">Canal de Origen del Lead</span>
-                <span class="text-[8px] bg-blue-50 text-blue-700 border border-blue-200 font-mono font-black px-1.5 py-0.5 rounded uppercase">Engaged</span>
+                <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest block">Estado del Registro</span>
+                <span class="text-[9px] bg-slate-900 text-white font-mono font-black px-2 py-0.5 rounded uppercase tracking-wider">
+                  {{ contacto.estado || 'Activo' }}
+                </span>
               </div>
-              <p class="text-[9px] text-slate-400 font-medium mt-0.5">Interacciones totales acumuladas</p>
             </div>
-            
-            <div class="space-y-3.5">
-              <div v-for="red in metricasRedes" :key="red.nombre" class="space-y-1">
-                <div class="flex justify-between text-slate-600 items-center">
-                  <span class="text-slate-900 font-extrabold text-[11px]">{{ red.nombre }}</span>
-                  <span class="font-mono text-slate-400 text-[10px] font-bold">{{ red.cantidad }} int.</span>
+
+            <div>
+              <span class="text-[8px] text-slate-400 font-black uppercase tracking-wider block mb-2">Etiquetas de Segmentación</span>
+              <div class="flex flex-wrap gap-1.5" v-if="contacto.etiquetas && contacto.etiquetas.length">
+                <span 
+                  v-for="(tag, i) in contacto.etiquetas" 
+                  :key="i"
+                  class="bg-slate-100 text-slate-600 border border-slate-200 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-tight"
+                >
+                  #{ { tag } }
+                </span>
+              </div>
+              <span v-else class="text-[10px] text-slate-400 italic">Sin etiquetas asignadas.</span>
+            </div>
+          </div>
+
+          <div class="border border-slate-200/80 rounded-2xl bg-white p-4 shadow-2xs">
+            <h3 class="text-[10px] font-black uppercase text-slate-500 tracking-widest pb-1.5 border-b border-slate-100 mb-3">
+              📝 Historial de Notas y Observaciones
+            </h3>
+
+            <div class="space-y-3 max-h-[220px] overflow-y-auto pr-1 custom-scrollbar">
+              
+              <div v-if="contacto.notes" class="bg-amber-50/50 border border-amber-200/40 rounded-xl p-2.5 text-xs text-slate-700 leading-normal">
+                <div class="flex justify-between items-center text-[8px] text-amber-700 font-black uppercase tracking-wider mb-1">
+                  <span>Nota Principal</span>
+                  <span>Sistema</span>
                 </div>
-                <div class="w-full bg-slate-100 rounded-full h-2.5 border border-slate-200/30 shadow-inner overflow-hidden">
+                <p class="font-semibold">{{ contacto.notes }}</p>
+              </div>
+
+              <div 
+                v-for="(nota, idx) in contacto.historialNotas" 
+                :key="idx"
+                class="bg-slate-50/80 border border-slate-200/40 rounded-xl p-2.5 text-xs text-slate-700"
+              >
+                <div class="flex justify-between items-center text-[8px] text-slate-400 font-black uppercase tracking-wider mb-1">
+                  <span>{{ nota.fecha }}</span>
+                  <span class="text-blue-600">{{ nota.autor }}</span>
+                </div>
+                <p class="font-medium text-slate-600">{{ nota.texto }}</p>
+              </div>
+
+              <div v-if="!contacto.notes && (!contacto.historialNotas || !contacto.historialNotas.length)" class="text-center py-4 text-[10px] text-slate-400 italic">
+                No hay notas registradas en el historial de este contacto.
+              </div>
+
+            </div>
+          </div>
+
+          <div class="border border-slate-200/60 rounded-2xl bg-slate-50/40 p-3.5">
+            <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-2.5">Resumen de Interacciones</span>
+            <div class="space-y-2">
+              <div v-for="red in metricasRedes" :key="red.nombre" class="space-y-0.5">
+                <div class="flex justify-between text-slate-600 items-center text-[10px]">
+                  <span class="text-slate-800 font-bold">{{ red.nombre }}</span>
+                  <span class="font-mono text-slate-400 font-bold">{{ red.cantidad }} int.</span>
+                </div>
+                <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
                   <div class="h-full rounded-full transition-all duration-500" :class="red.color" :style="{ width: red.porcentaje }"></div>
                 </div>
               </div>
             </div>
           </div>
+
         </div>
+
       </div>
 
       <div v-if="pestañaActiva === 'servicios'" class="flex flex-col h-full min-h-0 bg-slate-50/50 border border-slate-200 rounded-2xl p-4 shadow-xs animate-fadeIn">
