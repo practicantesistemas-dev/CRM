@@ -59,7 +59,7 @@
           <div class="space-y-1.5">
             <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Usuario o Correo</label>
             <div class="relative">
-              <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 text-xs pointer-events-none">👤</span>
+              <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 text-xs pointer-events-none"></span>
               <input 
                 v-model="form.username" 
                 type="text" 
@@ -76,7 +76,7 @@
               <a href="#" class="text-[10px] font-bold text-pink-500 hover:underline">¿La olvidaste?</a>
             </div>
             <div class="relative">
-              <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 text-xs pointer-events-none">🔒</span>
+              <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 text-xs pointer-events-none"></span>
               <input 
                 v-model="form.password" 
                 type="password" 

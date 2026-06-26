@@ -1,13 +1,35 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import TableroLiga from './tableau.vue'
+import Contactos from './contactos.vue'
 
-type Vista = 'workflows' | 'servicios' | 'analytics'
+type Vista = 'workflows' | 'servicios' | 'analytics' | 'contactos'
 
 const vistaActiva = ref<Vista>('workflows')
 
 const buscarWorkflow = ref('')
 const buscarServicio = ref('')
+
+const contactos = ref([
+  {
+    id: 1,
+    nombre: 'Carlos Mendoza',
+    cargo: 'Marketing',
+    email: 'carlos@globaltech.com',
+    telefono: '+1 234 567 890',
+    empresa: 'Global Tech',
+    estado: 'ACTIVO'
+  },
+  {
+    id: 2,
+    nombre: 'Ana Victoria Ruiz',
+    cargo: 'CEO',
+    email: 'ana@esteticamayo.com',
+    telefono: '+1 987 654 321',
+    empresa: 'Estética Mayo',
+    estado: 'EN ESPERA'
+  }
+])
 
 const workflows = ref([
   {
@@ -102,22 +124,8 @@ const serviciosFiltrados = computed(() => {
 
     <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 mb-5 w-full">
 
+      
       <div class="bg-white rounded-2xl p-1.5 flex gap-2 shadow-sm border border-slate-200 w-fit">
-        <button @click="vistaActiva = 'workflows'"
-          class="px-5 py-2 rounded-xl text-[10px] font-bold tracking-wide transition-all" :class="vistaActiva === 'workflows'
-              ? 'bg-[#3557ff] text-white shadow'
-              : 'text-slate-500 hover:bg-slate-100'
-            ">
-          WORKFLOWS
-        </button>
-
-        <button @click="vistaActiva = 'servicios'"
-          class="px-5 py-2 rounded-xl text-[10px] font-bold tracking-wide transition-all" :class="vistaActiva === 'servicios'
-              ? 'bg-[#3557ff] text-white shadow'
-              : 'text-slate-500 hover:bg-slate-100'
-            ">
-          SERVICIOS
-        </button>
 
         <button @click="vistaActiva = 'analytics'"
           class="px-5 py-2 rounded-xl text-[10px] font-bold tracking-wide transition-all" :class="vistaActiva === 'analytics'
@@ -126,6 +134,34 @@ const serviciosFiltrados = computed(() => {
             ">
           ANALYTICS
         </button>
+
+        
+        <button @click="vistaActiva = 'servicios'"
+          class="px-5 py-2 rounded-xl text-[10px] font-bold tracking-wide transition-all" :class="vistaActiva === 'servicios'
+              ? 'bg-[#3557ff] text-white shadow'
+              : 'text-slate-500 hover:bg-slate-100'
+            ">
+          SERVICIOS
+        </button>
+
+        <button
+          @click="vistaActiva = 'contactos'"
+          class="px-5 py-2 rounded-xl text-[10px] font-bold tracking-wide transition-all"
+          :class="vistaActiva === 'contactos'
+            ? 'bg-[#3557ff] text-white shadow'
+            : 'text-slate-500 hover:bg-slate-100'"
+        >
+          CLIENTES
+        </button>
+        
+        <button @click="vistaActiva = 'workflows'"
+          class="px-5 py-2 rounded-xl text-[10px] font-bold tracking-wide transition-all" :class="vistaActiva === 'workflows'
+              ? 'bg-[#3557ff] text-white shadow'
+              : 'text-slate-500 hover:bg-slate-100'
+            ">
+          WORKFLOWS
+        </button>
+
       </div>
 
       <div class="flex gap-3 xl:ml-auto">
@@ -333,6 +369,11 @@ const serviciosFiltrados = computed(() => {
 
       </div>
 
+    </div>
+
+
+    <div v-if="vistaActiva === 'contactos'">
+      <Contactos :contactos="contactos" />
     </div>
 
     <div v-if="vistaActiva === 'analytics'" class="w-full h-full">
