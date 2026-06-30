@@ -1,395 +1,253 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import TableroLiga from './tableau.vue'
-import Contactos from './contactos.vue'
+import {
+  Users, Building2, Briefcase, Layers, ClipboardList,
+  Phone, Mail, Calendar, FileText, TrendingUp, TrendingDown,
+  BarChart3, Heart, Target, GitBranch, Megaphone, Zap
+} from 'lucide-vue-next'
 
-type Vista = 'workflows' | 'servicios' | 'analytics' | 'contactos'
+const periodo = ref('30d')
 
-const vistaActiva = ref<Vista>('workflows')
+const kpis = [
+  { label: 'Contactos',     valor: '1,248', delta: '+12%', positivo: true, icono: Users,        color: '#2447F9', bg: '#EEF2FF', subtexto: 'vs. mes anterior'  },
+  { label: 'Titulares PL',  valor: '342',   delta: '+8%',  positivo: true, icono: Heart,        color: '#EC4899', bg: '#FCE7F3', subtexto: 'Plan Liga activos' },
+  { label: 'Empresas',      valor: '86',    delta: '+5%',  positivo: true, icono: Building2,    color: '#1A2A6C', bg: '#E8EAF6', subtexto: 'vinculadas'        },
+  { label: 'Oportunidades', valor: '34',    delta: '+8%',  positivo: true, icono: Briefcase,    color: '#EC4899', bg: '#FCE7F3', subtexto: 'en curso'          },
+  { label: 'Servicios',     valor: '12',    delta: '0%',   positivo: true, icono: Layers,       color: '#C9A227', bg: '#FEF9C3', subtexto: 'Plan Liga activos' },
+  { label: 'Seguimientos',  valor: '67',    delta: '+3%',  positivo: true, icono: ClipboardList, color: '#059669', bg: '#D1FAE5', subtexto: 'pendientes'       },
+]
 
-const buscarWorkflow = ref('')
-const buscarServicio = ref('')
+const actividades = [
+  { tipo: 'Llamada', icono: Phone,    contacto: 'Carlos Mendoza',    empresa: 'Global Tech S.A.S',    hace: 'Hace 15 min', usuario: 'María García',  color: '#2447F9', bg: '#EEF2FF' },
+  { tipo: 'Correo',  icono: Mail,     contacto: 'Ana Victoria Ruiz', empresa: 'Estética Mayo',         hace: 'Hace 1h',     usuario: 'Juan López',    color: '#EC4899', bg: '#FCE7F3' },
+  { tipo: 'Reunión', icono: Calendar, contacto: 'Pedro Sánchez',     empresa: 'Constructora ABC',      hace: 'Hace 2h',     usuario: 'Carlos Torres', color: '#C9A227', bg: '#FEF9C3' },
+  { tipo: 'Nota',    icono: FileText, contacto: 'Laura Gómez',       empresa: 'Farmacia Norte',        hace: 'Hace 3h',     usuario: 'María García',  color: '#059669', bg: '#D1FAE5' },
+  { tipo: 'Llamada', icono: Phone,    contacto: 'Roberto Díaz',      empresa: 'Tech Solutions',        hace: 'Hace 5h',     usuario: 'Juan López',    color: '#2447F9', bg: '#EEF2FF' },
+  { tipo: 'Correo',  icono: Mail,     contacto: 'Sandra Morales',    empresa: 'Grupo Empresarial XYZ', hace: 'Hace 6h',     usuario: 'Carlos Torres', color: '#EC4899', bg: '#FCE7F3' },
+]
 
-const contactos = ref([
-  {
-    id: 1,
-    nombre: 'Carlos Mendoza',
-    cargo: 'Marketing',
-    email: 'carlos@globaltech.com',
-    telefono: '+1 234 567 890',
-    empresa: 'Global Tech',
-    estado: 'ACTIVO'
-  },
-  {
-    id: 2,
-    nombre: 'Ana Victoria Ruiz',
-    cargo: 'CEO',
-    email: 'ana@esteticamayo.com',
-    telefono: '+1 987 654 321',
-    empresa: 'Estética Mayo',
-    estado: 'EN ESPERA'
-  }
-])
+const distribucion = [
+  { label: 'Activos',    porcentaje: 68, color: '#2447F9' },
+  { label: 'En proceso', porcentaje: 22, color: '#C9A227' },
+  { label: 'Inactivos',  porcentaje: 10, color: '#EC4899' },
+]
 
-const workflows = ref([
-  {
-    id: 1,
-    fase: 'captacion',
-    nombre: 'Secuencia Bienvenida Automatizada',
-    trigger: 'Formulario Web',
-    accion: 'Notificación WhatsApp',
-    cola: 142,
-    conversion: '12.4%'
-  },
-  {
-    id: 2,
-    fase: 'nutricion',
-    nombre: 'Recuperación de Leads Fríos',
-    trigger: 'Inactividad 7 Días',
-    accion: 'Email de Valor + Cupón',
-    cola: 89,
-    conversion: '5.8%'
-  },
-  {
-    id: 3,
-    fase: 'conversion',
-    nombre: 'Recordatorio Agendamiento Clínico',
-    trigger: 'Cita Pre-aprobada',
-    accion: 'SMS + Confirmación',
-    cola: 231,
-    conversion: '42.1%'
-  },
-  {
-    id: 4,
-    fase: 'nutricion',
-    nombre: 'Nutrición Pacientes Ortodoncia',
-    trigger: 'Firma de Contrato',
-    accion: 'Folleto WhatsApp',
-    cola: 65,
-    conversion: '18.2%'
-  }
-])
+const topServicios = [
+  { nombre: 'Plan Liga Empresarial', solicitudes: 312, conversion: '42%' },
+  { nombre: 'Plan Liga Individual',  solicitudes: 245, conversion: '35%' },
+  { nombre: 'Brigadas de Salud',     solicitudes: 187, conversion: '28%' },
+  { nombre: 'Tamizajes',             solicitudes: 134, conversion: '31%' },
+]
 
-const servicios = ref([
-  {
-    id: 1,
-    nombre: 'Diseño de Sonrisa Mockup',
-    fecha: '2026-01-15',
-    leads: 820,
-    conversion: '38%',
-    clasificacion: 'ALTA'
-  },
-  {
-    id: 2,
-    nombre: 'Profilaxis de Entrada',
-    fecha: '2026-02-02',
-    leads: 640,
-    conversion: '26%',
-    clasificacion: 'FRECUENTE'
-  },
-  {
-    id: 3,
-    nombre: 'Ortodoncia Invisible Premium',
-    fecha: '2026-03-05',
-    leads: 510,
-    conversion: '42%',
-    clasificacion: 'PREMIUM'
-  },
-  {
-    id: 4,
-    nombre: 'Endodoncia Premium',
-    fecha: '2026-04-11',
-    leads: 220,
-    conversion: '18%',
-    clasificacion: 'MEDIA'
-  }
-])
+const embudoResumen = [
+  { etapa: 'Lead',            count: 12, color: '#94A3B8' },
+  { etapa: 'Primer Contacto', count: 8,  color: '#2447F9' },
+  { etapa: 'Cotización',      count: 5,  color: '#C9A227' },
+  { etapa: 'Negociación',     count: 3,  color: '#1A2A6C' },
+  { etapa: 'Ganado',          count: 6,  color: '#059669' },
+]
 
-const workflowsFiltrados = computed(() => {
-  return workflows.value.filter(w =>
-    w.nombre.toLowerCase().includes(buscarWorkflow.value.toLowerCase())
-  )
-})
-
-const serviciosFiltrados = computed(() => {
-  return servicios.value.filter(s =>
-    s.nombre.toLowerCase().includes(buscarServicio.value.toLowerCase())
-  )
-})
+const periodo_options = [
+  { value: '7d',   label: 'Últimos 7 días' },
+  { value: '30d',  label: 'Últimos 30 días' },
+  { value: '90d',  label: 'Este trimestre' },
+  { value: 'year', label: 'Este año' },
+]
 </script>
 
-
 <template>
-  <div class="w-full min-h-screen bg-[#f4f6f9] p-4 md:p-5 overflow-auto">
+  <div class="space-y-6 max-w-[1600px] mx-auto font-[Inter,system-ui,sans-serif]">
 
-    <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 mb-5 w-full">
-
-      
-      <div class="bg-white rounded-2xl p-1.5 flex gap-2 shadow-sm border border-slate-200 w-fit">
-
-        <button @click="vistaActiva = 'analytics'"
-          class="px-5 py-2 rounded-xl text-[10px] font-bold tracking-wide transition-all" :class="vistaActiva === 'analytics'
-              ? 'bg-[#3557ff] text-white shadow'
-              : 'text-slate-500 hover:bg-slate-100'
-            ">
-          ANALYTICS
-        </button>
-
-        
-        <button @click="vistaActiva = 'servicios'"
-          class="px-5 py-2 rounded-xl text-[10px] font-bold tracking-wide transition-all" :class="vistaActiva === 'servicios'
-              ? 'bg-[#3557ff] text-white shadow'
-              : 'text-slate-500 hover:bg-slate-100'
-            ">
-          SERVICIOS
-        </button>
-
-        <button
-          @click="vistaActiva = 'contactos'"
-          class="px-5 py-2 rounded-xl text-[10px] font-bold tracking-wide transition-all"
-          :class="vistaActiva === 'contactos'
-            ? 'bg-[#3557ff] text-white shadow'
-            : 'text-slate-500 hover:bg-slate-100'"
-        >
-          CLIENTES
-        </button>
-        
-        <button @click="vistaActiva = 'workflows'"
-          class="px-5 py-2 rounded-xl text-[10px] font-bold tracking-wide transition-all" :class="vistaActiva === 'workflows'
-              ? 'bg-[#3557ff] text-white shadow'
-              : 'text-slate-500 hover:bg-slate-100'
-            ">
-          WORKFLOWS
-        </button>
-
+    <!-- Page header -->
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-[20px] font-bold text-[#0F172A] leading-tight">Dashboard</h1>
+        <p class="text-[13px] text-slate-500 mt-0.5">Resumen general · Fundación La Liga Ama Salvar Vidas</p>
       </div>
-
-      <div class="flex gap-3 xl:ml-auto">
-        <button
-          class="bg-white border border-slate-200 rounded-xl px-4 py-2 text-[11px] font-bold text-slate-600 shadow-sm">
-          Fase: todos
-        </button>
-        <button
-          class="bg-white border border-slate-200 rounded-xl px-4 py-2 text-[11px] font-bold text-slate-600 shadow-sm">
-          Tiempo: 30d
-        </button>
-      </div>
-
+      <select
+        v-model="periodo"
+        class="h-8 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer"
+      >
+        <option v-for="o in periodo_options" :key="o.value" :value="o.value">{{ o.label }}</option>
+      </select>
     </div>
 
-    <div v-if="vistaActiva === 'workflows'" class="flex flex-col gap-4 w-full">
-      <div class="bg-white rounded-[22px] border border-slate-200 shadow-sm p-4 w-full">
-        <input v-model="buscarWorkflow" type="text" placeholder="Buscar workflow..."
-          class="w-full bg-[#f7f9fc] rounded-xl px-4 py-3 outline-none text-[12px] font-semibold text-slate-700 border border-slate-200" />
-      </div>
-
-      <div v-for="workflow in workflowsFiltrados" :key="workflow.id"
-        class="bg-white rounded-[22px] border border-slate-200 shadow-sm px-5 py-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 hover:shadow-md transition-all w-full">
-        <div class="flex flex-col gap-3">
-          <div class="flex items-center gap-2 flex-wrap">
-            <span class="px-2 py-[4px] rounded-full bg-slate-100 text-[8px] font-bold uppercase text-slate-600">
-              {{ workflow.fase }}
-            </span>
+    <!-- ── KPI Cards ───────────────────────────────── -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-4">
+      <div
+        v-for="kpi in kpis"
+        :key="kpi.label"
+        class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 hover:shadow-md transition-all cursor-default"
+      >
+        <div class="flex items-center justify-between mb-4">
+          <div class="w-9 h-9 rounded-xl flex items-center justify-center" :style="{ backgroundColor: kpi.bg }">
+            <component :is="kpi.icono" :size="17" :style="{ color: kpi.color }" />
           </div>
+          <span
+            class="flex items-center gap-0.5 text-[10px] font-bold px-2 py-0.5 rounded-full"
+            :class="kpi.positivo ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'"
+          >
+            <component :is="kpi.positivo ? TrendingUp : TrendingDown" :size="9" />
+            {{ kpi.delta }}
+          </span>
+        </div>
+        <div class="text-[24px] font-bold text-[#0F172A] leading-none mb-1">{{ kpi.valor }}</div>
+        <div class="text-[10px] font-semibold text-slate-500 uppercase tracking-wide">{{ kpi.label }}</div>
+        <div class="text-[10px] text-slate-400 mt-0.5">{{ kpi.subtexto }}</div>
+      </div>
+    </div>
 
+    <!-- ── Main grid ───────────────────────────────── -->
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+
+      <!-- Actividad Reciente -->
+      <div class="xl:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100">
           <div>
-            <h3 class="text-[13px] md:text-[14px] font-bold text-[#0f172a] leading-tight">
-              {{ workflow.nombre }}
-            </h3>
-            <p class="text-[11px] text-slate-500 font-semibold mt-1">
-              {{ workflow.trigger }} → {{ workflow.accion }}
-            </p>
+            <h3 class="text-[13px] font-bold text-[#0F172A]">Actividad Reciente</h3>
+            <p class="text-[11px] text-slate-400 mt-0.5">Últimas interacciones registradas</p>
           </div>
         </div>
-
-        <div class="flex items-center gap-5 lg:gap-7">
-          <div class="text-right">
-            <span class="block text-[9px] font-bold text-slate-400 uppercase">EN COLA</span>
-            <strong class="text-[15px] md:text-[16px] font-bold text-[#0f172a]">{{ workflow.cola }}</strong>
-          </div>
-          <div class="text-right">
-            <span class="block text-[9px] font-bold text-slate-400 uppercase">CONVERSIÓN</span>
-            <strong class="text-[15px] md:text-[16px] font-bold text-[#10b981]">{{ workflow.conversion }}</strong>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div v-if="vistaActiva === 'servicios'" class="flex flex-col gap-5 w-full">
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
-
-        <div class="bg-white rounded-[20px] border border-slate-200 shadow-sm p-4 w-full">
-          <div class="mb-3">
-            <h3 class="text-[12px] font-bold text-[#0f172a]">Top Servicios</h3>
-            <p class="text-[10px] text-slate-400 font-medium mt-0.5">Más demandados</p>
-          </div>
-
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div>
-              <div class="flex justify-between items-center mb-1">
-                <span class="text-[10px] font-medium text-slate-600 truncate mr-1">Diseño Sonrisa</span>
-                <strong class="text-[10px] font-bold text-slate-700">820</strong>
-              </div>
-              <div class="w-full h-[6px] bg-slate-100 rounded-full overflow-hidden">
-                <div class="w-[92%] h-full bg-[#3557ff] rounded-full"></div>
-              </div>
-            </div>
-            <div>
-              <div class="flex justify-between items-center mb-1">
-                <span class="text-[10px] font-medium text-slate-600 truncate mr-1">Profilaxis</span>
-                <strong class="text-[10px] font-bold text-slate-700">640</strong>
-              </div>
-              <div class="w-full h-[6px] bg-slate-100 rounded-full overflow-hidden">
-                <div class="w-[76%] h-full bg-[#10b981] rounded-full"></div>
-              </div>
-            </div>
-            <div>
-              <div class="flex justify-between items-center mb-1">
-                <span class="text-[10px] font-medium text-slate-600 truncate mr-1">Ortodoncia Premium</span>
-                <strong class="text-[10px] font-bold text-slate-700">510</strong>
-              </div>
-              <div class="w-full h-[6px] bg-slate-100 rounded-full overflow-hidden">
-                <div class="w-[58%] h-full bg-violet-500 rounded-full"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="bg-white rounded-[20px] border border-slate-200 shadow-sm p-4 w-full flex flex-col justify-between">
-          <div class="mb-2">
-            <h3 class="text-[12px] font-bold text-[#0f172a]">Menor Rendimiento</h3>
-            <p class="text-[10px] text-slate-400 font-medium mt-0.5">Conversión más baja</p>
-          </div>
-
-          <div class="flex items-center justify-between bg-slate-50 p-2.5 rounded-xl">
-            <div>
-              <strong class="text-[11px] font-bold text-slate-700">Endodoncia Premium</strong>
-              <p class="text-[9px] text-slate-400 font-medium mt-0.5">Conversión baja</p>
-            </div>
-            <span class="text-[13px] font-bold text-red-500 bg-red-50 px-2.5 py-1 rounded-lg">18%</span>
-          </div>
-        </div>
-
-      </div>
-
-      <div class="bg-white rounded-[20px] border border-slate-200 shadow-sm overflow-hidden h-fit w-full">
-
-        <div class="p-4 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h2 class="text-[13px] font-bold text-[#0f172a]">Servicios Activos</h2>
-            <p class="text-[10px] text-slate-400 font-medium mt-0.5">
-              Rendimiento comercial y comportamiento
-            </p>
-          </div>
-
-          <div class="flex items-center gap-2">
-            <input v-model="buscarServicio" type="text" placeholder="Buscar servicio..."
-              class="bg-[#f7f9fc] rounded-xl px-3 h-[38px] outline-none text-[11px] font-medium border border-slate-200 w-full sm:w-[220px]" />
-
-            <select
-              class="bg-white border border-slate-200 rounded-xl px-3 h-[38px] text-[11px] font-bold text-slate-600 outline-none cursor-pointer">
-              <option>Todos</option>
-              <option>WhatsApp</option>
-              <option>Correo</option>
-              <option>Llamada</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="overflow-x-auto w-full">
-          <table class="w-full min-w-[800px] table-auto">
-            <thead class="bg-[#f8fafc]">
-              <tr>
-                <th class="text-left px-5 py-3 text-[9px] font-bold text-slate-400 uppercase tracking-wider w-[35%]">
-                  Servicio
-                </th>
-                <th class="text-left px-5 py-3 text-[9px] font-bold text-slate-400 uppercase tracking-wider">
-                  Fecha
-                </th>
-                <th class="text-left px-5 py-3 text-[9px] font-bold text-slate-400 uppercase tracking-wider">
-                  Leads
-                </th>
-                <th class="text-left px-5 py-3 text-[9px] font-bold text-slate-400 uppercase tracking-wider">
-                  Conversión
-                </th>
-                <th class="text-left px-5 py-3 text-[9px] font-bold text-slate-400 uppercase tracking-wider">
-                  Estado
-                </th>
-              </tr>
-            </thead>
-
-            <tbody class="divide-y divide-slate-100">
-              <tr v-for="servicio in serviciosFiltrados" :key="servicio.id" class="hover:bg-slate-50/70 transition-all">
-                <td class="px-5 py-3.5">
-                  <div class="flex flex-col">
-                    <strong class="text-[11px] font-bold text-slate-700 leading-tight">
-                      {{ servicio.nombre }}
-                    </strong>
-                    <span class="text-[9px] text-slate-400 font-medium mt-0.5">
-                      Campaña automatizada
-                    </span>
-                  </div>
-                </td>
-
-
-                <td class="px-5 py-3.5 text-[10px] font-medium text-slate-500">
-                  {{ servicio.fecha }}
-                </td>
-
-                <td class="px-5 py-3.5">
-                  <strong class="text-[11px] font-bold text-slate-800">
-                    {{ servicio.leads }}
-                  </strong>
-                </td>
-
-                <td class="px-5 py-3.5">
-                  <strong class="text-[11px] font-bold text-[#10b981]">
-                    {{ servicio.conversion }}
-                  </strong>
-                </td>
-
-                <td class="px-5 py-3.5">
-                  <span class="px-2.5 py-[4px] rounded-full text-[8px] font-bold uppercase tracking-wide inline-block"
-                    :class="servicio.clasificacion === 'ALTA'
-                        ? 'bg-green-50 text-green-600'
-                        : servicio.clasificacion === 'PREMIUM'
-                          ? 'bg-indigo-50 text-indigo-600'
-                          : servicio.clasificacion === 'MEDIA'
-                            ? 'bg-orange-50 text-orange-600'
-                            : 'bg-slate-100 text-slate-600'
-                      ">
-                    {{ servicio.clasificacion }}
-                  </span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-      </div>
-
-    </div>
-
-
-    <div v-if="vistaActiva === 'contactos'">
-      <Contactos :contactos="contactos" />
-    </div>
-
-    <div v-if="vistaActiva === 'analytics'" class="w-full h-full">
-      <main class="bg-gray-50 p-6 md:p-12 rounded-[20px] border border-slate-200 mt-2">
-        <div class="max-w-7xl mx-auto">
-          <h1 class="text-2xl font-bold text-gray-800 mb-6">
-            Informe de Plan de Uso
-          </h1>
+        <div class="divide-y divide-slate-50">
           <div
-            class="w-full h-[85vh] min-h-[600px] border border-gray-200 rounded-xl overflow-hidden shadow-lg bg-white mt-4">
-
-            <TableroLiga />
-
+            v-for="act in actividades"
+            :key="act.contacto + act.hace"
+            class="flex items-center gap-3 px-5 py-3 hover:bg-slate-50/70 transition-colors"
+          >
+            <div class="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" :style="{ backgroundColor: act.bg }">
+              <component :is="act.icono" :size="14" :style="{ color: act.color }" />
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-[12px] font-semibold text-[#0F172A] truncate">
+                {{ act.contacto }}
+                <span class="font-normal text-slate-400"> · {{ act.empresa }}</span>
+              </p>
+              <p class="text-[11px] text-slate-400 truncate">{{ act.tipo }} · {{ act.usuario }}</p>
+            </div>
+            <span class="text-[10px] text-slate-400 flex-shrink-0 whitespace-nowrap">{{ act.hace }}</span>
           </div>
         </div>
-      </main>
+      </div>
+
+      <!-- Columna derecha -->
+      <div class="flex flex-col gap-4">
+
+        <!-- Distribución contactos -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+          <div class="flex items-center gap-2 mb-4">
+            <BarChart3 :size="14" class="text-[#2447F9]" />
+            <h3 class="text-[12px] font-bold text-[#0F172A]">Distribución de Contactos</h3>
+          </div>
+          <div class="space-y-3">
+            <div v-for="item in distribucion" :key="item.label">
+              <div class="flex justify-between text-[11px] mb-1.5">
+                <span class="font-medium text-slate-600">{{ item.label }}</span>
+                <span class="font-bold text-[#0F172A]">{{ item.porcentaje }}%</span>
+              </div>
+              <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                <div
+                  class="h-full rounded-full transition-all duration-500"
+                  :style="{ width: item.porcentaje + '%', backgroundColor: item.color }"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Top Servicios -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-[12px] font-bold text-[#0F172A]">Top Servicios</h3>
+            <span class="text-[10px] text-slate-400">Por solicitudes</span>
+          </div>
+          <div class="space-y-3">
+            <div v-for="(svc, idx) in topServicios" :key="svc.nombre" class="flex items-center gap-3">
+              <span
+                class="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold text-white flex-shrink-0"
+                :style="{ backgroundColor: idx === 0 ? '#C9A227' : idx === 1 ? '#94A3B8' : idx === 2 ? '#CD7F32' : '#CBD5E1' }"
+              >{{ idx + 1 }}</span>
+              <div class="flex-1 min-w-0">
+                <p class="text-[11px] font-semibold text-slate-700 truncate">{{ svc.nombre }}</p>
+                <p class="text-[10px] text-slate-400">{{ svc.solicitudes }} solicitudes</p>
+              </div>
+              <span class="text-[11px] font-bold text-emerald-600 flex-shrink-0">{{ svc.conversion }}</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── Segunda fila ─────────────────────────────── -->
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+
+      <!-- Embudo resumen -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+        <div class="flex items-center gap-2 mb-5">
+          <GitBranch :size="14" class="text-[#2447F9]" />
+          <h3 class="text-[13px] font-bold text-[#0F172A]">Embudo Comercial</h3>
+        </div>
+        <div class="flex items-end gap-3 h-28">
+          <div
+            v-for="etapa in embudoResumen"
+            :key="etapa.etapa"
+            class="flex-1 flex flex-col items-center gap-1.5"
+          >
+            <span class="text-[11px] font-bold text-[#0F172A]">{{ etapa.count }}</span>
+            <div
+              class="w-full rounded-t-lg transition-all"
+              :style="{
+                height: (etapa.count / embudoResumen[0].count * 96) + 'px',
+                backgroundColor: etapa.color,
+                opacity: 0.85
+              }"
+            />
+            <span class="text-[9px] text-slate-400 text-center leading-tight">{{ etapa.etapa }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Módulos de acceso rápido -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+        <h3 class="text-[13px] font-bold text-[#0F172A] mb-4">Accesos Rápidos</h3>
+        <div class="grid grid-cols-3 gap-3">
+          <div
+            v-for="item in [
+              { label: 'Plan Liga',      icono: Heart,        color: '#EC4899', bg: '#FCE7F3' },
+              { label: 'Oportunidades',  icono: Target,       color: '#2447F9', bg: '#EEF2FF' },
+              { label: 'Embudos',        icono: GitBranch,    color: '#1A2A6C', bg: '#E8EAF6' },
+              { label: 'Campañas',       icono: Megaphone,    color: '#C9A227', bg: '#FEF9C3' },
+              { label: 'Bitácora',       icono: ClipboardList,color: '#059669', bg: '#D1FAE5' },
+              { label: 'Automatización', icono: Zap,          color: '#EC4899', bg: '#FCE7F3' },
+            ]"
+            :key="item.label"
+            class="flex flex-col items-center gap-2 p-3 rounded-xl border border-slate-100 hover:border-slate-200 hover:shadow-sm transition-all cursor-pointer group"
+          >
+            <div
+              class="w-9 h-9 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform"
+              :style="{ backgroundColor: item.bg }"
+            >
+              <component :is="item.icono" :size="16" :style="{ color: item.color }" />
+            </div>
+            <span class="text-[10px] font-semibold text-slate-600 text-center leading-tight">{{ item.label }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Tableau Analytics ────────────────────────── -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+        <div>
+          <h3 class="text-[13px] font-bold text-[#0F172A]">Analytics · Plan Liga Uso</h3>
+          <p class="text-[11px] text-slate-400 mt-0.5">Dashboard embebido desde Tableau · <a class="text-[#2447F9] hover:underline cursor-pointer">Ver pantalla completa →</a></p>
+        </div>
+        <span class="text-[10px] font-bold text-[#2447F9] bg-blue-50 px-3 py-1 rounded-full border border-blue-100">Tableau</span>
+      </div>
+      <div style="height: 60vh; min-height: 400px">
+        <TableroLiga />
+      </div>
     </div>
 
   </div>

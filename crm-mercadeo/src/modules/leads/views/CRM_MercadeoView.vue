@@ -1,246 +1,334 @@
+<script setup lang="ts">
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 
-  <script setup lang="ts">
-  import { ref, shallowRef, watch } from 'vue'
+import ModuloGeneral           from '../components/modulo_general.vue'
+import PlanLiga                from '../components/plan_liga.vue'
+import Contactos               from '../components/contactos.vue'
+import Empresas                from '../components/empresas.vue'
+import Proveedores             from '../components/proveedores.vue'
+import ServiciosPlanLiga       from '../components/servicios_plan_liga.vue'
+import Oportunidades           from '../components/oportunidades.vue'
+import Embudos                 from '../components/embudos.vue'
+import Segmentacion            from '../components/segmentacion.vue'
+import BitacoraRelacionamiento from '../components/bitacora_relacionamiento.vue'
+import Campanas                from '../components/campanas.vue'
+import ImportacionMasiva       from '../components/importacion_masiva.vue'
+import Automatizaciones        from '../components/automatizaciones.vue'
+import TableroLiga             from '../components/tableau.vue'
 
-  // --- COMPONENTES MODULARES ---
-  import BandejaInteligencia from '../components/bandeja_inteligencia.vue'
-  import ModuloGeneral from '../components/modulo_general.vue'
-  import FichaParticular from '../components/ficha_particular.vue'
-  import Bitacora from '../components/bitacora.vue'
-  import GestionMasiva from '../components/gestion_masiva.vue' 
+import {
+  LayoutDashboard, Heart, Users, Building2, Truck,
+  Target, GitBranch, Layers, SlidersHorizontal, Megaphone,
+  BookOpen, Upload, Zap, BarChart3,
+  ChevronLeft, ChevronRight, LogOut, Bell,
+  Maximize2, RefreshCw, X
+} from 'lucide-vue-next'
 
-  // Control de sub-pestañas internas del panel derecho
-  const subTabDerechoActivo = ref<'bitacora' | 'gestion'>('bitacora')
+defineEmits(['logout'])
 
-  // Función para manejar la subida del Excel devuelta por el componente hijo
-  const procesarArchivoExcelCargado = (payload: { seccion: string, archivo: File }) => {
-    alert(`Archivo de tipo [${payload.seccion}] recibido con éxito: ${payload.archivo.name}. Listo para procesamiento masivo.`);
-  }
+type Vista =
+  | 'dashboard' | 'plan_liga' | 'contactos' | 'empresas' | 'proveedores'
+  | 'servicios' | 'oportunidades' | 'embudos' | 'segmentacion'
+  | 'bitacora' | 'campanas' | 'importacion' | 'automatizaciones' | 'analytics'
 
-  // --- ESTADOS DE CONTROL ---
-  const panelIzquierdoVisible = ref<boolean>(true)
-  const panelDerechoVisible = ref<boolean>(true)
-  const modoVista = ref<'general' | 'particular'>('general')
-  const isModalBeneficiarioOpen = ref<boolean>(false)
+// ── Tabs ──────────────────────────────────────────────────────────
+interface Tab { key: Vista; label: string; icono: any }
 
-  // --- INTERFACES DE MODELO ---
-  interface ServicioParticular { nombre: string; fecha: string; estado: 'Activo' | 'Terminado'; }
-  interface Beneficiario { nombreCompleto: string; tipoDocumento: string; documento: string; edad: number; genero: string; telefono?: string; parentesco: string; }
-  interface Contacto { idUnico: string; nombreCompleto: string; rol: 'titular' | 'beneficiario'; tipoDocumento: string; documento: string; telefono: string; whatsapp: string; email: string; ciudad: string; pais: string; canalOrigen: string; campana: string; estadoLead: string; ultimoContacto: string; proximoContacto: string; cantidadLlamadas: number; cantidadEmails: number; notes?: string; edad: number; genero: string; serviciosHistoricos: ServicioParticular[]; beneficiariosAsociados?: Beneficiario[]; bitacora?: any[]; }
+const MAX_TABS = 4
+const tabs         = ref<Tab[]>([{ key: 'dashboard', label: 'Dashboard', icono: LayoutDashboard }])
+const activeTabIdx = ref(0)
+const vistaActiva  = computed<Vista>(() => tabs.value[activeTabIdx.value]?.key ?? 'dashboard')
 
-  // --- FILTROS DE BÚSQUEDA ---
-  const busqueda = ref<string>('')
-  const filtroRol = ref<string>('todos')
-  const filtroEstado = ref<string>('todos')
-  const filtroOrigen = ref<string>('todos')
-  const filtroCampana = ref<string>('todos')
-  const filtroEdad = ref<string>('todos')
-  const busquedaCriterioServicio = ref<string>('')
-
-  const contactosFiltrados = shallowRef<Contacto[]>([])
-  const contactoSeleccionado = ref<Contacto | null>(null)
-
-  const calcularTotalMiembros = (c: Contacto): number => {
-    return 1 + (c.beneficiariosAsociados?.length || 0);
-  }
-
-  const capturarYVincularBeneficiario = (nuevoBeneficiario: Beneficiario) => {
-    if (!contactoSeleccionado.value) return;
-    if (!contactoSeleccionado.value.beneficiariosAsociados) {
-      contactoSeleccionado.value.beneficiariosAsociados = [];
-    }
-    if (calcularTotalMiembros(contactoSeleccionado.value) < 5) {
-      contactoSeleccionado.value.beneficiariosAsociados.push(nuevoBeneficiario);
-    }
-  }
-
-  const guardarNotaGestion = () => {
-    if (contactoSeleccionado.value) {
-      alert(`Gestión guardada exitosamente en el Plan Liga para ${contactoSeleccionado.value.nombreCompleto}`);
+const navigateTo = (item: Tab) => {
+  const idx = tabs.value.findIndex(t => t.key === item.key)
+  if (idx !== -1) { activeTabIdx.value = idx; return }
+  if (tabs.value.length < MAX_TABS) {
+    tabs.value.push({ key: item.key, label: item.label, icono: item.icono })
+    activeTabIdx.value = tabs.value.length - 1
+  } else {
+    // Replace the first non-active tab
+    const replaceIdx = tabs.value.findIndex((_, i) => i !== activeTabIdx.value)
+    if (replaceIdx !== -1) {
+      tabs.value.splice(replaceIdx, 1, { key: item.key, label: item.label, icono: item.icono })
+      activeTabIdx.value = replaceIdx
     }
   }
+}
 
-  const cargarData = () => {
-    const mock: Contacto[] = [
-      {
-        idUnico: "PL-2410",
-        nombreCompleto: "Carlos Mendoza",
-        rol: "titular",
-        tipoDocumento: "CC",
-        documento: "10293844",
-        telefono: "300-555-0192",
-        whatsapp: "+57 300 5550192",
-        email: "carlos.mendoza@constructora.com",
-        ciudad: "Pereira",
-        pais: "Colombia",
-        canalOrigen: "Facebook Ads",
-        campana: "Estética Mayo",
-        estadoLead: "Interesado",
-        ultimoContacto: "2026-05-19",
-        proximoContacto: "2026-05-24",
-        cantidadLlamadas: 4,
-        cantidadEmails: 12,
-        notes: "Interesado en revisión corporativa para el núcleo familiar.",
-        edad: 35,
-        genero: "Masculino",
-        serviciosHistoricos: [
-          { nombre: "Profilaxis de Entrada", fecha: "2026-03-15", estado: "Terminado" },
-          { nombre: "Ortodoncia de Avanzada", fecha: "2026-05-10", estado: "Activo" }
-        ],
-        beneficiariosAsociados: [
-          { nombreCompleto: "Laura Mendoza", tipoDocumento: "TI", documento: "110293", edad: 12, genero: "Femenino", parentesco: "Hijo(a)" }
-        ]
-      }
-    ]
+const closeTab = (idx: number, e: MouseEvent) => {
+  e.stopPropagation()
+  if (tabs.value.length === 1) return
+  tabs.value.splice(idx, 1)
+  if (activeTabIdx.value >= tabs.value.length) activeTabIdx.value = tabs.value.length - 1
+  else if (idx < activeTabIdx.value)          activeTabIdx.value -= 1
+}
 
-    contactosFiltrados.value = mock.filter(c => {
-      const coincideBusqueda = c.nombreCompleto.toLowerCase().includes(busqueda.value.toLowerCase()) || c.documento.includes(busqueda.value);
-      const coincideRol = filtroRol.value === 'todos' || c.rol === filtroRol.value;
-      const coincideEstado = filtroEstado.value === 'todos' || c.estadoLead === filtroEstado.value;
-      return coincideBusqueda && coincideRol && coincideEstado;
-    });
+// ── Misc ──────────────────────────────────────────────────────────
+const sidebarCollapsed = ref(false)
+const periodo          = ref('30d')
+
+// ── Analytics fullscreen ───────────────────────────────────────────
+const analyticsRef = ref<HTMLElement | null>(null)
+const isFullscreen = ref(false)
+const enterFullscreen = async () => { if (analyticsRef.value) await analyticsRef.value.requestFullscreen() }
+const handleFSChange  = () => { isFullscreen.value = !!document.fullscreenElement }
+onMounted(()   => document.addEventListener('fullscreenchange', handleFSChange))
+onUnmounted(() => document.removeEventListener('fullscreenchange', handleFSChange))
+
+// ── Menu ──────────────────────────────────────────────────────────
+interface MenuGroup { label?: string; items: Tab[] }
+
+const menuGroups: MenuGroup[] = [
+  { items: [
+    { key: 'dashboard',        label: 'Dashboard',                 icono: LayoutDashboard },
+  ]},
+  { label: 'Plan Liga', items: [
+    { key: 'plan_liga',        label: 'Titulares y Beneficiarios', icono: Heart           },
+  ]},
+  { label: 'Comercial', items: [
+    { key: 'contactos',        label: 'Contactos',                 icono: Users           },
+    { key: 'empresas',         label: 'Empresas',                  icono: Building2       },
+    { key: 'proveedores',      label: 'Proveedores',               icono: Truck           },
+    { key: 'oportunidades',    label: 'Oportunidades',             icono: Target          },
+    { key: 'embudos',          label: 'Embudos Comerciales',       icono: GitBranch       },
+  ]},
+  { label: 'Marketing', items: [
+    { key: 'servicios',        label: 'Servicios Plan Liga',       icono: Layers          },
+    { key: 'segmentacion',     label: 'Segmentación',              icono: SlidersHorizontal},
+    { key: 'campanas',         label: 'Campañas Masivas',          icono: Megaphone       },
+  ]},
+  { label: 'Operaciones', items: [
+    { key: 'bitacora',         label: 'Bitácora',                  icono: BookOpen        },
+    { key: 'importacion',      label: 'Importación Masiva',        icono: Upload          },
+    { key: 'automatizaciones', label: 'Automatizaciones',          icono: Zap             },
+  ]},
+  { label: 'Analytics', items: [
+    { key: 'analytics',        label: 'Analytics · Tableau',       icono: BarChart3       },
+  ]},
+]
+
+const activeLabel = computed(() => {
+  for (const g of menuGroups) {
+    const f = g.items.find(i => i.key === vistaActiva.value)
+    if (f) return f.label
   }
-
-  const seleccionarContacto = (contacto: Contacto) => {
-    contactoSeleccionado.value = contacto;
-    modoVista.value = 'particular'; 
+  return ''
+})
+const activeGroup = computed(() => {
+  for (const g of menuGroups) {
+    if (g.items.find(i => i.key === vistaActiva.value)) return g.label ?? 'General'
   }
+  return ''
+})
+</script>
 
-  const activarModoParticular = () => {
-    if (contactoSeleccionado.value) modoVista.value = 'particular';
-  }
+<template>
+  <div class="flex h-screen overflow-hidden bg-[#F8FAFC] font-[Inter,system-ui,sans-serif]">
 
-  watch([busqueda, filtroRol, filtroEstado], () => { cargarData() })
-  cargarData()
-  </script>
-
-  <template>
-    <div class="h-screen max-h-screen bg-slate-50 font-sans flex flex-col text-slate-800 antialiased w-full overflow-hidden select-none">
-      
-      <header class="bg-gradient-to-r from-blue-700 via-blue-800 to-blue-950 text-white h-24 px-5 flex justify-between items-center shadow-md shrink-0 z-30 border-b border-blue-900/40">
-  
-        <div class="flex items-center gap-4">
-
-          <!-- LOGO MÁS GRANDE -->
-          <div class="flex items-center h-20">
-            <img 
-              src="/logo-liga-50.png" 
-              alt="Fundación La Liga" 
-              class="h-12 w-auto object-contain brightness-0 invert select-none pointer-events-none"
-            />
-          </div>
-
-          <div class="h-8 w-px bg-blue-600/60"></div>
-
-          <div>
-            <span class="text-[9px] text-blue-200 block font-bold uppercase tracking-widest leading-none">
-              Plataforma Institucional
-            </span>
-            <h1 class="text-lg font-black tracking-wider text-white uppercase mt-0.5">
-              CRM Mercadeo
-            </h1>
-          </div>
+    <!-- ═══════════════════════════════════════════════
+         SIDEBAR  —  lighter royal blue
+    ═══════════════════════════════════════════════ -->
+    <aside
+      class="flex flex-col shrink-0 overflow-hidden transition-all duration-300 z-20"
+      style="background-color: #1E3A8A"
+      :style="{ width: sidebarCollapsed ? '64px' : '224px' }"
+    >
+      <!-- Logo -->
+      <div class="flex items-center gap-3 px-4 h-14 border-b border-white/10 shrink-0 overflow-hidden">
+        <img
+          src="/logo-liga-50.png"
+          alt="La Liga"
+          class="h-8 w-auto object-contain brightness-0 invert shrink-0 select-none pointer-events-none"
+        />
+        <div v-if="!sidebarCollapsed" class="min-w-0 overflow-hidden">
+          <div class="text-[9px] text-white/50 font-bold uppercase tracking-widest leading-none">Plataforma</div>
+          <div class="text-[13px] font-black text-white tracking-wider mt-0.5 whitespace-nowrap">CRM Mercadeo</div>
         </div>
-        
-        <div class="flex items-center gap-4 text-xs font-semibold">
-          <div class="h-8 w-px bg-blue-600/60"></div>
-
-          <div class="flex items-center gap-2">
-            <div class="w-8 h-8 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center font-black text-white text-xs shadow-inner">
-              PL
-            </div>
-
-            <button 
-              @click="$emit('logout')" 
-              class="text-[10px] uppercase font-black tracking-wider text-blue-200 hover:text-pink-300 transition-colors cursor-pointer px-2 py-1 rounded hover:bg-white/5"
-            >
-              Salir
-            </button>
-          </div>
-        </div>
-
-      </header>
-
-      <div class="flex-1 flex flex-col lg:flex-row p-3 gap-3 w-full relative overflow-hidden h-[calc(100vh-3.5rem)]">
-    
-        <section 
-          :class="[
-            'bg-white rounded-xl border border-slate-200/80 flex flex-col shadow-xs transition-all duration-300 relative shrink-0 overflow-hidden min-h-0',
-            panelIzquierdoVisible ? 'w-full lg:w-72 xl:w-80 opacity-100' : 'w-0 h-0 lg:h-auto opacity-0 pointer-events-none border-none'
-          ]"
-        >
-          <div class="flex-1 min-h-0 overflow-y-auto">
-            <BandejaInteligencia 
-              :contactos-filtrados="contactosFiltrados"
-              :contacto-seleccionado="contactoSeleccionado"
-              :modo-vista="modoVista"
-              v-model:busqueda="busqueda"
-              v-model:filtroRol="filtroRol"
-              v-model:filtroEstado="filtroEstado"
-              v-model:filtroOrigen="filtroOrigen"
-              v-model:filtroCampana="filtroCampana"
-              v-model:filtroEdad="filtroEdad"
-              @seleccionar="seleccionarContacto"
-            />
-          </div>
-        </section>
-
-        <button @click="panelIzquierdoVisible = !panelIzquierdoVisible" class="hidden lg:flex bg-slate-200 text-slate-600 hover:bg-blue-700 hover:text-white w-4 h-12 self-center items-center justify-center rounded-r-md shadow-xs cursor-pointer z-40 shrink-0 transition-all border border-l-0 border-slate-300 -ml-3">
-          <span class="text-[8px] font-black font-mono">{{ panelIzquierdoVisible ? '◀' : '▶' }}</span>
-        </button>
-
-        <section class="flex-1 lg:flex-[2.5] xl:flex-[3] flex flex-col bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden min-h-0">
-          <div class="flex border-b border-slate-200 bg-slate-50 px-4 pt-2.5 shrink-0 gap-1.5 overflow-x-auto scrollbar-none">
-            <button @click="modoVista = 'general'" :class="['px-4 py-2 text-[11px] font-black uppercase tracking-wider transition-all border-t border-x rounded-t-lg shrink-0 cursor-pointer', modoVista === 'general' ? 'border-slate-200 border-b-white bg-white text-blue-900' : 'border-transparent text-slate-400 hover:text-slate-600']">
-              Módulo General (Global)
-            </button>
-            <button @click="activarModoParticular" :disabled="!contactoSeleccionado" :class="['px-4 py-2 text-[11px] font-black uppercase tracking-wider transition-all border-t border-x rounded-t-lg flex items-center gap-1.5 shrink-0', !contactoSeleccionado ? 'opacity-30 cursor-not-allowed text-slate-300' : 'cursor-pointer', modoVista === 'particular' ? 'border-slate-200 border-b-white bg-white text-pink-600' : 'border-transparent text-slate-400 hover:text-pink-500']">
-              Ficha Particular: {{ contactoSeleccionado ? contactoSeleccionado.nombreCompleto : 'Ninguno Seleccionado' }}
-            </button>
-          </div>
-
-          <div class="flex-1 min-h-0 overflow-y-auto">
-            <ModuloGeneral v-if="modoVista === 'general'" />
-            <FichaParticular 
-              v-else-if="modoVista === 'particular' && contactoSeleccionado"
-              :contacto="contactoSeleccionado"
-              v-model:busquedaService="busquedaCriterioServicio"
-              @abrir-modal-beneficiario="isModalBeneficiarioOpen = true"
-            />
-          </div>
-        </section>
-
-        <button @click="panelDerechoVisible = !panelDerechoVisible" class="hidden lg:flex bg-slate-200 text-slate-600 hover:bg-blue-700 hover:text-white w-4 h-12 self-center items-center justify-center rounded-l-md shadow-xs cursor-pointer z-40 shrink-0 transition-all border border-r-0 border-slate-300 -ml-3">
-          <span class="text-[8px] font-black font-mono">{{ panelDerechoVisible ? '▶' : '◀' }}</span>
-        </button>
-
-        <section 
-          :class="[
-            'bg-white rounded-xl border border-slate-200/80 flex flex-col shadow-xs transition-all duration-300 relative shrink-0 overflow-hidden min-h-0',
-            panelDerechoVisible ? 'w-full lg:w-72 xl:w-80 opacity-100' : 'w-0 h-0 lg:h-auto opacity-0 pointer-events-none border-none'
-          ]"
-        >
-          <div class="flex border-b border-slate-200 bg-slate-50 rounded-t-xl overflow-hidden shrink-0 p-1 gap-1">
-            <button @click="subTabDerechoActivo = 'bitacora'" :class="['flex-1 py-1.5 text-[10px] font-black uppercase tracking-wider transition-all text-center rounded-lg cursor-pointer', subTabDerechoActivo === 'bitacora' ? 'bg-white text-pink-600 shadow-2xs border border-slate-200/40' : 'text-slate-400 hover:text-slate-600']">Bitácora</button>
-            <button @click="subTabDerechoActivo = 'gestion'" :class="['flex-1 py-1.5 text-[10px] font-black uppercase tracking-wider transition-all text-center rounded-lg cursor-pointer', subTabDerechoActivo === 'gestion' ? 'bg-white text-blue-800 shadow-2xs border border-slate-200/40' : 'text-slate-400 hover:text-slate-600']">Gestión</button>
-          </div>
-          
-          <div 
-            v-if="contactoSeleccionado"
-            class="flex-1 min-h-0 overflow-y-auto p-3 space-y-4 text-xs font-semibold flex flex-col"
-          >
-            <Bitacora v-if="subTabDerechoActivo === 'bitacora'" :contacto="contactoSeleccionado" @guardar="guardarNotaGestion" />
-            <div v-else-if="subTabDerechoActivo === 'gestion'">
-              <GestionMasiva v-model:contacto="contactoSeleccionado" @carga-excel="procesarArchivoExcelCargado" />
-            </div>
-          </div>
-          
-          <div v-else class="flex-1 flex items-center justify-center p-5 text-center text-slate-300 text-[10px] font-black uppercase tracking-widest leading-loose">
-            Seleccione un registro<br>para agendar gestión.
-          </div>
-        </section>
-
       </div>
 
+      <!-- Nav -->
+      <nav class="flex-1 overflow-y-auto py-3 scrollbar-none">
+        <template v-for="group in menuGroups" :key="group.label ?? '__root__'">
+          <!-- Divider for collapsed state -->
+          <div v-if="group.label && sidebarCollapsed" class="px-3 py-2">
+            <div class="h-px bg-white/15 rounded" />
+          </div>
+          <!-- Section label -->
+          <div
+            v-if="group.label && !sidebarCollapsed"
+            class="px-4 pt-4 pb-1.5 text-[9px] font-bold uppercase tracking-widest text-white/45 select-none"
+          >
+            {{ group.label }}
+          </div>
+          <!-- Items -->
+          <button
+            v-for="item in group.items"
+            :key="item.key"
+            @click="navigateTo(item)"
+            :title="sidebarCollapsed ? item.label : undefined"
+            class="flex items-center gap-3 rounded-lg mx-2 px-2 py-2 transition-all text-left w-[calc(100%-16px)] group/item"
+            :class="vistaActiva === item.key
+              ? 'bg-white/20 text-white'
+              : 'text-white/75 hover:bg-white/10 hover:text-white'"
+          >
+            <component
+              :is="item.icono"
+              :size="16"
+              class="shrink-0 transition-colors"
+              :class="vistaActiva === item.key ? 'text-white' : 'text-white/60 group-hover/item:text-white'"
+            />
+            <span v-if="!sidebarCollapsed" class="text-[12px] font-semibold truncate flex-1">
+              {{ item.label }}
+            </span>
+            <!-- Active dot -->
+            <span
+              v-if="vistaActiva === item.key && !sidebarCollapsed"
+              class="w-1.5 h-1.5 rounded-full bg-white shrink-0"
+            />
+            <!-- Tab indicator: small badge showing it's open in a tab -->
+            <span
+              v-else-if="tabs.some(t => t.key === item.key) && !sidebarCollapsed && vistaActiva !== item.key"
+              class="w-1.5 h-1.5 rounded-full bg-white/40 shrink-0"
+            />
+          </button>
+        </template>
+      </nav>
+
+      <!-- Logout -->
+      <div class="shrink-0 border-t border-white/10 p-2">
+        <button
+          @click="$emit('logout')"
+          :title="sidebarCollapsed ? 'Cerrar sesión' : undefined"
+          class="flex items-center gap-3 w-full rounded-lg px-2 py-2 text-white/65 hover:bg-white/10 hover:text-white transition-all group/logout"
+        >
+          <LogOut :size="15" class="shrink-0 group-hover/logout:text-white transition-colors" />
+          <span v-if="!sidebarCollapsed" class="text-[12px] font-semibold">Cerrar sesión</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- ═══════════════════════════════════════════════
+         MAIN AREA
+    ═══════════════════════════════════════════════ -->
+    <div class="flex-1 flex flex-col overflow-hidden min-w-0">
+
+      <!-- ── Top header ────────────────────────────────────────── -->
+      <header class="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-4 shrink-0 gap-3 z-10">
+        <div class="flex items-center gap-3 min-w-0">
+          <!-- Toggle sidebar -->
+          <button
+            @click="sidebarCollapsed = !sidebarCollapsed"
+            class="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-50 transition-all shrink-0"
+          >
+            <component :is="sidebarCollapsed ? ChevronRight : ChevronLeft" :size="15" />
+          </button>
+          <!-- Breadcrumb -->
+          <div class="flex items-center gap-1.5 text-[12px] min-w-0 overflow-hidden">
+            <span class="text-slate-400 shrink-0">CRM Mercadeo</span>
+            <template v-if="activeGroup && activeGroup !== 'General'">
+              <span class="text-slate-300 shrink-0 hidden sm:inline">/</span>
+              <span class="text-slate-400 shrink-0 hidden sm:inline">{{ activeGroup }}</span>
+            </template>
+            <span class="text-slate-300 shrink-0">/</span>
+            <span class="font-bold text-[#0F172A] truncate">{{ activeLabel }}</span>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 shrink-0">
+          <select
+            v-model="periodo"
+            class="h-8 px-2.5 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer hidden sm:block"
+          >
+            <option value="7d">Últ. 7 días</option>
+            <option value="30d">Últ. 30 días</option>
+            <option value="90d">Este trimestre</option>
+            <option value="year">Este año</option>
+          </select>
+          <button class="h-8 w-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-50 transition-all" title="Actualizar">
+            <RefreshCw :size="13" />
+          </button>
+          <button class="h-8 w-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-50 transition-all relative">
+            <Bell :size="14" />
+            <span class="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-[#EC4899]" />
+          </button>
+          <div class="h-8 w-8 rounded-lg bg-[#1E3A8A] text-white text-[10px] font-bold flex items-center justify-center select-none">
+            PL
+          </div>
+        </div>
+      </header>
+
+      <!-- ── Tab strip ─────────────────────────────────────────── -->
+      <div class="bg-white border-b border-slate-200 px-3 flex items-end gap-0.5 shrink-0 overflow-x-auto">
+        <button
+          v-for="(tab, idx) in tabs"
+          :key="tab.key"
+          @click="activeTabIdx = idx"
+          class="flex items-center gap-1.5 px-3 py-2.5 text-[11px] font-semibold border-b-2 transition-all shrink-0 group/tab rounded-t-lg hover:bg-slate-50"
+          :class="idx === activeTabIdx
+            ? 'border-[#1E3A8A] text-[#1E3A8A] bg-[#EEF2FF]/60'
+            : 'border-transparent text-slate-500 hover:text-slate-700'"
+        >
+          <component :is="tab.icono" :size="12" class="shrink-0" />
+          <span class="max-w-[120px] truncate">{{ tab.label }}</span>
+          <span
+            v-if="tabs.length > 1"
+            class="w-4 h-4 rounded flex items-center justify-center ml-0.5 opacity-0 group-hover/tab:opacity-100 hover:!bg-slate-200 transition-all"
+            :class="idx === activeTabIdx ? 'text-[#1E3A8A] hover:bg-[#DBEAFE]' : 'text-slate-400 hover:bg-slate-100'"
+            @click.stop="closeTab(idx, $event)"
+          >
+            <X :size="9" />
+          </span>
+        </button>
+        <!-- Slot count indicator when at max -->
+        <div
+          v-if="tabs.length >= MAX_TABS"
+          class="ml-auto px-2 py-2 text-[10px] text-slate-400 font-semibold shrink-0 self-center"
+        >
+          {{ MAX_TABS }}/{{ MAX_TABS }} pestañas
+        </div>
+      </div>
+
+      <!-- ── Content ───────────────────────────────────────────── -->
+      <main
+        class="flex-1 min-h-0"
+        :class="vistaActiva === 'analytics' ? 'overflow-hidden' : 'overflow-y-auto p-6'"
+      >
+        <ModuloGeneral             v-if="vistaActiva === 'dashboard'"        />
+        <PlanLiga                  v-else-if="vistaActiva === 'plan_liga'"       />
+        <Contactos                 v-else-if="vistaActiva === 'contactos'"    />
+        <Empresas                  v-else-if="vistaActiva === 'empresas'"     />
+        <Proveedores               v-else-if="vistaActiva === 'proveedores'"  />
+        <Oportunidades             v-else-if="vistaActiva === 'oportunidades'"/>
+        <Embudos                   v-else-if="vistaActiva === 'embudos'"      />
+        <ServiciosPlanLiga         v-else-if="vistaActiva === 'servicios'"    />
+        <Segmentacion              v-else-if="vistaActiva === 'segmentacion'" />
+        <Campanas                  v-else-if="vistaActiva === 'campanas'"     />
+        <BitacoraRelacionamiento   v-else-if="vistaActiva === 'bitacora'"     />
+        <ImportacionMasiva         v-else-if="vistaActiva === 'importacion'"  />
+        <Automatizaciones          v-else-if="vistaActiva === 'automatizaciones'" />
+
+        <!-- Analytics — solo embed + pantalla completa -->
+        <div
+          v-else-if="vistaActiva === 'analytics'"
+          ref="analyticsRef"
+          class="relative h-full bg-white"
+        >
+          <!-- Floating fullscreen button -->
+          <div class="absolute top-4 right-5 z-10">
+            <button
+              @click="enterFullscreen"
+              class="flex items-center gap-1.5 h-8 px-3.5 rounded-xl bg-white/90 backdrop-blur border border-slate-200 shadow-md text-[11px] font-bold text-slate-700 hover:bg-white hover:shadow-lg transition-all"
+            >
+              <Maximize2 :size="12" />
+              {{ isFullscreen ? 'Salir de pantalla completa' : 'Pantalla completa' }}
+            </button>
+          </div>
+          <!-- Tableau embed fills 100% -->
+          <div class="h-full">
+            <TableroLiga />
+          </div>
+        </div>
+      </main>
     </div>
-  </template>
+  </div>
+</template>

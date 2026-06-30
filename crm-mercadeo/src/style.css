@@ -3,19 +3,37 @@
 @source "./modules/**/*.vue";
 
 @theme {
+  /* La Liga - Colores institucionales */
+  --color-liga-blue: #2447F9;
+  --color-liga-dark: #1A2A6C;
+  --color-liga-hover: #1D3DD9;
+  --color-liga-pink: #EC4899;
+  --color-liga-magenta: #D61F69;
+  --color-liga-gold: #C9A227;
+  --color-liga-bg: #F8FAFC;
+  --color-liga-text: #0F172A;
+
+  /* Legacy */
   --color-sf-blue: #0176d3;
   --color-sf-dark: #031b33;
   --color-sf-bg: #f3f2f1;
-  --color-sf-border: #shadow-2xs;
 }
 
-/* Clases utilitarias personalizadas usando composición de Tailwind v4 */
+/* Override Ant Design primary color */
+:root {
+  --ant-color-primary: #2447F9;
+  --ant-color-primary-hover: #1D3DD9;
+  --ant-color-primary-active: #1A2A6C;
+  --ant-border-radius: 8px;
+  --ant-font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
 @utility btn-filtro-rol {
   @apply px-3 py-1.5 text-[11px] font-bold rounded transition-all text-slate-500 cursor-pointer border border-transparent;
 }
 
 @utility btn-filtro-rol-activo {
-  @apply bg-white text-[#0176d3] shadow-xs border-slate-200;
+  @apply bg-white text-[#2447F9] shadow-xs border-slate-200;
 }
 
 @utility badge-estado-base {
@@ -27,5 +45,5 @@
 }
 
 @utility tab-nav-sf-activa {
-  @apply text-[#0176d3] border-[#0176d3] font-black bg-white;
+  @apply text-[#2447F9] border-[#2447F9] font-black bg-white;
 }
