@@ -146,7 +146,6 @@ const probColor = (p: number) => p >= 70 ? 'bg-emerald-500' : p >= 40 ? 'bg-ambe
               <th class="text-left px-5 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Empresa · Contacto</th>
               <th class="text-left px-4 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Servicio</th>
               <th class="text-left px-4 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Valor</th>
-              <th class="text-left px-4 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Probabilidad</th>
               <th class="text-left px-4 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Etapa</th>
               <th class="text-left px-4 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Responsable</th>
               <th class="text-right px-5 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Acciones</th>
@@ -163,14 +162,6 @@ const probColor = (p: number) => p >= 70 ? 'bg-emerald-500' : p >= 40 ? 'bg-ambe
               </td>
               <td class="px-4 py-3.5">
                 <div class="flex items-center gap-1 text-[13px] font-bold text-[#0F172A]"><DollarSign :size="12" class="text-slate-400" />{{ o.valor }}</div>
-              </td>
-              <td class="px-4 py-3.5">
-                <div class="flex items-center gap-2">
-                  <div class="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden w-16">
-                    <div class="h-full rounded-full transition-all" :class="probColor(o.probabilidad)" :style="{ width: o.probabilidad + '%' }" />
-                  </div>
-                  <span class="text-[11px] font-bold text-slate-600">{{ o.probabilidad }}%</span>
-                </div>
               </td>
               <td class="px-4 py-3.5">
                 <span class="text-[11px] font-semibold" :class="estadoStyle(o.estado)">{{ o.estado }}</span>
