@@ -7,7 +7,7 @@
       :token="jwtToken"
       width="100%"
       height="100%"
-      toolbar="bottom"
+      toolbar="hidden"
     >
     </tableau-viz>
 

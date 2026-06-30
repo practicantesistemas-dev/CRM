@@ -211,9 +211,9 @@ const descargarPlantilla = () => {
 }
 
 // ─── Style helpers ─────────────────────────────────────────────────
-const estadoTitularStyle = (e: string) => e === 'Activo' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-500 border-slate-200'
-const estadoBeneStyle = (e: string) => ({ Activo: 'bg-emerald-50 text-emerald-700 border-emerald-200', Inactivo: 'bg-slate-100 text-slate-500 border-slate-200', Reemplazado: 'bg-amber-50 text-amber-700 border-amber-200', Retirado: 'bg-red-50 text-red-500 border-red-200' } as Record<string, string>)[e] ?? 'bg-slate-100 text-slate-500 border-slate-200'
-const planStyle = (p: string) => p === 'Plan Liga Empresarial' ? 'bg-[#EEF2FF] text-[#2447F9] border-blue-200' : 'bg-[#FCE7F3] text-[#EC4899] border-pink-200'
+const estadoTitularStyle = (e: string) => e === 'Activo' ? 'text-emerald-600' : 'text-slate-400'
+const estadoBeneStyle = (e: string) => ({ Activo: 'text-emerald-600', Inactivo: 'text-slate-400', Reemplazado: 'text-amber-600', Retirado: 'text-red-500' } as Record<string, string>)[e] ?? 'text-slate-400'
+const planStyle = (p: string) => p === 'Plan Liga Empresarial' ? 'text-[#1E3A8A]' : 'text-[#9D174D]'
 </script>
 
 <template>
@@ -229,10 +229,6 @@ const planStyle = (p: string) => p === 'Plan Liga Empresarial' ? 'bg-[#EEF2FF] t
         <p class="text-[12px] text-slate-500 mt-0.5">Gestión de titulares y beneficiarios del programa Plan Liga Ama Salvar Vidas</p>
       </div>
       <div class="flex items-center gap-2 flex-wrap">
-        <button @click="descargarPlantilla"
-          class="flex items-center gap-1.5 h-9 px-4 rounded-lg border border-slate-200 bg-white text-[11px] font-semibold text-slate-600 hover:bg-slate-50 transition-all">
-          <FileSpreadsheet :size="13" class="text-emerald-600" /> Descargar plantilla
-        </button>
         <button @click="modalImportVisible = true"
           class="flex items-center gap-1.5 h-9 px-4 rounded-lg border border-slate-200 bg-white text-[11px] font-semibold text-slate-600 hover:bg-slate-50 transition-all">
           <Upload :size="13" /> Importar Excel
@@ -322,7 +318,7 @@ const planStyle = (p: string) => p === 'Plan Liga Empresarial' ? 'bg-[#EEF2FF] t
               <td class="px-4 py-3.5 text-[11px] text-slate-600 font-medium">{{ t.documento }}</td>
               <td class="px-4 py-3.5 text-[11px] text-slate-600 truncate max-w-[140px]">{{ t.empresa }}</td>
               <td class="px-4 py-3.5">
-                <span class="inline-flex px-2.5 py-0.5 rounded-full text-[9px] font-bold border" :class="planStyle(t.planContratado)">{{ t.planContratado }}</span>
+                <span class="text-[11px] font-semibold" :class="planStyle(t.planContratado)">{{ t.planContratado }}</span>
               </td>
               <td class="px-4 py-3.5">
                 <div class="flex items-center gap-2">
@@ -336,7 +332,7 @@ const planStyle = (p: string) => p === 'Plan Liga Empresarial' ? 'bg-[#EEF2FF] t
               </td>
               <td class="px-4 py-3.5 text-[11px] text-slate-500">{{ t.fechaInscripcion }}</td>
               <td class="px-4 py-3.5">
-                <span class="inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold border" :class="estadoTitularStyle(t.estado)">{{ t.estado }}</span>
+                <span class="text-[11px] font-semibold" :class="estadoTitularStyle(t.estado)">{{ t.estado }}</span>
               </td>
               <td class="px-5 py-3.5 text-right">
                 <div class="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -614,7 +610,7 @@ const planStyle = (p: string) => p === 'Plan Liga Empresarial' ? 'bg-[#EEF2FF] t
                     <div class="text-[10px] text-slate-400">Nac: {{ b.fechaNacimiento }}</div>
                   </div>
                 </div>
-                <span class="inline-flex px-2 py-0.5 rounded-full text-[9px] font-bold border shrink-0" :class="estadoBeneStyle(b.estado)">{{ b.estado }}</span>
+                <span class="text-[10px] font-semibold shrink-0" :class="estadoBeneStyle(b.estado)">{{ b.estado }}</span>
               </div>
               <div class="flex items-center gap-1 mt-3 pt-3 border-t border-slate-100 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button @click="abrirEditarBeneficiario(b)" class="flex items-center gap-1 h-7 px-2.5 rounded-lg bg-slate-100 hover:bg-[#EEF2FF] hover:text-[#2447F9] text-slate-500 text-[10px] font-semibold transition-all"><Edit2 :size="10" /> Editar</button>

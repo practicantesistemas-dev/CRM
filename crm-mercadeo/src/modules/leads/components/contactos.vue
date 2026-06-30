@@ -162,22 +162,22 @@ const totalPaginas = computed(() => Math.ceil(contactosFiltrados.value.length / 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 const estadoStyle = (e: string) => {
   switch (e) {
-    case 'Activo':      return 'bg-emerald-50 text-emerald-700 border-emerald-200'
-    case 'Inactivo':    return 'bg-slate-100 text-slate-500 border-slate-200'
-    case 'Prospecto':   return 'bg-amber-50 text-amber-700 border-amber-200'
-    case 'En proceso':  return 'bg-blue-50 text-[#2447F9] border-blue-200'
-    default:            return 'bg-slate-100 text-slate-500 border-slate-200'
+    case 'Activo':     return 'text-emerald-600'
+    case 'Inactivo':   return 'text-slate-400'
+    case 'Prospecto':  return 'text-amber-600'
+    case 'En proceso': return 'text-[#1E3A8A]'
+    default:           return 'text-slate-400'
   }
 }
 const etiquetaColor = (tag: string) => {
   const map: Record<string, string> = {
-    'VIP':        'bg-[#FEF9C3] text-[#C9A227] border-amber-200',
-    'Plan Liga':  'bg-[#EEF2FF] text-[#2447F9] border-blue-200',
-    'Interesado': 'bg-[#FCE7F3] text-[#EC4899] border-pink-200',
-    'Empresarial':'bg-[#E8EAF6] text-[#1A2A6C] border-indigo-200',
-    'Nuevo':      'bg-emerald-50 text-emerald-700 border-emerald-200',
+    'VIP':        'text-[#92400E]',
+    'Plan Liga':  'text-[#1E3A8A]',
+    'Interesado': 'text-[#9D174D]',
+    'Empresarial':'text-[#1A2A6C]',
+    'Nuevo':      'text-[#065F46]',
   }
-  return map[tag] ?? 'bg-slate-100 text-slate-600 border-slate-200'
+  return map[tag] ?? 'text-slate-500'
 }
 </script>
 
@@ -289,15 +289,15 @@ const etiquetaColor = (tag: string) => {
               </td>
               <!-- Estado -->
               <td class="px-4 py-3.5">
-                <span class="inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold border" :class="estadoStyle(c.estado)">{{ c.estado }}</span>
+                <span class="text-[11px] font-semibold" :class="estadoStyle(c.estado)">{{ c.estado }}</span>
               </td>
               <!-- Etiquetas -->
               <td class="px-4 py-3.5">
                 <div class="flex flex-wrap gap-1">
                   <span v-for="tag in c.etiquetas.slice(0, 2)" :key="tag"
-                    class="inline-flex px-2 py-0.5 rounded-full text-[9px] font-bold border" :class="etiquetaColor(tag)">{{ tag }}</span>
+                    class="text-[10px] font-semibold" :class="etiquetaColor(tag)">{{ tag }}</span>
                   <span v-if="c.etiquetas.length > 2"
-                    class="inline-flex px-2 py-0.5 rounded-full text-[9px] font-bold bg-slate-100 text-slate-500 border border-slate-200">+{{ c.etiquetas.length - 2 }}</span>
+                    class="text-[10px] font-semibold text-slate-400">+{{ c.etiquetas.length - 2 }}</span>
                   <span v-if="c.etiquetas.length === 0" class="text-[11px] text-slate-300">—</span>
                 </div>
               </td>
@@ -530,7 +530,7 @@ const etiquetaColor = (tag: string) => {
               <div class="sm:col-span-2">
                 <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Etiquetas</label>
                 <div class="flex gap-2 mb-2 flex-wrap">
-                  <span v-for="tag in form.etiquetas" :key="tag" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold border" :class="etiquetaColor(tag)">
+                  <span v-for="tag in form.etiquetas" :key="tag" class="inline-flex items-center gap-1 text-[10px] font-semibold" :class="etiquetaColor(tag)">
                     {{ tag }}<button @click="quitarEtiqueta(tag)" class="hover:opacity-70"><X :size="9" /></button>
                   </span>
                 </div>

@@ -76,19 +76,19 @@ const guardar = () => {
 }
 
 const estadoStyle = (e: string) => {
-  if (e === 'Activo') return 'bg-emerald-50 text-emerald-700 border-emerald-200'
-  if (e === 'Inactivo') return 'bg-slate-100 text-slate-500 border-slate-200'
-  return 'bg-amber-50 text-amber-700 border-amber-200'
+  if (e === 'Activo')   return 'text-emerald-600'
+  if (e === 'Inactivo') return 'text-slate-400'
+  return 'text-amber-600'
 }
 
 const tipoColor = (t: string) => {
   const map: Record<string, string> = {
-    'Empresarial': 'bg-[#EEF2FF] text-[#2447F9] border-blue-200',
-    'Individual': 'bg-[#FCE7F3] text-[#EC4899] border-pink-200',
-    'Bienestar': 'bg-[#D1FAE5] text-[#059669] border-emerald-200',
-    'Salud': 'bg-[#FEF9C3] text-[#C9A227] border-amber-200',
+    'Empresarial': 'text-[#1E3A8A]',
+    'Individual':  'text-[#9D174D]',
+    'Bienestar':   'text-[#065F46]',
+    'Salud':       'text-[#92400E]',
   }
-  return map[t] ?? 'bg-slate-100 text-slate-600 border-slate-200'
+  return map[t] ?? 'text-slate-500'
 }
 
 const toggleEstado = (s: Servicio) => {
@@ -177,7 +177,7 @@ const toggleEstado = (s: Servicio) => {
                 </td>
                 <td class="px-4 py-3.5 text-[11px] text-slate-600 font-mono font-medium">{{ s.codigo }}</td>
                 <td class="px-4 py-3.5">
-                  <span class="inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold border" :class="tipoColor(s.tipo)">{{ s.tipo }}</span>
+                  <span class="text-[11px] font-semibold" :class="tipoColor(s.tipo)">{{ s.tipo }}</span>
                 </td>
                 <td class="px-4 py-3.5 text-[11px] text-slate-600">{{ s.categoria }}</td>
                 <td class="px-4 py-3.5">
@@ -188,7 +188,7 @@ const toggleEstado = (s: Servicio) => {
                   <span class="text-[12px] font-bold text-emerald-600">{{ s.conversion }}</span>
                 </td>
                 <td class="px-4 py-3.5">
-                  <button @click="toggleEstado(s)" class="inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold border transition-all hover:opacity-80 cursor-pointer" :class="estadoStyle(s.estado)">{{ s.estado }}</button>
+                  <button @click="toggleEstado(s)" class="text-[11px] font-semibold hover:opacity-70 cursor-pointer transition-opacity" :class="estadoStyle(s.estado)">{{ s.estado }}</button>
                 </td>
                 <td class="px-4 py-3.5">
                   <div class="flex items-center gap-1.5">

@@ -58,13 +58,13 @@ const guardar = () => {
 
 const categoriaColor = (cat: string) => {
   const map: Record<string, string> = {
-    'Insumos Médicos': 'bg-[#D1FAE5] text-[#059669] border-emerald-200',
-    'Material POP': 'bg-[#EEF2FF] text-[#2447F9] border-blue-200',
-    'Equipos Tecnológicos': 'bg-[#E8EAF6] text-[#1A2A6C] border-indigo-200',
-    'Alimentación': 'bg-[#FEF9C3] text-[#C9A227] border-amber-200',
-    'Transporte': 'bg-[#FCE7F3] text-[#EC4899] border-pink-200',
+    'Insumos Médicos':     'text-[#065F46]',
+    'Material POP':        'text-[#1E3A8A]',
+    'Equipos Tecnológicos':'text-[#1A2A6C]',
+    'Alimentación':        'text-[#92400E]',
+    'Transporte':          'text-[#9D174D]',
   }
-  return map[cat] ?? 'bg-slate-100 text-slate-600 border-slate-200'
+  return map[cat] ?? 'text-slate-500'
 }
 </script>
 
@@ -139,7 +139,7 @@ const categoriaColor = (cat: string) => {
                 </div>
               </td>
               <td class="px-4 py-3.5">
-                <span class="inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold border" :class="categoriaColor(p.categoria)">{{ p.categoria }}</span>
+                <span class="text-[11px] font-semibold" :class="categoriaColor(p.categoria)">{{ p.categoria }}</span>
               </td>
               <td class="px-4 py-3.5 text-[11px] text-slate-600 font-medium">{{ p.nit }}</td>
               <td class="px-4 py-3.5">
@@ -149,7 +149,7 @@ const categoriaColor = (cat: string) => {
                 <div class="flex items-center gap-1 text-[11px] text-slate-600"><Phone :size="10" class="text-slate-400" />{{ p.telefono }}</div>
               </td>
               <td class="px-4 py-3.5">
-                <span class="inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold border" :class="p.estado === 'Activo' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-500 border-slate-200'">{{ p.estado }}</span>
+                <span class="text-[11px] font-semibold" :class="p.estado === 'Activo' ? 'text-emerald-600' : 'text-slate-400'">{{ p.estado }}</span>
               </td>
               <td class="px-5 py-3.5 text-right">
                 <div class="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">

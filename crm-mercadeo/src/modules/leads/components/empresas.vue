@@ -64,9 +64,9 @@ const guardar = () => {
 }
 
 const estadoStyle = (e: string) => {
-  if (e === 'Activa') return 'bg-emerald-50 text-emerald-700 border-emerald-200'
-  if (e === 'Inactiva') return 'bg-slate-100 text-slate-500 border-slate-200'
-  return 'bg-amber-50 text-amber-700 border-amber-200'
+  if (e === 'Activa')   return 'text-emerald-600'
+  if (e === 'Inactiva') return 'text-slate-400'
+  return 'text-amber-600'
 }
 
 const drawerVisible = ref(false)
@@ -159,7 +159,7 @@ const historialMock = [
               </td>
               <td class="px-4 py-3.5 text-[11px] text-slate-600 font-medium">{{ e.nit }}</td>
               <td class="px-4 py-3.5">
-                <span class="inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#EEF2FF] text-[#2447F9] border border-blue-200">{{ e.industria }}</span>
+                <span class="text-[11px] font-semibold text-[#1E3A8A]">{{ e.industria }}</span>
               </td>
               <td class="px-4 py-3.5">
                 <div class="flex items-center gap-1 text-[11px] text-slate-600"><MapPin :size="11" class="text-slate-400" />{{ e.ciudad }}</div>
@@ -171,7 +171,7 @@ const historialMock = [
                 <div class="flex items-center gap-1 text-[11px] text-slate-600"><Layers :size="11" class="text-slate-400" />{{ e.servicios.length }}</div>
               </td>
               <td class="px-4 py-3.5">
-                <span class="inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold border" :class="estadoStyle(e.estado)">{{ e.estado }}</span>
+                <span class="text-[11px] font-semibold" :class="estadoStyle(e.estado)">{{ e.estado }}</span>
               </td>
               <td class="px-4 py-3.5">
                 <div class="flex items-center gap-1.5">

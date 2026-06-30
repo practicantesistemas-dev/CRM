@@ -159,9 +159,9 @@ const accionMeta: Record<TipoAccion, { icono: any; color: string }> = {
 }
 
 const estadoStyle: Record<EstadoAuto, string> = {
-  'Activa':  'bg-emerald-50 text-emerald-700 border-emerald-200',
-  'Pausada': 'bg-amber-50 text-amber-700 border-amber-200',
-  'Error':   'bg-red-50 text-red-600 border-red-200',
+  'Activa':  'text-emerald-600',
+  'Pausada': 'text-amber-600',
+  'Error':   'text-red-500',
 }
 
 // ─── Filters ───────────────────────────────────────────────────────
@@ -374,13 +374,9 @@ const formatDate = (iso: string | null) => {
                 <div class="flex items-center gap-2 flex-wrap">
                   <h3 class="text-[13px] font-bold text-[#0F172A] truncate">{{ auto.nombre }}</h3>
                   <span
-                    class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-bold border"
+                    class="inline-flex items-center gap-1 text-[10px] font-semibold"
                     :class="estadoStyle[auto.estado]"
                   >
-                    <component
-                      :is="auto.estado === 'Activa' ? CheckCircle : auto.estado === 'Error' ? XCircle : Pause"
-                      :size="8"
-                    />
                     {{ auto.estado }}
                   </span>
                 </div>

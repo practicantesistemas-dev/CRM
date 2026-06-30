@@ -213,11 +213,11 @@ const cargarSegmento = (s: Segmento) => {
           </div>
 
           <div class="flex flex-wrap gap-1.5 mb-3">
-            <span v-if="s.servicio !== 'todos'" class="inline-flex px-2 py-0.5 rounded-full text-[9px] font-bold bg-[#EEF2FF] text-[#2447F9] border border-blue-200">{{ s.servicio }}</span>
-            <span v-if="s.estado !== 'todos'" class="inline-flex px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">{{ s.estado }}</span>
-            <span v-if="s.etiqueta !== 'todos'" class="inline-flex px-2 py-0.5 rounded-full text-[9px] font-bold bg-[#FEF9C3] text-[#C9A227] border border-amber-200">{{ s.etiqueta }}</span>
-            <span v-if="s.ciudad !== 'todas'" class="inline-flex px-2 py-0.5 rounded-full text-[9px] font-bold bg-slate-100 text-slate-600 border border-slate-200">{{ s.ciudad }}</span>
-            <span v-if="s.responsable !== 'todos'" class="inline-flex px-2 py-0.5 rounded-full text-[9px] font-bold bg-[#FCE7F3] text-[#EC4899] border border-pink-200">{{ s.responsable }}</span>
+            <span v-if="s.servicio !== 'todos'"    class="text-[10px] font-semibold text-[#1E3A8A]">{{ s.servicio }}</span>
+            <span v-if="s.estado !== 'todos'"      class="text-[10px] font-semibold text-[#065F46]">{{ s.estado }}</span>
+            <span v-if="s.etiqueta !== 'todos'"    class="text-[10px] font-semibold text-[#92400E]">{{ s.etiqueta }}</span>
+            <span v-if="s.ciudad !== 'todas'"      class="text-[10px] font-semibold text-slate-500">{{ s.ciudad }}</span>
+            <span v-if="s.responsable !== 'todos'" class="text-[10px] font-semibold text-[#9D174D]">{{ s.responsable }}</span>
           </div>
 
           <div class="flex items-center justify-between">

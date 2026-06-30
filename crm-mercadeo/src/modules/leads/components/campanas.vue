@@ -52,9 +52,9 @@ const insertarVariable = (v: string) => {
 }
 
 const estadoStyle = (e: string) => {
-  if (e === 'Enviada') return 'bg-emerald-50 text-emerald-700 border-emerald-200'
-  if (e === 'Programada') return 'bg-[#EEF2FF] text-[#2447F9] border-blue-200'
-  return 'bg-slate-100 text-slate-500 border-slate-200'
+  if (e === 'Enviada')   return 'text-emerald-600'
+  if (e === 'Programada') return 'text-[#1E3A8A]'
+  return 'text-slate-400'
 }
 
 const tasaApertura = (c: Campana) => c.enviados > 0 ? Math.round(c.aperturas / c.enviados * 100) + '%' : '—'
@@ -115,7 +115,7 @@ const tasaClic = (c: Campana) => c.enviados > 0 ? Math.round(c.clics / c.enviado
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2 mb-0.5">
               <span class="text-[12px] font-bold text-[#0F172A] truncate">{{ c.nombre }}</span>
-              <span class="inline-flex px-2 py-0.5 rounded-full text-[9px] font-bold border flex-shrink-0" :class="estadoStyle(c.estado)">{{ c.estado }}</span>
+              <span class="text-[10px] font-semibold flex-shrink-0" :class="estadoStyle(c.estado)">{{ c.estado }}</span>
             </div>
             <div class="flex items-center gap-2 text-[10px] text-slate-400">
               <Users :size="10" />{{ c.segmento }}

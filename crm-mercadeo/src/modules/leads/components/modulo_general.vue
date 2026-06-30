@@ -1,18 +1,13 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref } from 'vue'
 import TableroLiga from './tableau.vue'
 import {
   Users, Building2, Briefcase, Layers, ClipboardList,
   Phone, Mail, Calendar, FileText, TrendingUp, TrendingDown,
-  BarChart3, Heart, Target, GitBranch, Megaphone, Zap, Maximize2
+  BarChart3, Heart, Target, GitBranch, Megaphone, Zap
 } from 'lucide-vue-next'
 
-const tableauRef   = ref<HTMLElement | null>(null)
-const isFullscreen = ref(false)
-const enterFullscreen = async () => { if (tableauRef.value) await tableauRef.value.requestFullscreen() }
-const handleFSChange  = () => { isFullscreen.value = !!document.fullscreenElement }
-onMounted(()   => document.addEventListener('fullscreenchange', handleFSChange))
-onUnmounted(() => document.removeEventListener('fullscreenchange', handleFSChange))
+const tableauRef = ref<HTMLElement | null>(null)
 
 const periodo = ref('30d')
 
@@ -244,26 +239,8 @@ const periodo_options = [
     </div>
 
     <!-- ── Tableau Analytics ────────────────────────── -->
-    <div ref="tableauRef" class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-      <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100">
-        <div>
-          <h3 class="text-[13px] font-bold text-[#0F172A]">Analytics · Plan Liga Uso</h3>
-          <p class="text-[11px] text-slate-400 mt-0.5">Dashboard embebido desde Tableau</p>
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="text-[10px] font-bold text-[#2447F9] bg-blue-50 px-3 py-1 rounded-full border border-blue-100">Tableau</span>
-          <button
-            @click="enterFullscreen"
-            class="flex items-center gap-1.5 h-8 px-3 rounded-xl border border-slate-200 bg-white text-[11px] font-bold text-slate-700 hover:bg-slate-50 hover:shadow transition-all"
-          >
-            <Maximize2 :size="13" />
-            {{ isFullscreen ? 'Salir' : 'Pantalla completa' }}
-          </button>
-        </div>
-      </div>
-      <div style="height: calc(100vh - 160px); min-height: 600px">
-        <TableroLiga />
-      </div>
+    <div ref="tableauRef" class="rounded-2xl overflow-hidden" style="height: calc(100vh - 160px); min-height: 600px">
+      <TableroLiga />
     </div>
 
   </div>

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import {
-  Upload, FileText, CheckCircle, AlertCircle, XCircle,
-  Download, RefreshCw, Clock, ChevronRight
+  Upload, FileText, CheckCircle, AlertCircle,
+  Download, RefreshCw, Clock
 } from 'lucide-vue-next'
 
 interface RegistroImportacion {
@@ -72,9 +72,9 @@ const limpiar = () => {
 }
 
 const estadoStyle = (e: string) => {
-  if (e === 'Completado') return 'bg-emerald-50 text-emerald-700 border-emerald-200'
-  if (e === 'Con errores') return 'bg-amber-50 text-amber-700 border-amber-200'
-  return 'bg-[#EEF2FF] text-[#2447F9] border-blue-200'
+  if (e === 'Completado')  return 'text-emerald-600'
+  if (e === 'Con errores') return 'text-amber-600'
+  return 'text-[#1E3A8A]'
 }
 
 const downloadPlantilla = (tipo: string) => {
@@ -234,7 +234,7 @@ const downloadPlantilla = (tipo: string) => {
                   <span class="text-[12px] font-bold" :class="r.errores > 0 ? 'text-red-600' : 'text-slate-400'">{{ r.errores }}</span>
                 </td>
                 <td class="px-4 py-3.5">
-                  <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border" :class="estadoStyle(r.estado)">
+                  <span class="inline-flex items-center gap-1 text-[10px] font-semibold" :class="estadoStyle(r.estado)">
                     <CheckCircle v-if="r.estado === 'Completado'" :size="9" />
                     <AlertCircle v-else-if="r.estado === 'Con errores'" :size="9" />
                     {{ r.estado }}

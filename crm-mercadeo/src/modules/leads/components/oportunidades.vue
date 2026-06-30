@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, reactive } from 'vue'
 import {
-  Search, Plus, X, Edit2, TrendingUp, TrendingDown,
+  Search, Plus, X, Edit2,
   Building2, User, Layers, DollarSign, Trophy, XCircle
 } from 'lucide-vue-next'
 
@@ -77,13 +77,13 @@ const perder = (o: Oportunidad) => { o.estado = 'Perdida'; o.probabilidad = 0 }
 
 const estadoStyle = (e: string) => {
   const map: Record<string, string> = {
-    'Lead': 'bg-slate-100 text-slate-600 border-slate-200',
-    'Primer Contacto': 'bg-[#EEF2FF] text-[#2447F9] border-blue-200',
-    'Reunión': 'bg-[#FCE7F3] text-[#EC4899] border-pink-200',
-    'Cotización': 'bg-[#FEF9C3] text-[#C9A227] border-amber-200',
-    'Negociación': 'bg-[#E8EAF6] text-[#1A2A6C] border-indigo-200',
-    'Ganada': 'bg-emerald-50 text-emerald-700 border-emerald-200',
-    'Perdida': 'bg-red-50 text-red-600 border-red-200',
+    'Lead':           'text-slate-400',
+    'Primer Contacto':'text-[#1E3A8A]',
+    'Reunión':        'text-[#9D174D]',
+    'Cotización':     'text-amber-600',
+    'Negociación':    'text-[#1A2A6C]',
+    'Ganada':         'text-emerald-600',
+    'Perdida':        'text-red-500',
   }
   return map[e] ?? 'bg-slate-100 text-slate-500 border-slate-200'
 }
@@ -173,7 +173,7 @@ const probColor = (p: number) => p >= 70 ? 'bg-emerald-500' : p >= 40 ? 'bg-ambe
                 </div>
               </td>
               <td class="px-4 py-3.5">
-                <span class="inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold border" :class="estadoStyle(o.estado)">{{ o.estado }}</span>
+                <span class="text-[11px] font-semibold" :class="estadoStyle(o.estado)">{{ o.estado }}</span>
               </td>
               <td class="px-4 py-3.5">
                 <div class="flex items-center gap-1.5">
