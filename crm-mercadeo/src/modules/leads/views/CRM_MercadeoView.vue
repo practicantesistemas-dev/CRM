@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed } from 'vue'
 
 import ModuloGeneral           from '../components/modulo_general.vue'
 import PlanLiga                from '../components/plan_liga.vue'
@@ -14,14 +14,13 @@ import BitacoraRelacionamiento from '../components/bitacora_relacionamiento.vue'
 import Campanas                from '../components/campanas.vue'
 import ImportacionMasiva       from '../components/importacion_masiva.vue'
 import Automatizaciones        from '../components/automatizaciones.vue'
-import TableroLiga             from '../components/tableau.vue'
 
 import {
   LayoutDashboard, Heart, Users, Building2, Truck,
   Target, GitBranch, Layers, SlidersHorizontal, Megaphone,
-  BookOpen, Upload, Zap, BarChart3,
+  BookOpen, Upload, Zap,
   ChevronLeft, ChevronRight, LogOut, Bell,
-  Maximize2, RefreshCw, X
+  RefreshCw, X
 } from 'lucide-vue-next'
 
 defineEmits(['logout'])
@@ -29,7 +28,7 @@ defineEmits(['logout'])
 type Vista =
   | 'dashboard' | 'plan_liga' | 'contactos' | 'empresas' | 'proveedores'
   | 'servicios' | 'oportunidades' | 'embudos' | 'segmentacion'
-  | 'bitacora' | 'campanas' | 'importacion' | 'automatizaciones' | 'analytics'
+  | 'bitacora' | 'campanas' | 'importacion' | 'automatizaciones'
 
 // ── Tabs ──────────────────────────────────────────────────────────
 interface Tab { key: Vista; label: string; icono: any }
@@ -46,7 +45,6 @@ const navigateTo = (item: Tab) => {
     tabs.value.push({ key: item.key, label: item.label, icono: item.icono })
     activeTabIdx.value = tabs.value.length - 1
   } else {
-    // Replace the first non-active tab
     const replaceIdx = tabs.value.findIndex((_, i) => i !== activeTabIdx.value)
     if (replaceIdx !== -1) {
       tabs.value.splice(replaceIdx, 1, { key: item.key, label: item.label, icono: item.icono })
@@ -67,14 +65,6 @@ const closeTab = (idx: number, e: MouseEvent) => {
 const sidebarCollapsed = ref(false)
 const periodo          = ref('30d')
 
-// ── Analytics fullscreen ───────────────────────────────────────────
-const analyticsRef = ref<HTMLElement | null>(null)
-const isFullscreen = ref(false)
-const enterFullscreen = async () => { if (analyticsRef.value) await analyticsRef.value.requestFullscreen() }
-const handleFSChange  = () => { isFullscreen.value = !!document.fullscreenElement }
-onMounted(()   => document.addEventListener('fullscreenchange', handleFSChange))
-onUnmounted(() => document.removeEventListener('fullscreenchange', handleFSChange))
-
 // ── Menu ──────────────────────────────────────────────────────────
 interface MenuGroup { label?: string; items: Tab[] }
 
@@ -90,10 +80,10 @@ const menuGroups: MenuGroup[] = [
     { key: 'empresas',         label: 'Empresas',                  icono: Building2       },
     { key: 'proveedores',      label: 'Proveedores',               icono: Truck           },
     { key: 'oportunidades',    label: 'Oportunidades',             icono: Target          },
-    { key: 'embudos',          label: 'Embudos Comerciales',       icono: GitBranch       },
+    { key: 'embudos',          label: 'Tablero',       icono: GitBranch       },
   ]},
   { label: 'Marketing', items: [
-    { key: 'servicios',        label: 'Servicios Plan Liga',       icono: Layers          },
+    { key: 'servicios',        label: 'Servicios',       icono: Layers          },
     { key: 'segmentacion',     label: 'Segmentación',              icono: SlidersHorizontal},
     { key: 'campanas',         label: 'Campañas Masivas',          icono: Megaphone       },
   ]},
@@ -101,9 +91,6 @@ const menuGroups: MenuGroup[] = [
     { key: 'bitacora',         label: 'Bitácora',                  icono: BookOpen        },
     { key: 'importacion',      label: 'Importación Masiva',        icono: Upload          },
     { key: 'automatizaciones', label: 'Automatizaciones',          icono: Zap             },
-  ]},
-  { label: 'Analytics', items: [
-    { key: 'analytics',        label: 'Analytics · Tableau',       icono: BarChart3       },
   ]},
 ]
 
@@ -130,7 +117,7 @@ const activeGroup = computed(() => {
     ═══════════════════════════════════════════════ -->
     <aside
       class="flex flex-col shrink-0 overflow-hidden transition-all duration-300 z-20"
-      style="background-color: #1E3A8A"
+      style="background-color: #295FD3"
       :style="{ width: sidebarCollapsed ? '64px' : '224px' }"
     >
       <!-- Logo -->
@@ -156,7 +143,7 @@ const activeGroup = computed(() => {
           <!-- Section label -->
           <div
             v-if="group.label && !sidebarCollapsed"
-            class="px-4 pt-4 pb-1.5 text-[9px] font-bold uppercase tracking-widest text-white/45 select-none"
+            class="px-4 pt-4 pb-1.5 text-[10px] font-bold uppercase tracking-widest text-white opacity-100 select-none"
           >
             {{ group.label }}
           </div>
@@ -168,16 +155,19 @@ const activeGroup = computed(() => {
             :title="sidebarCollapsed ? item.label : undefined"
             class="flex items-center gap-3 rounded-lg mx-2 px-2 py-2 transition-all text-left w-[calc(100%-16px)] group/item"
             :class="vistaActiva === item.key
-              ? 'bg-white/20 text-white'
-              : 'text-white/75 hover:bg-white/10 hover:text-white'"
+          ? 'bg-white/20 text-white'
+          : 'text-white hover:text-white hover:bg-white/10'"
           >
             <component
               :is="item.icono"
               :size="16"
               class="shrink-0 transition-colors"
-              :class="vistaActiva === item.key ? 'text-white' : 'text-white/60 group-hover/item:text-white'"
+              :class="vistaActiva === item.key ? 'text-white' : 'text-white/80'"
             />
-            <span v-if="!sidebarCollapsed" class="text-[12px] font-semibold truncate flex-1">
+            <span
+              v-if="!sidebarCollapsed"
+              class="text-[12px] font-semibold truncate flex-1 !text-white"
+            >
               {{ item.label }}
             </span>
             <!-- Active dot -->
@@ -290,44 +280,21 @@ const activeGroup = computed(() => {
 
       <!-- ── Content ───────────────────────────────────────────── -->
       <main
-        class="flex-1 min-h-0"
-        :class="vistaActiva === 'analytics' ? 'overflow-hidden' : 'overflow-y-auto p-6'"
+        class="flex-1 min-h-0 overflow-y-auto p-6"
       >
-        <ModuloGeneral             v-if="vistaActiva === 'dashboard'"        />
+        <ModuloGeneral             v-if="vistaActiva === 'dashboard'"            />
         <PlanLiga                  v-else-if="vistaActiva === 'plan_liga'"       />
-        <Contactos                 v-else-if="vistaActiva === 'contactos'"    />
-        <Empresas                  v-else-if="vistaActiva === 'empresas'"     />
-        <Proveedores               v-else-if="vistaActiva === 'proveedores'"  />
-        <Oportunidades             v-else-if="vistaActiva === 'oportunidades'"/>
-        <Embudos                   v-else-if="vistaActiva === 'embudos'"      />
-        <ServiciosPlanLiga         v-else-if="vistaActiva === 'servicios'"    />
-        <Segmentacion              v-else-if="vistaActiva === 'segmentacion'" />
-        <Campanas                  v-else-if="vistaActiva === 'campanas'"     />
-        <BitacoraRelacionamiento   v-else-if="vistaActiva === 'bitacora'"     />
-        <ImportacionMasiva         v-else-if="vistaActiva === 'importacion'"  />
-        <Automatizaciones          v-else-if="vistaActiva === 'automatizaciones'" />
-
-        <!-- Analytics — solo embed + pantalla completa -->
-        <div
-          v-else-if="vistaActiva === 'analytics'"
-          ref="analyticsRef"
-          class="relative h-full bg-white"
-        >
-          <!-- Floating fullscreen button -->
-          <div class="absolute top-4 right-5 z-10">
-            <button
-              @click="enterFullscreen"
-              class="flex items-center gap-1.5 h-8 px-3.5 rounded-xl bg-white/90 backdrop-blur border border-slate-200 shadow-md text-[11px] font-bold text-slate-700 hover:bg-white hover:shadow-lg transition-all"
-            >
-              <Maximize2 :size="12" />
-              {{ isFullscreen ? 'Salir de pantalla completa' : 'Pantalla completa' }}
-            </button>
-          </div>
-          <!-- Tableau embed fills 100% -->
-          <div class="h-full">
-            <TableroLiga />
-          </div>
-        </div>
+        <Contactos                 v-else-if="vistaActiva === 'contactos'"       />
+        <Empresas                  v-else-if="vistaActiva === 'empresas'"        />
+        <Proveedores               v-else-if="vistaActiva === 'proveedores'"     />
+        <Oportunidades             v-else-if="vistaActiva === 'oportunidades'"   />
+        <Embudos                   v-else-if="vistaActiva === 'embudos'"         />
+        <ServiciosPlanLiga         v-else-if="vistaActiva === 'servicios'"       />
+        <Segmentacion              v-else-if="vistaActiva === 'segmentacion'"    />
+        <Campanas                  v-else-if="vistaActiva === 'campanas'"        />
+        <BitacoraRelacionamiento   v-else-if="vistaActiva === 'bitacora'"        />
+        <ImportacionMasiva         v-else-if="vistaActiva === 'importacion'"     />
+        <Automatizaciones          v-else-if="vistaActiva === 'automatizaciones'"/>
       </main>
     </div>
   </div>

@@ -1,18 +1,22 @@
 <template>
   <div class="tableau-container">
-    <tableau-viz 
+    <tableau-viz
       v-if="jwtToken"
       id="tableau-viz"
       src="https://us-east-1.online.tableau.com/t/laliga-amasalvarvidas/views/Produccion-PlanLigaUso/Inicio-Informe-PlanLigaUso"
       :token="jwtToken"
       width="100%"
-      height="1018"
+      height="100%"
       toolbar="bottom"
     >
     </tableau-viz>
-    
-    <div v-else class="flex justify-center items-center h-[600px] text-slate-500 font-bold">
-      Autenticando tablero de forma segura...
+
+    <div v-else class="flex flex-col justify-center items-center h-full gap-3 text-slate-400">
+      <svg class="animate-spin h-7 w-7 text-[#1E3A8A]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+      </svg>
+      <span class="text-[13px] font-semibold text-slate-500">Autenticando tablero de forma segura…</span>
     </div>
   </div>
 </template>
@@ -69,5 +73,15 @@ onMounted(async () => {
 <style scoped>
 .tableau-container {
   width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+#tableau-viz {
+  flex: 1;
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 </style>

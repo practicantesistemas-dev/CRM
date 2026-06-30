@@ -119,7 +119,7 @@ const crearTarjeta = () => {
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div>
         <h2 class="text-[18px] font-bold text-[#0F172A] flex items-center gap-2">
-          Embudos Comerciales
+          Tablero
           <span class="bg-[#EEF2FF] text-[#2447F9] text-[11px] font-bold px-2.5 py-0.5 rounded-full">{{ totalOportunidades }}</span>
         </h2>
         <p class="text-[12px] text-slate-500 mt-0.5">
