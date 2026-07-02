@@ -19,48 +19,66 @@ interface Contacto {
   ciudad: string
   estado: 'Activo' | 'Inactivo' | 'Prospecto' | 'En proceso'
   fechaNacimiento: string
+  sexo: 'Masculino' | 'Femenino' | 'Otro'
   etiquetas: string[]
   responsable: string
 }
 
 // ─── Mock data ──────────────────────────────────────────────────────────────
 const contactos = ref<Contacto[]>([
-  { id: 1, nombre: 'Carlos Mendoza',      tipoDocumento: 'CC', documento: '10293844',   correo: 'carlos.mendoza@globaltech.com', telefono: '300-555-0192', empresa: 'Global Tech S.A.S',    cargo: 'Gerente Comercial',      ciudad: 'Pereira',      estado: 'Activo',     fechaNacimiento: '1989-03-15', etiquetas: ['VIP', 'Plan Liga'], responsable: 'María García'  },
-  { id: 2, nombre: 'Ana Victoria Ruiz',   tipoDocumento: 'CC', documento: '25841203',   correo: 'ana.ruiz@esteticamayo.com',    telefono: '311-222-4455', empresa: 'Estética Mayo',         cargo: 'CEO',                    ciudad: 'Bogotá',       estado: 'En proceso', fechaNacimiento: '1985-07-22', etiquetas: ['Interesado'],       responsable: 'Juan López'    },
-  { id: 3, nombre: 'Pedro Sánchez Mejía', tipoDocumento: 'CC', documento: '71234567',   correo: 'pedro@constructoraabc.co',     telefono: '314-888-1122', empresa: 'Constructora ABC',      cargo: 'Director de RRHH',       ciudad: 'Medellín',     estado: 'Activo',     fechaNacimiento: '1978-11-08', etiquetas: ['Plan Liga', 'Empresarial'], responsable: 'Carlos Torres' },
-  { id: 4, nombre: 'Laura Gómez Vargas',  tipoDocumento: 'CC', documento: '43901234',   correo: 'laura.gomez@farmanorte.com',  telefono: '320-777-3344', empresa: 'Farmacia Norte',        cargo: 'Coordinadora Bienestar', ciudad: 'Manizales',    estado: 'Prospecto',  fechaNacimiento: '1993-05-30', etiquetas: ['Nuevo'],            responsable: 'María García'  },
-  { id: 5, nombre: 'Roberto Díaz Castro', tipoDocumento: 'CC', documento: '19283746',   correo: 'roberto@techsolutions.co',    telefono: '301-444-9988', empresa: 'Tech Solutions',        cargo: 'CTO',                    ciudad: 'Cali',         estado: 'Activo',     fechaNacimiento: '1982-09-14', etiquetas: ['VIP'],              responsable: 'Juan López'    },
-  { id: 6, nombre: 'Sandra Morales López',tipoDocumento: 'CC', documento: '52000111',   correo: 'smorales@grupoXYZ.com',       telefono: '316-555-7766', empresa: 'Grupo Empresarial XYZ', cargo: 'Jefe de Talento Humano', ciudad: 'Bogotá',       estado: 'En proceso', fechaNacimiento: '1990-01-18', etiquetas: ['Plan Liga'],        responsable: 'Carlos Torres' },
-  { id: 7, nombre: 'Jorge Ramírez Pérez', tipoDocumento: 'CC', documento: '80123456',   correo: 'jorge.ramirez@salvatech.co',  telefono: '312-333-6655', empresa: 'SalvaTech',             cargo: 'Gerente General',        ciudad: 'Barranquilla', estado: 'Inactivo',   fechaNacimiento: '1975-06-25', etiquetas: [],                   responsable: 'María García'  },
-  { id: 8, nombre: 'Valentina Cruz',       tipoDocumento: 'CC', documento: '1098765432', correo: 'vcruz@innovagroup.com',       telefono: '318-999-2211', empresa: 'Innova Group',          cargo: 'Analista Comercial',     ciudad: 'Pereira',      estado: 'Activo',     fechaNacimiento: '1997-12-03', etiquetas: ['Interesado', 'Nuevo'], responsable: 'Juan López'  },
+  { id: 1, nombre: 'Carlos Mendoza',      tipoDocumento: 'CC', documento: '10293844',   correo: 'carlos.mendoza@globaltech.com', telefono: '300-555-0192', empresa: 'Global Tech S.A.S',    cargo: 'Gerente Comercial',      ciudad: 'Pereira',      estado: 'Activo',     fechaNacimiento: '1989-03-15', sexo: 'Masculino', etiquetas: ['VIP', 'Plan Liga'], responsable: 'María García'  },
+  { id: 2, nombre: 'Ana Victoria Ruiz',   tipoDocumento: 'CC', documento: '25841203',   correo: 'ana.ruiz@esteticamayo.com',    telefono: '311-222-4455', empresa: 'Estética Mayo',         cargo: 'CEO',                    ciudad: 'Bogotá',       estado: 'En proceso', fechaNacimiento: '1985-07-22', sexo: 'Femenino',  etiquetas: ['Interesado'],       responsable: 'Juan López'    },
+  { id: 3, nombre: 'Pedro Sánchez Mejía', tipoDocumento: 'CC', documento: '71234567',   correo: 'pedro@constructoraabc.co',     telefono: '314-888-1122', empresa: 'Constructora ABC',      cargo: 'Director de RRHH',       ciudad: 'Medellín',     estado: 'Activo',     fechaNacimiento: '1978-11-08', sexo: 'Masculino', etiquetas: ['Plan Liga', 'Empresarial'], responsable: 'Carlos Torres' },
+  { id: 4, nombre: 'Laura Gómez Vargas',  tipoDocumento: 'CC', documento: '43901234',   correo: 'laura.gomez@farmanorte.com',  telefono: '320-777-3344', empresa: 'Farmacia Norte',        cargo: 'Coordinadora Bienestar', ciudad: 'Manizales',    estado: 'Prospecto',  fechaNacimiento: '1993-05-30', sexo: 'Femenino',  etiquetas: ['Nuevo'],            responsable: 'María García'  },
+  { id: 5, nombre: 'Roberto Díaz Castro', tipoDocumento: 'CC', documento: '19283746',   correo: 'roberto@techsolutions.co',    telefono: '301-444-9988', empresa: 'Tech Solutions',        cargo: 'CTO',                    ciudad: 'Cali',         estado: 'Activo',     fechaNacimiento: '1982-09-14', sexo: 'Masculino', etiquetas: ['VIP'],              responsable: 'Juan López'    },
+  { id: 6, nombre: 'Sandra Morales López',tipoDocumento: 'CC', documento: '52000111',   correo: 'smorales@grupoXYZ.com',       telefono: '316-555-7766', empresa: 'Grupo Empresarial XYZ', cargo: 'Jefe de Talento Humano', ciudad: 'Bogotá',       estado: 'En proceso', fechaNacimiento: '1990-01-18', sexo: 'Femenino',  etiquetas: ['Plan Liga'],        responsable: 'Carlos Torres' },
+  { id: 7, nombre: 'Jorge Ramírez Pérez', tipoDocumento: 'CC', documento: '80123456',   correo: 'jorge.ramirez@salvatech.co',  telefono: '312-333-6655', empresa: 'SalvaTech',             cargo: 'Gerente General',        ciudad: 'Barranquilla', estado: 'Inactivo',   fechaNacimiento: '1975-06-25', sexo: 'Masculino', etiquetas: [],                   responsable: 'María García'  },
+  { id: 8, nombre: 'Valentina Cruz',       tipoDocumento: 'CC', documento: '1098765432', correo: 'vcruz@innovagroup.com',       telefono: '318-999-2211', empresa: 'Innova Group',          cargo: 'Analista Comercial',     ciudad: 'Pereira',      estado: 'Activo',     fechaNacimiento: '1997-12-03', sexo: 'Femenino',  etiquetas: ['Interesado', 'Nuevo'], responsable: 'Juan López'  },
 ])
 
 // ─── Filters ───────────────────────────────────────────────────────────────
-const buscar           = ref('')
-const filtroEstado     = ref('todos')
-const filtroCiudad     = ref('todas')
+const buscar            = ref('')
+const filtroEstado      = ref('todos')
+const filtroCiudad      = ref('todas')
 const filtroResponsable = ref('todos')
+const filtroSexo        = ref('todos')
+const filtroEdad        = ref('todos')
+
+const calcEdadBucket = (fechaNac: string): string => {
+  if (!fechaNac) return ''
+  const edad = new Date().getFullYear() - new Date(fechaNac).getFullYear()
+  if (edad < 18)  return '0-17'
+  if (edad <= 35) return '18-35'
+  if (edad <= 50) return '36-50'
+  return '51+'
+}
 
 const contactosFiltrados = computed(() =>
   contactos.value.filter(c => {
     const q = buscar.value.toLowerCase()
     return (!q || [c.nombre, c.correo, c.empresa, c.documento].some(f => f.toLowerCase().includes(q)))
-      && (filtroEstado.value === 'todos' || c.estado === filtroEstado.value)
-      && (filtroCiudad.value === 'todas' || c.ciudad === filtroCiudad.value)
-      && (filtroResponsable.value === 'todos' || c.responsable === filtroResponsable.value)
+      && (filtroEstado.value      === 'todos'  || c.estado === filtroEstado.value)
+      && (filtroCiudad.value      === 'todas'  || c.ciudad === filtroCiudad.value)
+      && (filtroResponsable.value === 'todos'  || c.responsable === filtroResponsable.value)
+      && (filtroSexo.value        === 'todos'  || c.sexo === filtroSexo.value)
+      && (filtroEdad.value        === 'todos'  || calcEdadBucket(c.fechaNacimiento) === filtroEdad.value)
   })
 )
 
 const ciudades       = computed(() => [...new Set(contactos.value.map(c => c.ciudad))].sort())
 const responsables   = computed(() => [...new Set(contactos.value.map(c => c.responsable))].sort())
 const filtrosActivos = computed(() =>
-  [filtroEstado.value !== 'todos', filtroCiudad.value !== 'todas', filtroResponsable.value !== 'todos'].filter(Boolean).length
+  [filtroEstado.value !== 'todos', filtroCiudad.value !== 'todas',
+   filtroResponsable.value !== 'todos', filtroSexo.value !== 'todos',
+   filtroEdad.value !== 'todos'].filter(Boolean).length
 )
 
 const limpiarFiltros = () => {
-  filtroEstado.value = 'todos'
-  filtroCiudad.value = 'todas'
+  filtroEstado.value      = 'todos'
+  filtroCiudad.value      = 'todas'
   filtroResponsable.value = 'todos'
+  filtroSexo.value        = 'todos'
+  filtroEdad.value        = 'todos'
 }
 
 // ─── Modal Contacto ─────────────────────────────────────────────────────────
@@ -71,7 +89,7 @@ const contactoEditando  = ref<Contacto | null>(null)
 const formVacio: Omit<Contacto, 'id'> = {
   nombre: '', tipoDocumento: 'CC', documento: '', correo: '',
   telefono: '', empresa: '', cargo: '', ciudad: '', estado: 'Prospecto',
-  fechaNacimiento: '', etiquetas: [], responsable: ''
+  fechaNacimiento: '', sexo: 'Masculino', etiquetas: [], responsable: ''
 }
 const form = reactive<Omit<Contacto, 'id'>>({ ...formVacio })
 const etiquetaInput = ref('')
@@ -229,6 +247,19 @@ const etiquetaColor = (tag: string) => {
           <select v-model="filtroResponsable" class="h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer">
             <option value="todos">Responsable: Todos</option>
             <option v-for="r in responsables" :key="r" :value="r">{{ r }}</option>
+          </select>
+          <select v-model="filtroSexo" class="h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer">
+            <option value="todos">Sexo: Todos</option>
+            <option value="Masculino">Masculino</option>
+            <option value="Femenino">Femenino</option>
+            <option value="Otro">Otro</option>
+          </select>
+          <select v-model="filtroEdad" class="h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer">
+            <option value="todos">Edad: Todos</option>
+            <option value="0-17">0 – 17 años</option>
+            <option value="18-35">18 – 35 años</option>
+            <option value="36-50">36 – 50 años</option>
+            <option value="51+">51+ años</option>
           </select>
           <button v-if="filtrosActivos > 0" @click="limpiarFiltros"
             class="flex items-center gap-1 h-9 px-3 rounded-lg border border-red-200 bg-red-50 text-[11px] font-semibold text-red-500 hover:bg-red-100 transition-all">

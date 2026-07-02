@@ -14,6 +14,7 @@ interface Titular {
   documento: string
   nombre: string
   fechaNacimiento: string
+  sexo: 'Masculino' | 'Femenino' | 'Otro'
   correo: string
   telefono: string
   empresa: string
@@ -35,12 +36,12 @@ interface Beneficiario {
 
 // ─── Mock data ──────────────────────────────────────────────────────
 const titulares = ref<Titular[]>([
-  { id: 1, documento: '10293844', nombre: 'Carlos Mendoza Ruiz',  fechaNacimiento: '1989-03-15', correo: 'carlos@globaltech.com', telefono: '300-555-0192', empresa: 'Global Tech S.A.S',     planContratado: 'Plan Liga Empresarial', fechaInscripcion: '2026-01-10', estado: 'Activo'   },
-  { id: 2, documento: '25841203', nombre: 'Ana Victoria Ruiz',    fechaNacimiento: '1985-07-22', correo: 'ana@esteticamayo.com',  telefono: '311-222-4455', empresa: 'Estética Mayo',          planContratado: 'Plan Liga Individual',  fechaInscripcion: '2026-02-15', estado: 'Activo'   },
-  { id: 3, documento: '71234567', nombre: 'Pedro Sánchez Mejía',  fechaNacimiento: '1978-11-08', correo: 'pedro@constructora.co', telefono: '314-888-1122', empresa: 'Constructora ABC',       planContratado: 'Plan Liga Empresarial', fechaInscripcion: '2026-03-01', estado: 'Activo'   },
-  { id: 4, documento: '43901234', nombre: 'Laura Gómez Vargas',   fechaNacimiento: '1993-05-30', correo: 'laura@farmanorte.com',  telefono: '320-777-3344', empresa: 'Farmacia Norte',         planContratado: 'Plan Liga Individual',  fechaInscripcion: '2026-03-20', estado: 'Activo'   },
-  { id: 5, documento: '19283746', nombre: 'Roberto Díaz Castro',  fechaNacimiento: '1982-09-14', correo: 'roberto@techsol.co',   telefono: '301-444-9988', empresa: 'Tech Solutions',         planContratado: 'Plan Liga Empresarial', fechaInscripcion: '2026-04-05', estado: 'Inactivo' },
-  { id: 6, documento: '52000111', nombre: 'Sandra Morales López', fechaNacimiento: '1990-01-18', correo: 'smorales@grupoXYZ.com',telefono: '316-555-7766', empresa: 'Grupo Empresarial XYZ',  planContratado: 'Plan Liga Empresarial', fechaInscripcion: '2026-04-18', estado: 'Activo'   },
+  { id: 1, documento: '10293844', nombre: 'Carlos Mendoza Ruiz',  fechaNacimiento: '1989-03-15', sexo: 'Masculino', correo: 'carlos@globaltech.com', telefono: '300-555-0192', empresa: 'Global Tech S.A.S',    planContratado: 'Plan Liga Empresarial', fechaInscripcion: '2026-01-10', estado: 'Activo'   },
+  { id: 2, documento: '25841203', nombre: 'Ana Victoria Ruiz',    fechaNacimiento: '1985-07-22', sexo: 'Femenino',  correo: 'ana@esteticamayo.com',  telefono: '311-222-4455', empresa: 'Estética Mayo',         planContratado: 'Plan Liga Individual',  fechaInscripcion: '2026-02-15', estado: 'Activo'   },
+  { id: 3, documento: '71234567', nombre: 'Pedro Sánchez Mejía',  fechaNacimiento: '1978-11-08', sexo: 'Masculino', correo: 'pedro@constructora.co', telefono: '314-888-1122', empresa: 'Constructora ABC',      planContratado: 'Plan Liga Empresarial', fechaInscripcion: '2026-03-01', estado: 'Activo'   },
+  { id: 4, documento: '43901234', nombre: 'Laura Gómez Vargas',   fechaNacimiento: '1993-05-30', sexo: 'Femenino',  correo: 'laura@farmanorte.com',  telefono: '320-777-3344', empresa: 'Farmacia Norte',        planContratado: 'Plan Liga Individual',  fechaInscripcion: '2026-03-20', estado: 'Activo'   },
+  { id: 5, documento: '19283746', nombre: 'Roberto Díaz Castro',  fechaNacimiento: '1982-09-14', sexo: 'Masculino', correo: 'roberto@techsol.co',   telefono: '301-444-9988', empresa: 'Tech Solutions',        planContratado: 'Plan Liga Empresarial', fechaInscripcion: '2026-04-05', estado: 'Inactivo' },
+  { id: 6, documento: '52000111', nombre: 'Sandra Morales López', fechaNacimiento: '1990-01-18', sexo: 'Femenino',  correo: 'smorales@grupoXYZ.com',telefono: '316-555-7766', empresa: 'Grupo Empresarial XYZ', planContratado: 'Plan Liga Empresarial', fechaInscripcion: '2026-04-18', estado: 'Activo'   },
 ])
 
 const beneficiarios = ref<Beneficiario[]>([
@@ -67,13 +68,26 @@ const puedeAgregar = (id: number) => activosPorTitular(id) < 4
 const buscar       = ref('')
 const filtroEstado = ref('todos')
 const filtroPlan   = ref('todos')
+const filtroSexo   = ref('todos')
+const filtroEdad   = ref('todos')
+
+const calcEdadBucket = (fechaNac: string): string => {
+  if (!fechaNac) return ''
+  const edad = new Date().getFullYear() - new Date(fechaNac).getFullYear()
+  if (edad < 18)  return '0-17'
+  if (edad <= 35) return '18-35'
+  if (edad <= 50) return '36-50'
+  return '51+'
+}
 
 const titularesFiltrados = computed(() =>
   titulares.value.filter(t => {
     const q = buscar.value.toLowerCase()
     return (!q || [t.nombre, t.documento, t.empresa, t.correo].some(f => f.toLowerCase().includes(q)))
       && (filtroEstado.value === 'todos' || t.estado === filtroEstado.value)
-      && (filtroPlan.value  === 'todos' || t.planContratado === filtroPlan.value)
+      && (filtroPlan.value   === 'todos' || t.planContratado === filtroPlan.value)
+      && (filtroSexo.value   === 'todos' || t.sexo === filtroSexo.value)
+      && (filtroEdad.value   === 'todos' || calcEdadBucket(t.fechaNacimiento) === filtroEdad.value)
   })
 )
 const planes = computed(() => [...new Set(titulares.value.map(t => t.planContratado))].sort())
@@ -87,7 +101,7 @@ const titularesTope      = computed(() => titulares.value.filter(t => activosPor
 const modalTitularVisible = ref(false)
 const modalModo           = ref<'nuevo' | 'editar'>('nuevo')
 const titularEditando     = ref<Titular | null>(null)
-const formTitularVacio    = { documento: '', nombre: '', fechaNacimiento: '', correo: '', telefono: '', empresa: '', planContratado: 'Plan Liga Individual', fechaInscripcion: new Date().toISOString().split('T')[0], estado: 'Activo' as const }
+const formTitularVacio    = { documento: '', nombre: '', fechaNacimiento: '', sexo: 'Masculino' as const, correo: '', telefono: '', empresa: '', planContratado: 'Plan Liga Individual', fechaInscripcion: new Date().toISOString().split('T')[0], estado: 'Activo' as const }
 const formTitular         = reactive({ ...formTitularVacio })
 
 const abrirNuevoTitular  = () => { modalModo.value = 'nuevo'; titularEditando.value = null; Object.assign(formTitular, { ...formTitularVacio, fechaInscripcion: new Date().toISOString().split('T')[0] }); modalTitularVisible.value = true }
@@ -279,6 +293,19 @@ const planStyle = (p: string) => p === 'Plan Liga Empresarial' ? 'text-[#1E3A8A]
           <select v-model="filtroPlan" class="h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer">
             <option value="todos">Plan: Todos</option>
             <option v-for="p in planes" :key="p" :value="p">{{ p }}</option>
+          </select>
+          <select v-model="filtroSexo" class="h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer">
+            <option value="todos">Sexo: Todos</option>
+            <option value="Masculino">Masculino</option>
+            <option value="Femenino">Femenino</option>
+            <option value="Otro">Otro</option>
+          </select>
+          <select v-model="filtroEdad" class="h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer">
+            <option value="todos">Edad: Todos</option>
+            <option value="0-17">0 – 17 años</option>
+            <option value="18-35">18 – 35 años</option>
+            <option value="36-50">36 – 50 años</option>
+            <option value="51+">51+ años</option>
           </select>
         </div>
       </div>

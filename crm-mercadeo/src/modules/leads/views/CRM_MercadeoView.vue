@@ -121,16 +121,29 @@ const activeGroup = computed(() => {
       :style="{ width: sidebarCollapsed ? '64px' : '224px' }"
     >
       <!-- Logo -->
-      <div class="flex items-center gap-3 px-4 h-14 border-b border-white/10 shrink-0 overflow-hidden">
-        <img
-          src="/logo-liga-50.png"
-          alt="La Liga"
-          class="h-8 w-auto object-contain brightness-0 invert shrink-0 select-none pointer-events-none"
-        />
-        <div v-if="!sidebarCollapsed" class="min-w-0 overflow-hidden">
-          <div class="text-[9px] text-white/50 font-bold uppercase tracking-widest leading-none">Plataforma</div>
-          <div class="text-[13px] font-black text-white tracking-wider mt-0.5 whitespace-nowrap">CRM Mercadeo</div>
+      <div class="shrink-0 overflow-hidden">
+        <!-- Expandido -->
+        <div v-if="!sidebarCollapsed" class="flex flex-col items-center justify-center py-5 px-4 gap-3">
+          <div class="text-center">
+            <div class="text-[10px] font-bold uppercase tracking-widest text-white/50 leading-none">Plataforma</div>
+            <div class="text-[16px] font-black text-white tracking-wide mt-1">CRM Mercadeo</div>
+          </div>
+          <img
+            src="/logo-liga-50.png"
+            alt="La Liga"
+            class="w-full object-contain select-none pointer-events-none"
+            style="max-height: 130px"
+          />
         </div>
+        <!-- Colapsado -->
+        <div v-else class="flex items-center justify-center h-16 bg-white/10">
+          <img
+            src="/logo-liga-50.png"
+            alt="La Liga"
+            class="h-8 w-auto object-contain select-none pointer-events-none brightness-0 invert"
+          />
+        </div>
+        <div class="h-px bg-white/10" />
       </div>
 
       <!-- Nav -->
