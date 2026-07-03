@@ -62,3 +62,12 @@ cypress/screenshots/
 # =========================
 .nuxt/
 .output/
+
+# =========================
+# Python / Backend
+# =========================
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
