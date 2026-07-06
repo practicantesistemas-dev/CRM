@@ -17,6 +17,7 @@ Table Mercadeo_CRM_usuarios {
   created_at datetime
 }
 
+
 Table Mercadeo_CRM_empresas {
   id int [pk, increment]
   razon_social varchar
@@ -169,6 +170,23 @@ Table Mercadeo_CRM_importaciones {
   fecha datetime
 }
 
+Table Mercadeo_CRM_auditoria {
+  id bigint [pk, increment]
+
+  usuario_id int
+
+  modulo varchar
+  accion varchar
+
+  entidad varchar
+  entidad_id bigint
+
+  descripcion text
+
+  ip varchar
+
+  fecha datetime
+}
 /*=========================
       PLAN LIGA
 ==========================*/
@@ -254,3 +272,5 @@ Ref: Intranet_planliga_beneficiario.titular_id > Intranet_planliga.id
 Ref: Intranet_vista_planliga.titular_id > Intranet_planliga.id
 
 Ref: Mercadeo_CRM_oportunidades.plan_liga_titular_id > Intranet_planliga.id
+
+Ref: Mercadeo_CRM_auditoria.usuario_id > Mercadeo_CRM_usuarios.id

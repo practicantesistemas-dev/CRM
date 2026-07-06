@@ -8,7 +8,7 @@ import FieldError from '@/shared/components/FieldError.vue'
 const draft = defineModel<CampanaDraft>({ required: true })
 const emit = defineEmits<{ validSubmit: [] }>()
 
-const { errors, submitted, onValidSubmit } = useZodForm(campanaSchema, draft)
+const { errors, tocar, esVisible, onValidSubmit } = useZodForm(campanaSchema, draft)
 defineExpose({ submit: onValidSubmit(() => emit('validSubmit')) })
 </script>
 
@@ -16,8 +16,8 @@ defineExpose({ submit: onValidSubmit(() => emit('validSubmit')) })
   <div class="space-y-4">
     <div>
       <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Nombre de la campaña *</label>
-      <input v-model="draft.nombre" placeholder="Ej: Bienvenida Plan Liga Q3" class="w-full h-10 px-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all" :class="fieldStateClass(!!errors.nombre, submitted && !!draft.nombre, 'border-slate-200 focus:border-[#2447F9]')" />
-      <FieldError :message="errors.nombre" />
+      <input v-model="draft.nombre" @blur="tocar('nombre')" placeholder="Ej: Bienvenida Plan Liga Q3" class="w-full h-10 px-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all" :class="fieldStateClass(esVisible('nombre') && !!errors.nombre, esVisible('nombre') && !errors.nombre && !!draft.nombre, 'border-slate-200 focus:border-[#2447F9]')" />
+      <FieldError :message="esVisible('nombre') ? errors.nombre : undefined" />
     </div>
     <div>
       <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Segmento destinatario</label>

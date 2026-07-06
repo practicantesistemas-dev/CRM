@@ -9,7 +9,7 @@ import FieldError from '@/shared/components/FieldError.vue'
 const draft = defineModel<AutomatizacionDraft>({ required: true })
 const emit = defineEmits<{ validSubmit: [] }>()
 
-const { errors, submitted, onValidSubmit } = useZodForm(automatizacionSchema, draft)
+const { errors, tocar, esVisible, onValidSubmit } = useZodForm(automatizacionSchema, draft)
 defineExpose({ submit: onValidSubmit(() => emit('validSubmit')) })
 </script>
 
@@ -19,11 +19,12 @@ defineExpose({ submit: onValidSubmit(() => emit('validSubmit')) })
       <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Nombre *</label>
       <input
         v-model="draft.nombre"
+        @blur="tocar('nombre')"
         placeholder="Ej: Bienvenida nuevo contacto"
         class="w-full h-10 px-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all"
-        :class="fieldStateClass(!!errors.nombre, submitted && !!draft.nombre, 'border-slate-200 focus:border-[#2447F9]')"
+        :class="fieldStateClass(esVisible('nombre') && !!errors.nombre, esVisible('nombre') && !errors.nombre && !!draft.nombre, 'border-slate-200 focus:border-[#2447F9]')"
       />
-      <FieldError :message="errors.nombre" />
+      <FieldError :message="esVisible('nombre') ? errors.nombre : undefined" />
     </div>
 
     <div>

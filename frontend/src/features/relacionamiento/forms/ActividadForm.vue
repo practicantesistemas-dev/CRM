@@ -10,7 +10,7 @@ import FieldError from '@/shared/components/FieldError.vue'
 const draft = defineModel<ActividadDraft>({ required: true })
 const emit = defineEmits<{ validSubmit: [] }>()
 
-const { errors, submitted, onValidSubmit } = useZodForm(actividadSchema, draft)
+const { errors, tocar, esVisible, onValidSubmit } = useZodForm(actividadSchema, draft)
 defineExpose({ submit: onValidSubmit(() => emit('validSubmit')) })
 
 const contacto = useNombreCompuesto(draft, 'contacto')
@@ -35,22 +35,22 @@ const contacto = useNombreCompuesto(draft, 'contacto')
     <div class="sm:col-span-2">
       <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Contacto *</label>
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <input v-model="contacto.nombre1" placeholder="Primer nombre" class="w-full h-10 px-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all" :class="fieldStateClass(!!errors.contacto, submitted && !!draft.contacto, 'border-slate-200 focus:border-[#2447F9]')" />
-        <input v-model="contacto.nombre2" placeholder="Segundo nombre" class="w-full h-10 px-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all" :class="fieldStateClass(!!errors.contacto, submitted && !!draft.contacto, 'border-slate-200 focus:border-[#2447F9]')" />
-        <input v-model="contacto.apellido1" placeholder="Primer apellido" class="w-full h-10 px-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all" :class="fieldStateClass(!!errors.contacto, submitted && !!draft.contacto, 'border-slate-200 focus:border-[#2447F9]')" />
-        <input v-model="contacto.apellido2" placeholder="Segundo apellido" class="w-full h-10 px-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all" :class="fieldStateClass(!!errors.contacto, submitted && !!draft.contacto, 'border-slate-200 focus:border-[#2447F9]')" />
+        <input v-model="contacto.nombre1" @blur="tocar('contacto')" placeholder="Primer nombre" class="w-full h-10 px-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all" :class="fieldStateClass(esVisible('contacto') && !!errors.contacto, esVisible('contacto') && !errors.contacto && !!draft.contacto, 'border-slate-200 focus:border-[#2447F9]')" />
+        <input v-model="contacto.nombre2" @blur="tocar('contacto')" placeholder="Segundo nombre" class="w-full h-10 px-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all" :class="fieldStateClass(esVisible('contacto') && !!errors.contacto, esVisible('contacto') && !errors.contacto && !!draft.contacto, 'border-slate-200 focus:border-[#2447F9]')" />
+        <input v-model="contacto.apellido1" @blur="tocar('contacto')" placeholder="Primer apellido" class="w-full h-10 px-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all" :class="fieldStateClass(esVisible('contacto') && !!errors.contacto, esVisible('contacto') && !errors.contacto && !!draft.contacto, 'border-slate-200 focus:border-[#2447F9]')" />
+        <input v-model="contacto.apellido2" @blur="tocar('contacto')" placeholder="Segundo apellido" class="w-full h-10 px-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all" :class="fieldStateClass(esVisible('contacto') && !!errors.contacto, esVisible('contacto') && !errors.contacto && !!draft.contacto, 'border-slate-200 focus:border-[#2447F9]')" />
       </div>
-      <FieldError :message="errors.contacto" />
+      <FieldError :message="esVisible('contacto') ? errors.contacto : undefined" />
     </div>
     <div>
       <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Empresa</label>
-      <input v-model="draft.empresa" placeholder="Empresa" class="w-full h-10 px-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all" :class="fieldStateClass(!!errors.empresa, submitted && !!draft.empresa, 'border-slate-200 focus:border-[#2447F9]')" />
-      <FieldError :message="errors.empresa" />
+      <input v-model="draft.empresa" @blur="tocar('empresa')" placeholder="Empresa" class="w-full h-10 px-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all" :class="fieldStateClass(esVisible('empresa') && !!errors.empresa, esVisible('empresa') && !errors.empresa && !!draft.empresa, 'border-slate-200 focus:border-[#2447F9]')" />
+      <FieldError :message="esVisible('empresa') ? errors.empresa : undefined" />
     </div>
     <div class="sm:col-span-2">
       <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Acción realizada *</label>
-      <textarea v-model="draft.accion" placeholder="Describa la actividad realizada..." rows="3" class="w-full px-4 py-3 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all resize-none" :class="fieldStateClass(!!errors.accion, submitted && !!draft.accion, 'border-slate-200 focus:border-[#2447F9]')" />
-      <FieldError :message="errors.accion" />
+      <textarea v-model="draft.accion" @blur="tocar('accion')" placeholder="Describa la actividad realizada..." rows="3" class="w-full px-4 py-3 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all resize-none" :class="fieldStateClass(esVisible('accion') && !!errors.accion, esVisible('accion') && !errors.accion && !!draft.accion, 'border-slate-200 focus:border-[#2447F9]')" />
+      <FieldError :message="esVisible('accion') ? errors.accion : undefined" />
     </div>
     <div class="sm:col-span-2">
       <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Próximo paso</label>

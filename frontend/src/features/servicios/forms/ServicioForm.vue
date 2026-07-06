@@ -9,7 +9,7 @@ import FieldError from '@/shared/components/FieldError.vue'
 const draft = defineModel<ServicioDraft>({ required: true })
 const emit = defineEmits<{ validSubmit: [] }>()
 
-const { errors, submitted, onValidSubmit } = useZodForm(servicioSchema, draft)
+const { errors, tocar, esVisible, onValidSubmit } = useZodForm(servicioSchema, draft)
 defineExpose({ submit: onValidSubmit(() => emit('validSubmit')) })
 </script>
 
@@ -19,17 +19,17 @@ defineExpose({ submit: onValidSubmit(() => emit('validSubmit')) })
       <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Nombre *</label>
       <div class="relative">
         <Layers :size="13" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-        <input v-model="draft.nombre" placeholder="Ej: Plan Liga Empresarial" class="w-full h-10 pl-9 pr-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all" :class="fieldStateClass(!!errors.nombre, submitted && !!draft.nombre, 'border-slate-200 focus:border-[#2447F9]')" />
+        <input v-model="draft.nombre" @blur="tocar('nombre')" placeholder="Ej: Plan Liga Empresarial" class="w-full h-10 pl-9 pr-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all" :class="fieldStateClass(esVisible('nombre') && !!errors.nombre, esVisible('nombre') && !errors.nombre && !!draft.nombre, 'border-slate-200 focus:border-[#2447F9]')" />
       </div>
-      <FieldError :message="errors.nombre" />
+      <FieldError :message="esVisible('nombre') ? errors.nombre : undefined" />
     </div>
     <div>
       <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Código *</label>
       <div class="relative">
         <Hash :size="13" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-        <input v-model="draft.codigo" placeholder="PLE-001" class="w-full h-10 pl-9 pr-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all" :class="fieldStateClass(!!errors.codigo, submitted && !!draft.codigo, 'border-slate-200 focus:border-[#2447F9]')" />
+        <input v-model="draft.codigo" @blur="tocar('codigo')" placeholder="PLE-001" class="w-full h-10 pl-9 pr-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all" :class="fieldStateClass(esVisible('codigo') && !!errors.codigo, esVisible('codigo') && !errors.codigo && !!draft.codigo, 'border-slate-200 focus:border-[#2447F9]')" />
       </div>
-      <FieldError :message="errors.codigo" />
+      <FieldError :message="esVisible('codigo') ? errors.codigo : undefined" />
     </div>
     <div>
       <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Categoría</label>

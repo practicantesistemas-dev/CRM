@@ -16,7 +16,7 @@ const formSeg = ref<SeguimientoDraft>({
   tipo: 'Nota', accion: '', proximoPaso: '', fecha: new Date().toISOString().split('T')[0],
 })
 
-const { errors, submitted, onValidSubmit } = useZodForm(seguimientoSchema, formSeg)
+const { errors, tocar, esVisible, onValidSubmit } = useZodForm(seguimientoSchema, formSeg)
 
 watch(visible, (v) => {
   if (!v) return
@@ -59,10 +59,10 @@ const guardarSeguimiento = onValidSubmit(() => {
         </div>
         <div>
           <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">¿Qué se hizo? *</label>
-          <textarea v-model="formSeg.accion" rows="3" placeholder="Describe la actividad realizada..."
+          <textarea v-model="formSeg.accion" @blur="tocar('accion')" rows="3" placeholder="Describe la actividad realizada..."
             class="w-full px-4 py-2.5 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all resize-none"
-            :class="fieldStateClass(!!errors.accion, submitted && !!formSeg.accion, 'border-slate-200 focus:border-[#059669]')" />
-          <FieldError :message="errors.accion" />
+            :class="fieldStateClass(esVisible('accion') && !!errors.accion, esVisible('accion') && !errors.accion && !!formSeg.accion, 'border-slate-200 focus:border-[#059669]')" />
+          <FieldError :message="esVisible('accion') ? errors.accion : undefined" />
         </div>
         <div>
           <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Próximo paso</label>
