@@ -5,6 +5,7 @@ import type { Contacto, SeguimientoDraft, TipoSeguimiento } from '../types/conta
 import { TIPOS_SEGUIMIENTO_META } from '../constants/contactos.constants'
 import { seguimientoSchema } from '../schemas/seguimiento.schema'
 import { useZodForm } from '@/shared/composables/useZodForm'
+import { fieldStateClass } from '@/shared/utils/fieldStateClass'
 import FieldError from '@/shared/components/FieldError.vue'
 
 const props = defineProps<{ contacto: Contacto | null }>()
@@ -15,7 +16,7 @@ const formSeg = ref<SeguimientoDraft>({
   tipo: 'Nota', accion: '', proximoPaso: '', fecha: new Date().toISOString().split('T')[0],
 })
 
-const { errors, onValidSubmit } = useZodForm(seguimientoSchema, formSeg)
+const { errors, submitted, onValidSubmit } = useZodForm(seguimientoSchema, formSeg)
 
 watch(visible, (v) => {
   if (!v) return
@@ -83,7 +84,7 @@ const guardarSeguimiento = onValidSubmit(() => {
             rows="3"
             placeholder="Describe la actividad realizada..."
             class="w-full px-4 py-2.5 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all resize-none"
-            :class="errors.accion ? 'border-red-300 focus:border-red-400' : 'border-slate-200 focus:border-[#059669]'"
+            :class="fieldStateClass(!!errors.accion, submitted && !!formSeg.accion, 'border-slate-200 focus:border-[#059669]')"
           />
           <FieldError :message="errors.accion" />
         </div>

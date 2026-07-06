@@ -1,0 +1,256 @@
+Table Mercadeo_CRM_roles {
+  id int [pk, increment]
+  nombre varchar
+  descripcion varchar
+}
+
+Table Mercadeo_CRM_usuarios {
+  id int [pk, increment]
+  nombre1 varchar
+  nombre2 varchar
+  apellido1 varchar
+  apellido2 varchar
+  correo varchar [unique]
+  password varchar
+  estado boolean
+  rol_id int
+  created_at datetime
+}
+
+Table Mercadeo_CRM_empresas {
+  id int [pk, increment]
+  razon_social varchar
+  nit varchar [unique]
+  industria varchar
+  direccion varchar
+  ciudad varchar
+  estado bool
+  responsable_id int
+}
+
+Table Mercadeo_CRM_contactos {
+  id int [pk, increment]
+  nombre1 varchar
+  nombre2 varchar
+  apellido1 varchar
+  apellido2 varchar
+  documento varchar
+  correo varchar
+  telefono varchar
+  cargo varchar
+  ciudad varchar
+  fecha_nacimiento date
+  estado bool
+  empresa_id int
+  responsable_id int
+}
+
+Table Mercadeo_CRM_proveedores {
+  id int [pk, increment]
+  nombre varchar
+  categoria varchar
+  nit varchar
+  correo varchar
+  telefono varchar
+  estado varchar
+  actividad_id int
+}
+
+Table Mercadeo_CRM_Actividad {
+  id int [pk, increment]
+  nombre varchar
+  cantidad float
+  precio float
+  descripcion varchar
+}
+
+Table Mercadeo_CRM_servicios {
+  id int [pk, increment]
+  codigo varchar
+  nombre varchar
+  categoria varchar
+  tipo varchar
+  estado varchar
+  responsable_id int
+
+  // Relación con Plan Liga
+  plan_liga_servicio_id bigint
+}
+
+Table Mercadeo_CRM_embudos {
+  id int [pk, increment]
+  nombre varchar
+  descripcion text
+}
+
+Table Mercadeo_CRM_etapas_embudo {
+  id int [pk, increment]
+  embudo_id int
+  nombre varchar
+  orden int
+}
+
+Table Mercadeo_CRM_oportunidades {
+  id int [pk, increment]
+  empresa_id int
+  contacto_id int
+  servicio_id int
+  etapa_id int
+  responsable_id int
+  valor float
+  probabilidad int
+  estado varchar
+
+  // Relación con Plan Liga
+  plan_liga_titular_id bigint
+}
+
+Table Mercadeo_CRM_bitacora_actividades {
+  id int [pk, increment]
+  usuario_id int
+  contacto_id int
+  empresa_id int
+  oportunidad_id int
+  tipo varchar
+  descripcion text
+  proximo_paso text
+  fecha datetime
+}
+
+Table Mercadeo_CRM_campañas {
+  id int [pk, increment]
+  nombre varchar
+  asunto varchar
+  contenido_html text
+  estado varchar
+  fecha_inicio date
+  fecha_fin date
+}
+
+Table Mercadeo_CRM_segmentos {
+  id int [pk, increment]
+  nombre varchar
+  filtros text
+  usuario_id int
+}
+
+Table Mercadeo_CRM_etiquetas {
+  id int [pk, increment]
+  nombre varchar
+  color varchar
+}
+
+Table Mercadeo_CRM_contacto_etiqueta {
+  contacto_id int
+  etiqueta_id int
+
+  indexes {
+    (contacto_id, etiqueta_id) [pk]
+  }
+}
+
+
+Table Mercadeo_CRM_campaña_segmento {
+  campaña_id int
+  segmento_id int
+
+  indexes {
+    (campaña_id, segmento_id) [pk]
+  }
+}
+
+Table Mercadeo_CRM_importaciones {
+  id int [pk, increment]
+  usuario_id int
+  tipo varchar
+  archivo varchar
+  registros int
+  errores int
+  fecha datetime
+}
+
+/*=========================
+      PLAN LIGA
+==========================*/
+
+Table Intranet_planliga {
+  id bigint [pk, increment]
+  nombre1 varchar
+  nombre2 varchar
+  apellido1 varchar
+  apellido2 varchar
+  documento varchar
+  correo varchar
+  telefono varchar
+  direccion varchar
+  ciudad varchar
+  estado varchar
+}
+
+Table Intranet_planliga_beneficiario {
+  id bigint [pk, increment]
+  titular_id bigint
+  nombre1 varchar
+  nombre2 varchar
+  apellido1 varchar
+  apellido2 varchar
+  documento varchar
+  parentesco varchar
+  fecha_nacimiento date
+  estado varchar
+}
+
+Table Intranet_vista_planliga {
+  id bigint [pk, increment]
+  titular_id bigint
+  descripcion varchar
+  fecha datetime
+}
+
+/*=========================
+      RELACIONES CRM
+==========================*/
+
+Ref: Mercadeo_CRM_usuarios.rol_id > Mercadeo_CRM_roles.id
+
+Ref: Mercadeo_CRM_empresas.responsable_id > Mercadeo_CRM_usuarios.id
+
+Ref: Mercadeo_CRM_contactos.empresa_id > Mercadeo_CRM_empresas.id
+Ref: Mercadeo_CRM_contactos.responsable_id > Mercadeo_CRM_usuarios.id
+
+Ref: Mercadeo_CRM_servicios.responsable_id > Mercadeo_CRM_usuarios.id
+
+Ref: Mercadeo_CRM_etapas_embudo.embudo_id > Mercadeo_CRM_embudos.id
+
+Ref: Mercadeo_CRM_oportunidades.empresa_id > Mercadeo_CRM_empresas.id
+Ref: Mercadeo_CRM_oportunidades.contacto_id > Mercadeo_CRM_contactos.id
+Ref: Mercadeo_CRM_oportunidades.servicio_id > Mercadeo_CRM_servicios.id
+Ref: Mercadeo_CRM_oportunidades.etapa_id > Mercadeo_CRM_etapas_embudo.id
+Ref: Mercadeo_CRM_oportunidades.responsable_id > Mercadeo_CRM_usuarios.id
+
+Ref: Mercadeo_CRM_bitacora_actividades.usuario_id > Mercadeo_CRM_usuarios.id
+Ref: Mercadeo_CRM_bitacora_actividades.contacto_id > Mercadeo_CRM_contactos.id
+Ref: Mercadeo_CRM_bitacora_actividades.empresa_id > Mercadeo_CRM_empresas.id
+Ref: Mercadeo_CRM_bitacora_actividades.oportunidad_id > Mercadeo_CRM_oportunidades.id
+
+Ref: Mercadeo_CRM_segmentos.usuario_id > Mercadeo_CRM_usuarios.id
+
+Ref: Mercadeo_CRM_contacto_etiqueta.contacto_id > Mercadeo_CRM_contactos.id
+Ref: Mercadeo_CRM_contacto_etiqueta.etiqueta_id > Mercadeo_CRM_etiquetas.id
+
+Ref: Mercadeo_CRM_campaña_segmento.campaña_id > Mercadeo_CRM_campañas.id
+Ref: Mercadeo_CRM_campaña_segmento.segmento_id > Mercadeo_CRM_segmentos.id
+
+Ref: Mercadeo_CRM_importaciones.usuario_id > Mercadeo_CRM_usuarios.id
+
+Ref: Mercadeo_CRM_Actividad.id > Mercadeo_CRM_proveedores.actividad_id
+
+/*=========================
+   RELACIONES CON PLAN LIGA
+==========================*/
+
+Ref: Intranet_planliga_beneficiario.titular_id > Intranet_planliga.id
+
+Ref: Intranet_vista_planliga.titular_id > Intranet_planliga.id
+
+Ref: Mercadeo_CRM_oportunidades.plan_liga_titular_id > Intranet_planliga.id

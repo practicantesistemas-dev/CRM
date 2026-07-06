@@ -3,12 +3,13 @@ import { Building2, Hash, MapPin, User } from 'lucide-vue-next'
 import type { EmpresaDraft } from '../types/empresa'
 import { empresaSchema } from '../schemas/empresa.schema'
 import { useZodForm } from '@/shared/composables/useZodForm'
+import { fieldStateClass } from '@/shared/utils/fieldStateClass'
 import FieldError from '@/shared/components/FieldError.vue'
 
 const draft = defineModel<EmpresaDraft>({ required: true })
 const emit = defineEmits<{ validSubmit: [] }>()
 
-const { errors, onValidSubmit } = useZodForm(empresaSchema, draft)
+const { errors, submitted, onValidSubmit } = useZodForm(empresaSchema, draft)
 defineExpose({ submit: onValidSubmit(() => emit('validSubmit')) })
 </script>
 
@@ -18,7 +19,7 @@ defineExpose({ submit: onValidSubmit(() => emit('validSubmit')) })
       <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Razón Social *</label>
       <div class="relative">
         <Building2 :size="13" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-        <input v-model="draft.razonSocial" placeholder="Ej: Global Tech S.A.S" class="w-full h-10 pl-9 pr-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all" :class="errors.razonSocial ? 'border-red-300 focus:border-red-400' : 'border-slate-200 focus:border-[#2447F9]'" />
+        <input v-model="draft.razonSocial" placeholder="Ej: Global Tech S.A.S" class="w-full h-10 pl-9 pr-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all" :class="fieldStateClass(!!errors.razonSocial, submitted && !!draft.razonSocial, 'border-slate-200 focus:border-[#2447F9]')" />
       </div>
       <FieldError :message="errors.razonSocial" />
     </div>
@@ -26,7 +27,7 @@ defineExpose({ submit: onValidSubmit(() => emit('validSubmit')) })
       <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">NIT *</label>
       <div class="relative">
         <Hash :size="13" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-        <input v-model="draft.nit" placeholder="900.000.000-0" class="w-full h-10 pl-9 pr-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all" :class="errors.nit ? 'border-red-300 focus:border-red-400' : 'border-slate-200 focus:border-[#2447F9]'" />
+        <input v-model="draft.nit" placeholder="900.000.000-0" class="w-full h-10 pl-9 pr-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all" :class="fieldStateClass(!!errors.nit, submitted && !!draft.nit, 'border-slate-200 focus:border-[#2447F9]')" />
       </div>
       <FieldError :message="errors.nit" />
     </div>

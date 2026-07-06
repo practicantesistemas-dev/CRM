@@ -2,25 +2,35 @@
 import type { TarjetaDraft } from '../types/tarjeta'
 import { tarjetaSchema } from '../schemas/tarjeta.schema'
 import { useZodForm } from '@/shared/composables/useZodForm'
+import { useNombreCompuesto } from '@/shared/composables/useNombreCompuesto'
+import { fieldStateClass } from '@/shared/utils/fieldStateClass'
 import FieldError from '@/shared/components/FieldError.vue'
 
 const draft = defineModel<TarjetaDraft>({ required: true })
 const emit = defineEmits<{ validSubmit: [] }>()
 
-const { errors, onValidSubmit } = useZodForm(tarjetaSchema, draft)
+const { errors, submitted, onValidSubmit } = useZodForm(tarjetaSchema, draft)
 defineExpose({ submit: onValidSubmit(() => emit('validSubmit')) })
+
+const contacto = useNombreCompuesto(draft, 'contacto')
 </script>
 
 <template>
   <div class="space-y-4">
     <div>
       <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Empresa *</label>
-      <input v-model="draft.empresa" placeholder="Nombre empresa" class="w-full h-10 px-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all" :class="errors.empresa ? 'border-red-300 focus:border-red-400' : 'border-slate-200 focus:border-[#2447F9]'" />
+      <input v-model="draft.empresa" placeholder="Nombre empresa" class="w-full h-10 px-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all" :class="fieldStateClass(!!errors.empresa, submitted && !!draft.empresa, 'border-slate-200 focus:border-[#2447F9]')" />
       <FieldError :message="errors.empresa" />
     </div>
     <div>
       <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Contacto</label>
-      <input v-model="draft.contacto" placeholder="Nombre contacto" class="w-full h-10 px-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#2447F9] focus:bg-white transition-all" />
+      <div class="grid grid-cols-2 gap-3">
+        <input v-model="contacto.nombre1" placeholder="Primer nombre" class="w-full h-10 px-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all" :class="fieldStateClass(!!errors.contacto, submitted && !!draft.contacto, 'border-slate-200 focus:border-[#2447F9]')" />
+        <input v-model="contacto.nombre2" placeholder="Segundo nombre" class="w-full h-10 px-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all" :class="fieldStateClass(!!errors.contacto, submitted && !!draft.contacto, 'border-slate-200 focus:border-[#2447F9]')" />
+        <input v-model="contacto.apellido1" placeholder="Primer apellido" class="w-full h-10 px-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all" :class="fieldStateClass(!!errors.contacto, submitted && !!draft.contacto, 'border-slate-200 focus:border-[#2447F9]')" />
+        <input v-model="contacto.apellido2" placeholder="Segundo apellido" class="w-full h-10 px-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all" :class="fieldStateClass(!!errors.contacto, submitted && !!draft.contacto, 'border-slate-200 focus:border-[#2447F9]')" />
+      </div>
+      <FieldError :message="errors.contacto" />
     </div>
     <div class="grid grid-cols-2 gap-4">
       <div>
