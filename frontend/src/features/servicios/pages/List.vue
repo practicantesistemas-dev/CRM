@@ -36,7 +36,6 @@ const abrirEditar = (s: Servicio) => {
   modalVisible.value = true
 }
 const guardar = () => {
-  if (!draft.value.nombre || !draft.value.codigo) return
   if (modalModo.value === 'nuevo') {
     crearServicio(draft.value)
   } else if (servicioEditando.value) {

@@ -3,8 +3,15 @@ import { ref } from 'vue'
 import { User, Mail, Phone, Building2, Briefcase, MapPin, Calendar, UserCheck, Tag, X } from 'lucide-vue-next'
 import type { ContactoDraft } from '../types/contacto'
 import { etiquetaColor } from '../constants/contactos.constants'
+import { contactoSchema } from '../schemas/contacto.schema'
+import { useZodForm } from '@/shared/composables/useZodForm'
+import FieldError from '@/shared/components/FieldError.vue'
 
 const draft = defineModel<ContactoDraft>({ required: true })
+const emit = defineEmits<{ validSubmit: [] }>()
+
+const { errors, onValidSubmit } = useZodForm(contactoSchema, draft)
+defineExpose({ submit: onValidSubmit(() => emit('validSubmit')) })
 
 const etiquetaInput = ref('')
 
@@ -23,7 +30,8 @@ const quitarEtiqueta = (tag: string) => {
     <div class="sm:col-span-2">
       <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Nombre completo *</label>
       <div class="relative"><User :size="13" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-        <input v-model="draft.nombre" placeholder="Ej: Carlos Mendoza Ruiz" class="w-full h-10 pl-9 pr-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#2447F9] focus:bg-white transition-all" /></div>
+        <input v-model="draft.nombre" placeholder="Ej: Carlos Mendoza Ruiz" class="w-full h-10 pl-9 pr-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all" :class="errors.nombre ? 'border-red-300 focus:border-red-400' : 'border-slate-200 focus:border-[#2447F9]'" /></div>
+      <FieldError :message="errors.nombre" />
     </div>
     <div>
       <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Tipo documento</label>
@@ -42,7 +50,8 @@ const quitarEtiqueta = (tag: string) => {
     <div>
       <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Correo electrónico *</label>
       <div class="relative"><Mail :size="13" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-        <input v-model="draft.correo" type="email" placeholder="correo@empresa.com" class="w-full h-10 pl-9 pr-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#2447F9] focus:bg-white transition-all" /></div>
+        <input v-model="draft.correo" type="email" placeholder="correo@empresa.com" class="w-full h-10 pl-9 pr-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all" :class="errors.correo ? 'border-red-300 focus:border-red-400' : 'border-slate-200 focus:border-[#2447F9]'" /></div>
+      <FieldError :message="errors.correo" />
     </div>
     <div>
       <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Teléfono</label>

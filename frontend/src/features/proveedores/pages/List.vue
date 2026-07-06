@@ -31,7 +31,6 @@ const abrirEditar = (p: Proveedor) => {
   modalVisible.value = true
 }
 const guardar = () => {
-  if (!draft.value.nombre) return
   if (modalModo.value === 'nuevo') {
     crearProveedor(draft.value)
   } else if (proveedorEditando.value) {

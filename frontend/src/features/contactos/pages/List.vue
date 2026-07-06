@@ -35,7 +35,6 @@ const abrirEditar = (c: Contacto) => {
   modalVisible.value = true
 }
 const guardarContacto = () => {
-  if (!draft.value.nombre || !draft.value.correo) return
   if (modalModo.value === 'nuevo') {
     crearContacto(draft.value)
   } else if (contactoEditando.value) {

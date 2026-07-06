@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import type { TarjetaDraft } from '../types/tarjeta'
 import TarjetaForm from '../forms/TarjetaForm.vue'
 
@@ -7,6 +8,8 @@ const emit = defineEmits<{ submit: [] }>()
 
 const visible = defineModel<boolean>('visible', { required: true })
 const draft = defineModel<TarjetaDraft>('draft', { required: true })
+
+const formRef = ref<InstanceType<typeof TarjetaForm>>()
 </script>
 
 <template>
@@ -26,11 +29,11 @@ const draft = defineModel<TarjetaDraft>('draft', { required: true })
         </button>
       </div>
       <div class="p-6">
-        <TarjetaForm v-model="draft" />
+        <TarjetaForm ref="formRef" v-model="draft" @valid-submit="emit('submit')" />
       </div>
       <div class="flex items-center justify-end gap-2 px-6 py-4 border-t border-slate-200 bg-[#F8FAFC]">
         <button @click="visible = false" class="h-9 px-5 rounded-lg border border-slate-200 bg-white text-[11px] font-semibold text-slate-600 hover:bg-slate-50 transition-all">Cancelar</button>
-        <button @click="emit('submit')" class="h-9 px-6 rounded-lg bg-[#2447F9] text-white text-[11px] font-bold shadow hover:bg-[#1D3DD9] transition-all">Crear tarjeta</button>
+        <button @click="formRef?.submit()" class="h-9 px-6 rounded-lg bg-[#2447F9] text-white text-[11px] font-bold shadow hover:bg-[#1D3DD9] transition-all">Crear tarjeta</button>
       </div>
     </div>
   </div>

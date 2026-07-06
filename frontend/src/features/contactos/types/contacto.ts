@@ -1,7 +1,7 @@
 export interface Contacto {
   id: number
   nombre: string
-  tipoDocumento: string
+  tipoDocumento: 'CC' | 'CE' | 'TI' | 'NIT' | 'PP'
   documento: string
   correo: string
   telefono: string

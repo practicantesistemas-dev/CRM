@@ -1,8 +1,15 @@
 <script setup lang="ts">
 import type { ActividadDraft } from '../types/actividad'
 import { TIPOS_ACTIVIDAD, TIPO_META } from '../constants/relacionamiento.constants'
+import { actividadSchema } from '../schemas/actividad.schema'
+import { useZodForm } from '@/shared/composables/useZodForm'
+import FieldError from '@/shared/components/FieldError.vue'
 
 const draft = defineModel<ActividadDraft>({ required: true })
+const emit = defineEmits<{ validSubmit: [] }>()
+
+const { errors, onValidSubmit } = useZodForm(actividadSchema, draft)
+defineExpose({ submit: onValidSubmit(() => emit('validSubmit')) })
 </script>
 
 <template>
@@ -23,7 +30,8 @@ const draft = defineModel<ActividadDraft>({ required: true })
     </div>
     <div>
       <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Contacto *</label>
-      <input v-model="draft.contacto" placeholder="Nombre del contacto" class="w-full h-10 px-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#2447F9] focus:bg-white transition-all" />
+      <input v-model="draft.contacto" placeholder="Nombre del contacto" class="w-full h-10 px-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all" :class="errors.contacto ? 'border-red-300 focus:border-red-400' : 'border-slate-200 focus:border-[#2447F9]'" />
+      <FieldError :message="errors.contacto" />
     </div>
     <div>
       <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Empresa</label>
@@ -31,7 +39,8 @@ const draft = defineModel<ActividadDraft>({ required: true })
     </div>
     <div class="sm:col-span-2">
       <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Acción realizada *</label>
-      <textarea v-model="draft.accion" placeholder="Describa la actividad realizada..." rows="3" class="w-full px-4 py-3 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#2447F9] focus:bg-white transition-all resize-none" />
+      <textarea v-model="draft.accion" placeholder="Describa la actividad realizada..." rows="3" class="w-full px-4 py-3 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all resize-none" :class="errors.accion ? 'border-red-300 focus:border-red-400' : 'border-slate-200 focus:border-[#2447F9]'" />
+      <FieldError :message="errors.accion" />
     </div>
     <div class="sm:col-span-2">
       <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Próximo paso</label>

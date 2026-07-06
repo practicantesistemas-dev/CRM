@@ -32,7 +32,6 @@ const abrirEditar = (e: Empresa) => {
   modalVisible.value = true
 }
 const guardar = () => {
-  if (!draft.value.razonSocial || !draft.value.nit) return
   if (modalModo.value === 'nuevo') {
     crearEmpresa(draft.value)
   } else if (empresaEditando.value) {

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import { X, CheckCircle } from 'lucide-vue-next'
 import type { BeneficiarioDraft } from '../types/plan-liga'
 import BeneficiarioForm from '../forms/BeneficiarioForm.vue'
@@ -8,6 +9,8 @@ const emit = defineEmits<{ submit: [] }>()
 
 const visible = defineModel<boolean>('visible', { required: true })
 const draft = defineModel<BeneficiarioDraft>('draft', { required: true })
+
+const formRef = ref<InstanceType<typeof BeneficiarioForm>>()
 </script>
 
 <template>
@@ -25,11 +28,11 @@ const draft = defineModel<BeneficiarioDraft>('draft', { required: true })
         <p class="text-[11px] text-[#EC4899] font-medium py-2">Cupo disponible: <strong>{{ cuposRestantes }}</strong> beneficiarios restantes.</p>
       </div>
       <div class="p-6 space-y-4">
-        <BeneficiarioForm v-model="draft" />
+        <BeneficiarioForm ref="formRef" v-model="draft" @valid-submit="emit('submit')" />
       </div>
       <div class="flex items-center justify-end gap-2 px-6 py-4 border-t border-slate-200 bg-[#F8FAFC]">
         <button @click="visible = false" class="h-9 px-5 rounded-lg border border-slate-200 bg-white text-[11px] font-semibold text-slate-600 hover:bg-slate-50 transition-all">Cancelar</button>
-        <button @click="emit('submit')" class="h-9 px-6 rounded-lg bg-[#EC4899] text-white text-[11px] font-bold shadow hover:bg-[#D61F69] transition-all">
+        <button @click="formRef?.submit()" class="h-9 px-6 rounded-lg bg-[#EC4899] text-white text-[11px] font-bold shadow hover:bg-[#D61F69] transition-all">
           {{ modo === 'nuevo' ? 'Agregar beneficiario' : 'Guardar cambios' }}
         </button>
       </div>

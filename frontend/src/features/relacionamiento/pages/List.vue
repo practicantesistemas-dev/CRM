@@ -23,7 +23,6 @@ const abrirNuevo = () => {
 }
 
 const guardar = () => {
-  if (!draft.value.contacto || !draft.value.accion) return
   crearActividad(draft.value)
   modalVisible.value = false
 }

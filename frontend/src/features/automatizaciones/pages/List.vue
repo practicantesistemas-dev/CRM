@@ -32,7 +32,6 @@ const abrirEditar = (a: Automatizacion) => {
   modalVisible.value = true
 }
 const guardar = () => {
-  if (!draft.value.nombre) return
   if (modalModo.value === 'nuevo') {
     crearAutomatizacion(draft.value)
   } else if (editando.value) {

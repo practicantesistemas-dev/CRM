@@ -39,7 +39,6 @@ const abrirEditarTitular = (t: Titular) => {
   modalTitularVisible.value = true
 }
 const guardarTitular = () => {
-  if (!draftTitular.value.documento || !draftTitular.value.nombre) return
   if (modalModo.value === 'nuevo') {
     crearTitular(draftTitular.value)
   } else if (titularEditando.value) {
@@ -80,7 +79,7 @@ const abrirEditarBeneficiario = (b: Beneficiario) => {
   modalBeneVisible.value = true
 }
 const guardarBeneficiario = () => {
-  if (!draftBene.value.documento || !draftBene.value.nombre || !titularSeleccionado.value) return
+  if (!titularSeleccionado.value) return
   if (modalBeneModo.value === 'nuevo') {
     crearBeneficiario(titularSeleccionado.value.id, draftBene.value)
   } else if (beneficiarioEditando.value) {

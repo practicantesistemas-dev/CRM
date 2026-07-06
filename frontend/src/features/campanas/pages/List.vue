@@ -22,7 +22,6 @@ const abrirNuevo = () => {
   modalVisible.value = true
 }
 const confirmarCreacion = () => {
-  if (!draft.value.nombre) return
   crearCampana(draft.value)
   modalVisible.value = false
 }

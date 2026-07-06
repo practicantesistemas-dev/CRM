@@ -1,8 +1,15 @@
 <script setup lang="ts">
 import type { AutomatizacionDraft } from '../types/automatizacion'
 import { TRIGGERS, ACCIONES, TRIGGER_META, ACCION_META } from '../constants/automatizaciones.constants'
+import { automatizacionSchema } from '../schemas/automatizacion.schema'
+import { useZodForm } from '@/shared/composables/useZodForm'
+import FieldError from '@/shared/components/FieldError.vue'
 
 const draft = defineModel<AutomatizacionDraft>({ required: true })
+const emit = defineEmits<{ validSubmit: [] }>()
+
+const { errors, onValidSubmit } = useZodForm(automatizacionSchema, draft)
+defineExpose({ submit: onValidSubmit(() => emit('validSubmit')) })
 </script>
 
 <template>
@@ -12,8 +19,10 @@ const draft = defineModel<AutomatizacionDraft>({ required: true })
       <input
         v-model="draft.nombre"
         placeholder="Ej: Bienvenida nuevo contacto"
-        class="w-full h-10 px-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#2447F9] focus:bg-white transition-all"
+        class="w-full h-10 px-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all"
+        :class="errors.nombre ? 'border-red-300 focus:border-red-400' : 'border-slate-200 focus:border-[#2447F9]'"
       />
+      <FieldError :message="errors.nombre" />
     </div>
 
     <div>

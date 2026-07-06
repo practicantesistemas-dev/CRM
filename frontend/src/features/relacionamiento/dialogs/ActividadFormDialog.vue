@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import { X } from 'lucide-vue-next'
 import type { ActividadDraft } from '../types/actividad'
 import ActividadForm from '../forms/ActividadForm.vue'
@@ -7,6 +8,8 @@ const emit = defineEmits<{ submit: [] }>()
 
 const visible = defineModel<boolean>('visible', { required: true })
 const draft = defineModel<ActividadDraft>('draft', { required: true })
+
+const formRef = ref<InstanceType<typeof ActividadForm>>()
 </script>
 
 <template>
@@ -20,11 +23,11 @@ const draft = defineModel<ActividadDraft>('draft', { required: true })
         <button @click="visible = false" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500"><X :size="14" /></button>
       </div>
       <div class="overflow-y-auto flex-1 p-6">
-        <ActividadForm v-model="draft" />
+        <ActividadForm ref="formRef" v-model="draft" @valid-submit="emit('submit')" />
       </div>
       <div class="flex items-center justify-end gap-2 px-6 py-4 border-t border-slate-200 bg-[#F8FAFC]">
         <button @click="visible = false" class="h-9 px-5 rounded-lg border border-slate-200 bg-white text-[11px] font-semibold text-slate-600 hover:bg-slate-50 transition-all">Cancelar</button>
-        <button @click="emit('submit')" class="h-9 px-6 rounded-lg bg-[#2447F9] text-white text-[11px] font-bold shadow hover:bg-[#1D3DD9] transition-all">Guardar actividad</button>
+        <button @click="formRef?.submit()" class="h-9 px-6 rounded-lg bg-[#2447F9] text-white text-[11px] font-bold shadow hover:bg-[#1D3DD9] transition-all">Guardar actividad</button>
       </div>
     </div>
   </div>

@@ -32,7 +32,6 @@ const abrirEditar = (o: Oportunidad) => {
   modalVisible.value = true
 }
 const guardar = () => {
-  if (!draft.value.empresa || !draft.value.servicio) return
   if (modalModo.value === 'nuevo') {
     crearOportunidad(draft.value)
   } else if (oportunidadEditando.value) {
