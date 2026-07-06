@@ -2,24 +2,44 @@
 import { Building2, User, DollarSign, Calendar, GripVertical } from 'lucide-vue-next'
 import type { EtapaColor, Tarjeta } from '../types/tarjeta'
 
-defineProps<{
+const props = defineProps<{
   tarjeta: Tarjeta
   color: EtapaColor
   dragging: boolean
+  dropIndicator?: 'before' | 'after' | null
 }>()
-const emit = defineEmits<{ dragstart: [e: DragEvent]; dragend: [] }>()
+const emit = defineEmits<{
+  dragstart: [e: DragEvent]
+  dragend: []
+  dragoverCard: [id: number, position: 'before' | 'after']
+}>()
+
+const onDragOverCard = (e: DragEvent) => {
+  if (props.dragging) return
+  e.preventDefault()
+  if (e.dataTransfer) e.dataTransfer.dropEffect = 'move'
+  const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+  const position: 'before' | 'after' = e.clientY < rect.top + rect.height / 2 ? 'before' : 'after'
+  emit('dragoverCard', props.tarjeta.id, position)
+}
 </script>
 
 <template>
   <div
     :draggable="true"
+    data-kanban-card
     @dragstart="emit('dragstart', $event)"
     @dragend="emit('dragend')"
-    class="bg-white rounded-xl border border-slate-200 shadow-sm p-3 transition-all select-none"
+    @dragover="onDragOverCard"
+    class="relative bg-white rounded-xl border border-slate-200 shadow-sm p-3 transition-all select-none"
     :class="dragging
       ? 'opacity-40 scale-[.97] shadow-none cursor-grabbing'
       : 'hover:shadow-md cursor-grab'"
   >
+    <div
+      v-if="dropIndicator === 'before'"
+      class="absolute -top-1.5 left-0 right-0 h-0.5 rounded-full bg-[#2447F9]"
+    />
     <div class="flex items-center justify-between mb-2">
       <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[9px] font-bold" :style="{ backgroundColor: color.dot }">
         {{ tarjeta.empresa.split(' ').map(w => w[0]).slice(0, 2).join('') }}
@@ -49,5 +69,10 @@ const emit = defineEmits<{ dragstart: [e: DragEvent]; dragend: [] }>()
       </div>
       <span class="text-[9px] text-slate-400 truncate">{{ tarjeta.responsable }}</span>
     </div>
+
+    <div
+      v-if="dropIndicator === 'after'"
+      class="absolute -bottom-1.5 left-0 right-0 h-0.5 rounded-full bg-[#2447F9]"
+    />
   </div>
 </template>

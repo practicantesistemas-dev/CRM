@@ -7,6 +7,7 @@ export function useEmbudos() {
 
   const draggingId = ref<number | null>(null)
   const dropTarget = ref('')
+  const dropIndicator = ref<{ id: number; position: 'before' | 'after' } | null>(null)
 
   const onDragStart = (e: DragEvent, id: number) => {
     draggingId.value = id
@@ -19,30 +20,43 @@ export function useEmbudos() {
   const onDragEnd = () => {
     draggingId.value = null
     dropTarget.value = ''
+    dropIndicator.value = null
   }
 
   const onDragOver = (e: DragEvent, etapa: string) => {
     e.preventDefault()
     if (e.dataTransfer) e.dataTransfer.dropEffect = 'move'
     dropTarget.value = etapa
+    // si el puntero no está sobre una tarjeta, se suelta al final de la columna
+    if (!(e.target as HTMLElement).closest('[data-kanban-card]')) {
+      dropIndicator.value = null
+    }
+  }
+
+  const onDragOverCard = (id: number, position: 'before' | 'after') => {
+    if (id === draggingId.value) return
+    dropIndicator.value = { id, position }
   }
 
   const onDragLeave = (e: DragEvent) => {
     const el = e.currentTarget as HTMLElement
-    if (!el.contains(e.relatedTarget as Node)) dropTarget.value = ''
+    if (!el.contains(e.relatedTarget as Node)) {
+      dropTarget.value = ''
+      dropIndicator.value = null
+    }
   }
 
   const onDrop = (e: DragEvent, etapa: string) => {
     e.preventDefault()
     if (draggingId.value !== null) {
-      const actualizada = moverTarjeta(draggingId.value, etapa)
-      if (actualizada) {
-        const idx = tarjetas.value.findIndex(t => t.id === actualizada.id)
-        if (idx !== -1) tarjetas.value[idx] = actualizada
-      }
+      const indicator = dropIndicator.value
+      const targetId = indicator && indicator.id !== draggingId.value ? indicator.id : null
+      const position = targetId !== null ? indicator!.position : null
+      tarjetas.value = moverTarjeta(draggingId.value, etapa, targetId, position)
     }
     draggingId.value = null
     dropTarget.value = ''
+    dropIndicator.value = null
   }
 
   const porEtapa = (etapa: string) => tarjetas.value.filter(t => t.etapa === etapa)
@@ -63,8 +77,8 @@ export function useEmbudos() {
   }
 
   return {
-    tarjetas, draggingId, dropTarget,
-    onDragStart, onDragEnd, onDragOver, onDragLeave, onDrop,
+    tarjetas, draggingId, dropTarget, dropIndicator,
+    onDragStart, onDragEnd, onDragOver, onDragOverCard, onDragLeave, onDrop,
     porEtapa, valorEtapa, totalOportunidades, totalValor,
     crearTarjeta,
   }

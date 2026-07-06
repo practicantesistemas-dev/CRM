@@ -10,6 +10,7 @@ defineProps<{
   valor: string
   isDropTarget: boolean
   draggingId: number | null
+  dropIndicator: { id: number; position: 'before' | 'after' } | null
 }>()
 
 const emit = defineEmits<{
@@ -18,6 +19,7 @@ const emit = defineEmits<{
   drop: [e: DragEvent]
   dragstart: [e: DragEvent, id: number]
   dragend: []
+  dragoverCard: [id: number, position: 'before' | 'after']
   add: []
 }>()
 </script>
@@ -58,8 +60,10 @@ const emit = defineEmits<{
         :tarjeta="t"
         :color="color"
         :dragging="draggingId === t.id"
+        :drop-indicator="dropIndicator && dropIndicator.id === t.id ? dropIndicator.position : null"
         @dragstart="emit('dragstart', $event, t.id)"
         @dragend="emit('dragend')"
+        @dragover-card="(id, pos) => emit('dragoverCard', id, pos)"
       />
 
       <button
