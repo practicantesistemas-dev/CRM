@@ -163,10 +163,12 @@ Table Mercadeo_CRM_campaña_segmento {
 Table Mercadeo_CRM_importaciones {
   id int [pk, increment]
   usuario_id int
-  tipo varchar
-  archivo varchar
-  registros int
+  tipo varchar(50)         
+  archivo varchar           
+  registros int            
+  registros_ok int
   errores int
+  errores_detalle jsonb     
   fecha datetime
 }
 
