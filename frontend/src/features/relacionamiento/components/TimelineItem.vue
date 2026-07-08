@@ -1,8 +1,16 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+import { Target } from 'lucide-vue-next'
 import type { Actividad } from '../types/actividad'
 import { TIPO_META } from '../constants/relacionamiento.constants'
+import { getOportunidades } from '@/features/oportunidades/services/oportunidades.api'
+import { clienteLabel } from '@/features/oportunidades/constants/oportunidades.constants'
 
-defineProps<{ actividad: Actividad }>()
+const props = defineProps<{ actividad: Actividad }>()
+
+const oportunidad = computed(() => getOportunidades().find(o => o.id === props.actividad.oportunidadId) ?? null)
+
+const sujetos = computed(() => [props.actividad.contactoNombre, props.actividad.empresaNombre, props.actividad.titularNombre].filter(Boolean))
 </script>
 
 <template>
@@ -17,9 +25,11 @@ defineProps<{ actividad: Actividad }>()
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 mb-2">
         <div class="flex items-center gap-2 flex-wrap">
           <span class="text-[10px] font-bold uppercase tracking-wide" :style="{ color: TIPO_META[actividad.tipo].color }">{{ actividad.tipo }}</span>
-          <span class="text-[12px] font-bold text-[#0F172A]">{{ actividad.contacto }}</span>
-          <span class="text-[11px] text-slate-400">·</span>
-          <span class="text-[11px] text-slate-500">{{ actividad.empresa }}</span>
+          <template v-for="(s, i) in sujetos" :key="i">
+            <span class="text-[11px] text-slate-400">·</span>
+            <span :class="i === 0 ? 'text-[12px] font-bold text-[#0F172A]' : 'text-[11px] text-slate-500'">{{ s }}</span>
+          </template>
+          <span v-if="sujetos.length === 0" class="text-[11px] text-slate-400 italic">Sin contacto, empresa o titular asociado</span>
         </div>
         <div class="flex items-center gap-2 flex-shrink-0">
           <span class="text-[10px] text-slate-400">{{ actividad.fecha }}</span>
@@ -33,6 +43,12 @@ defineProps<{ actividad: Actividad }>()
       </div>
 
       <p class="text-[12px] text-slate-700 mb-2">{{ actividad.accion }}</p>
+
+      <div v-if="oportunidad" class="flex items-center gap-1.5 mb-2">
+        <Target :size="11" class="text-[#2447F9] flex-shrink-0" />
+        <span class="text-[11px] text-[#2447F9] font-semibold">{{ oportunidad.servicio }}</span>
+        <span class="text-[10px] text-slate-400">· {{ clienteLabel(oportunidad) }}</span>
+      </div>
 
       <div v-if="actividad.proximoPaso" class="flex items-center gap-2 bg-[#F8FAFC] rounded-lg px-3 py-2">
         <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wide flex-shrink-0">Próx. paso:</span>

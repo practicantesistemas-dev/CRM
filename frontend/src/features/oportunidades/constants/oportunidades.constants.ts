@@ -28,6 +28,13 @@ export const OPORTUNIDAD_DRAFT_VACIO: OportunidadDraft = {
   valor: '', probabilidad: 50, estado: 'Lead',
 }
 
+/** Nombre del cliente de la oportunidad, según el tipo de cliente elegido (empresa, contacto o titular Plan Liga). */
+export const clienteLabel = (o: Pick<Oportunidad, 'tipoCliente' | 'empresaNombre' | 'contactoNombre' | 'titularNombre'>): string => {
+  if (o.tipoCliente === 'titular') return o.titularNombre
+  if (o.tipoCliente === 'contacto') return o.contactoNombre
+  return o.empresaNombre
+}
+
 export const estadoStyle = (e: EtapaOportunidad) => {
   const map: Record<EtapaOportunidad, string> = {
     'Lead':           'text-slate-400',

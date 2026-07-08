@@ -34,6 +34,8 @@ export interface SeguimientoDraft {
   accion: string
   proximoPaso: string
   fecha: string
+  /** Oportunidad a la que queda ligada la actividad en la bitácora; null si el titular aún no tiene una oportunidad asociada. */
+  oportunidadId: number | null
 }
 
 export type TipoImportacion = 'activar_titular' | 'activar_beneficiario' | 'reemplazar' | 'desactivar'

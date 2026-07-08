@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { X, ClipboardList, CheckCircle } from 'lucide-vue-next'
 import type { Titular, SeguimientoDraft, TipoSeguimiento } from '../types/plan-liga'
 import { TIPO_SEG_META } from '../constants/plan-liga.constants'
@@ -7,20 +7,28 @@ import { seguimientoSchema } from '../schemas/seguimiento.schema'
 import { useZodForm } from '@/shared/composables/useZodForm'
 import { fieldStateClass } from '@/shared/utils/fieldStateClass'
 import FieldError from '@/shared/components/FieldError.vue'
+import BuscadorEntidad, { type OpcionBuscador } from '@/shared/components/BuscadorEntidad.vue'
+import { getOportunidades } from '@/features/oportunidades/services/oportunidades.api'
 
 const props = defineProps<{ titular: Titular | null }>()
 const visible = defineModel<boolean>('visible', { required: true })
 
 const segGuardado = ref(false)
 const formSeg = ref<SeguimientoDraft>({
-  tipo: 'Nota', accion: '', proximoPaso: '', fecha: new Date().toISOString().split('T')[0],
+  tipo: 'Nota', accion: '', proximoPaso: '', fecha: new Date().toISOString().split('T')[0], oportunidadId: null,
 })
 
 const { errors, tocar, esVisible, onValidSubmit } = useZodForm(seguimientoSchema, formSeg)
 
+const opcionesOportunidades = computed<OpcionBuscador[]>(() =>
+  getOportunidades()
+    .filter(o => o.planLigaTitularId === props.titular?.id)
+    .map(o => ({ id: o.id, label: o.servicio, sublabel: `${o.estado} · ${o.valor}` })),
+)
+
 watch(visible, (v) => {
   if (!v) return
-  formSeg.value = { tipo: 'Nota', accion: '', proximoPaso: '', fecha: new Date().toISOString().split('T')[0] }
+  formSeg.value = { tipo: 'Nota', accion: '', proximoPaso: '', fecha: new Date().toISOString().split('T')[0], oportunidadId: null }
   segGuardado.value = false
 })
 
@@ -71,6 +79,15 @@ const guardarSeguimiento = onValidSubmit(() => {
         <div>
           <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Fecha</label>
           <input v-model="formSeg.fecha" type="date" class="w-full h-10 px-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#059669] focus:bg-white transition-all" />
+        </div>
+        <div>
+          <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Oportunidad relacionada (opcional)</label>
+          <BuscadorEntidad
+            v-model="formSeg.oportunidadId"
+            :opciones="opcionesOportunidades"
+            placeholder="Buscar oportunidad de este titular..."
+            vacio="Este titular aún no tiene oportunidades asociadas"
+          />
         </div>
       </div>
       <div v-if="!segGuardado" class="flex items-center justify-end gap-2 px-6 py-4 border-t border-slate-200 bg-[#F8FAFC]">

@@ -12,7 +12,7 @@ export function useRelacionamiento() {
   const actividadesFiltradas = computed(() =>
     actividades.value.filter(a => {
       const q = buscar.value.toLowerCase()
-      const matchBuscar = !q || [a.contacto, a.empresa, a.accion].some(f => f.toLowerCase().includes(q))
+      const matchBuscar = !q || [a.contactoNombre, a.empresaNombre, a.titularNombre, a.accion].some(f => f.toLowerCase().includes(q))
       return matchBuscar
         && (filtroTipo.value === 'todos' || a.tipo === filtroTipo.value)
         && (filtroUsuario.value === 'todos' || a.usuario === filtroUsuario.value)

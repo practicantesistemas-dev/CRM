@@ -116,6 +116,9 @@ Table Mercadeo_CRM_bitacora_actividades {
   descripcion text
   proximo_paso text
   fecha datetime
+
+  // Relación opcional con Plan Liga
+  titular_id bigint
 }
 
 Table Mercadeo_CRM_campañas {
@@ -252,6 +255,7 @@ Ref: Mercadeo_CRM_bitacora_actividades.usuario_id > Mercadeo_CRM_usuarios.id
 Ref: Mercadeo_CRM_bitacora_actividades.contacto_id > Mercadeo_CRM_contactos.id
 Ref: Mercadeo_CRM_bitacora_actividades.empresa_id > Mercadeo_CRM_empresas.id
 Ref: Mercadeo_CRM_bitacora_actividades.oportunidad_id > Mercadeo_CRM_oportunidades.id
+Ref: Mercadeo_CRM_bitacora_actividades.titular_id > Intranet_planliga.id
 
 Ref: Mercadeo_CRM_segmentos.usuario_id > Mercadeo_CRM_usuarios.id
 

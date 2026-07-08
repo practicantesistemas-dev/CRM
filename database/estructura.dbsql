@@ -100,6 +100,9 @@ este cdigo esta bien pero haslo que se organice ien.  Table roles {
     descripcion text
     proximo_paso text
     fecha datetime
+
+    // Referencia opcional a una afiliación de Plan Liga
+    titular_id bigint
   }
 
   Table campañas {

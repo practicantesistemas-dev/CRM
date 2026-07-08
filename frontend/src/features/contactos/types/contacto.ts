@@ -24,6 +24,8 @@ export interface SeguimientoDraft {
   accion: string
   proximoPaso: string
   fecha: string
+  /** Oportunidad a la que queda ligada la actividad en la bitácora; null si el contacto aún no tiene una oportunidad asociada. */
+  oportunidadId: number | null
 }
 
 export interface HistorialItem {
