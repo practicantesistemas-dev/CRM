@@ -12,7 +12,7 @@ export function useOportunidades() {
   const oportunidadesFiltradas = computed(() =>
     oportunidades.value.filter(o => {
       const q = buscar.value.toLowerCase()
-      const matchBuscar = !q || [o.empresa, o.contacto, o.servicio].some(f => f.toLowerCase().includes(q))
+      const matchBuscar = !q || [o.empresaNombre, o.contactoNombre, o.titularNombre, o.servicio].some(f => f.toLowerCase().includes(q))
       return matchBuscar
         && (filtroEstado.value === 'todos' || o.estado === filtroEstado.value)
         && (filtroResponsable.value === 'todos' || o.responsable === filtroResponsable.value)

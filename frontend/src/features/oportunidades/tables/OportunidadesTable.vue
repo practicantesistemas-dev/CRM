@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Building2, User, Layers, DollarSign, Edit2, Trophy, XCircle } from 'lucide-vue-next'
+import { Building2, User, Award, Layers, DollarSign, Edit2, Trophy, XCircle } from 'lucide-vue-next'
 import type { Oportunidad } from '../types/oportunidad'
 import { estadoStyle } from '../constants/oportunidades.constants'
 
@@ -9,6 +9,20 @@ const emit = defineEmits<{
   ganar: [o: Oportunidad]
   perder: [o: Oportunidad]
 }>()
+
+const iconoCliente = (o: Oportunidad) => o.tipoCliente === 'titular' ? Award : o.tipoCliente === 'contacto' ? User : Building2
+
+const clientePrincipal = (o: Oportunidad) => {
+  if (o.tipoCliente === 'titular') return o.titularNombre || 'Sin titular asociado'
+  if (o.tipoCliente === 'contacto') return o.contactoNombre || 'Sin contacto asociado'
+  return o.empresaNombre || 'Sin empresa asociada'
+}
+
+const clienteSecundario = (o: Oportunidad) => {
+  if (o.tipoCliente === 'titular') return 'Titular Plan Liga'
+  if (o.tipoCliente === 'contacto') return 'Contacto'
+  return o.contactoNombre || 'Sin contacto asociado'
+}
 </script>
 
 <template>
@@ -28,8 +42,10 @@ const emit = defineEmits<{
         <tbody class="divide-y divide-slate-100">
           <tr v-for="o in rows" :key="o.id" class="hover:bg-slate-50/60 transition-colors group">
             <td class="px-5 py-3.5">
-              <div class="text-[12px] font-semibold text-[#0F172A] flex items-center gap-1.5"><Building2 :size="12" class="text-slate-400" />{{ o.empresa }}</div>
-              <div class="text-[11px] text-slate-400 flex items-center gap-1 mt-0.5"><User :size="10" />{{ o.contacto }}</div>
+              <div class="text-[12px] font-semibold text-[#0F172A] flex items-center gap-1.5">
+                <component :is="iconoCliente(o)" :size="12" class="text-slate-400" />{{ clientePrincipal(o) }}
+              </div>
+              <div class="text-[11px] text-slate-400 flex items-center gap-1 mt-0.5"><User :size="10" />{{ clienteSecundario(o) }}</div>
             </td>
             <td class="px-4 py-3.5">
               <div class="flex items-center gap-1 text-[11px] text-slate-600"><Layers :size="11" class="text-slate-400" />{{ o.servicio }}</div>
