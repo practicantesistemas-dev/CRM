@@ -137,20 +137,18 @@ const form = reactive({
   rememberMe: false
 })
 
-const handleLogin = () => {
+const handleLogin = async () => {
   loading.value = true
   errorMsg.value = ''
 
-  setTimeout(() => {
+  try {
+    await login({ username: form.username, password: form.password })
+    router.push('/dashboard')
+  } catch (error) {
+    errorMsg.value = error instanceof Error ? error.message : 'Credenciales inválidas o cuenta no activa en consola.'
+  } finally {
     loading.value = false
-    if (form.username && form.password) {
-      alert(`Autenticación Exitosa para el Plan Liga.`);
-      login()
-      router.push('/dashboard')
-    } else {
-      errorMsg.value = 'Credenciales inválidas o cuenta no activa en consola.'
-    }
-  }, 1200)
+  }
 }
 </script>
 
