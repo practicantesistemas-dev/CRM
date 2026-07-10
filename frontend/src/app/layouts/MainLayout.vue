@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuth } from '@/features/auth/composables/useAuth'
 
@@ -7,13 +7,34 @@ import {
   LayoutDashboard, Heart, Users, Building2, Truck,
   Target, GitBranch, Layers, SlidersHorizontal, Megaphone,
   BookOpen, Upload, Zap,
-  ChevronLeft, ChevronRight, LogOut, Bell,
+  ChevronLeft, ChevronRight, LogOut,
   RefreshCw, X
 } from 'lucide-vue-next'
 
 const router = useRouter()
 const route = useRoute()
-const { logout } = useAuth()
+const { me, logout, checkSession, fetchMe } = useAuth()
+
+const initials = computed(() => {
+  const parts = (me.value?.nombres ?? '').trim().split(/\s+/).filter(Boolean)
+  const letters = parts.slice(0, 2).map((p) => p[0]).join('').toUpperCase()
+  return letters || 'PL'
+})
+
+// Vigila el token mientras el usuario está inactivo en una ruta (sin navegar)
+// para que, al expirar, se lo devuelva al login sin esperar a la próxima navegación.
+let sessionWatcher: ReturnType<typeof setInterval> | undefined
+onMounted(() => {
+  fetchMe()
+  sessionWatcher = setInterval(() => {
+    if (!checkSession()) {
+      router.push('/login')
+    }
+  }, 30_000)
+})
+onUnmounted(() => {
+  if (sessionWatcher) clearInterval(sessionWatcher)
+})
 
 type Vista =
   | 'dashboard' | 'plan-liga' | 'contactos' | 'empresas' | 'proveedores'
@@ -114,7 +135,6 @@ const handleLogout = () => {
 
 // ── Misc ──────────────────────────────────────────────────────────
 const sidebarCollapsed = ref(false)
-const periodo          = ref('30d')
 
 const activeLabel = computed(() => {
   for (const g of menuGroups) {
@@ -260,24 +280,20 @@ const activeGroup = computed(() => {
         </div>
 
         <div class="flex items-center gap-2 shrink-0">
-          <select
-            v-model="periodo"
-            class="h-8 px-2.5 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer hidden sm:block"
-          >
-            <option value="7d">Últ. 7 días</option>
-            <option value="30d">Últ. 30 días</option>
-            <option value="90d">Este trimestre</option>
-            <option value="year">Este año</option>
-          </select>
           <button class="h-8 w-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-50 transition-all" title="Actualizar">
             <RefreshCw :size="13" />
           </button>
-          <button class="h-8 w-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-50 transition-all relative">
-            <Bell :size="14" />
-            <span class="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-[#EC4899]" />
-          </button>
-          <div class="h-8 w-8 rounded-lg bg-[#1E3A8A] text-white text-[10px] font-bold flex items-center justify-center select-none">
-            PL
+          <div class="flex items-center gap-2 pl-2 border-l border-slate-200">
+            <div class="text-right hidden sm:block leading-tight">
+              <div class="text-[23px] font-bold text-[#0F172A] whitespace-nowrap">{{ me?.nombres ?? '—' }}</div>
+              <div class="text-[21px] text-slate-400 font-bold uppercase tracking-wider">{{ me?.portal_role ?? '' }}</div>
+            </div>
+            <div
+              class="h-8 w-8 rounded-lg bg-[#1E3A8A] text-white text-[10px] font-bold flex items-center justify-center select-none shrink-0"
+              :title="me?.nombres"
+            >
+              {{ initials }}
+            </div>
           </div>
         </div>
       </header>

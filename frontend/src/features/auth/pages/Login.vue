@@ -95,7 +95,7 @@
           </div>
 
           <div v-if="errorMsg" class="p-2.5 bg-red-50 border border-red-100 rounded-xl text-[11px] font-semibold text-red-600 flex items-center gap-2 animate-fadeIn">
-            <span>⚠️</span> {{ errorMsg }}
+            <span></span> {{ errorMsg }}
           </div>
 
           <button 

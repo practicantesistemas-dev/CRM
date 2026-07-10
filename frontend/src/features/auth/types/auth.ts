@@ -12,3 +12,5 @@ export interface AuthResponse {
   id_area: number | null
   area_name: string
 }
+
+export type MeResponse = Omit<AuthResponse, 'token'>
