@@ -41,6 +41,7 @@ export interface EmbudoEtapa {
 
 export interface AccesoRapido {
   label: string
+  ruta: string
   icono: unknown
   color: string
   bg: string
@@ -86,4 +87,12 @@ export interface TopServicioResponse {
   nombre: string
   solicitudes: number
   porcentaje: number
+}
+
+export interface EmbudoComercialItem {
+  etapa_id: number
+  embudo_id: number
+  nombre: string
+  orden: number
+  cantidad: number
 }

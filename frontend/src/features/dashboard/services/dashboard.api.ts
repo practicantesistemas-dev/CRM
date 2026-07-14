@@ -1,12 +1,13 @@
 import {
-  EMBUDO_RESUMEN_MOCK, ACCESOS_RAPIDOS_MOCK, KPI_META,
-  TIPO_ACTIVIDAD_META, TIPO_ACTIVIDAD_DEFAULT, DISTRIBUCION_META,
+  ACCESOS_RAPIDOS_MOCK, KPI_META,
+  TIPO_ACTIVIDAD_META, TIPO_ACTIVIDAD_DEFAULT, DISTRIBUCION_META, EMBUDO_COLORES,
 } from '../constants/dashboard.constants'
 import type {
   Kpi, TableroResumenResponse,
   ActividadReciente, ActividadRecienteResponse,
   DistribucionItem, DistribucionContactosResponse,
   ServicioTop, TopServicioResponse,
+  EmbudoEtapa, EmbudoComercialItem,
 } from '../types/dashboard'
 
 const API_URL = import.meta.env.VITE_CRM_API_URL
@@ -92,9 +93,23 @@ export async function getTopServicios(limit: number): Promise<ServicioTop[]> {
   }))
 }
 
+export async function getEmbudoComercial(periodo: string): Promise<EmbudoEtapa[]> {
+  const data = await obtenerJson<EmbudoComercialItem[]>(
+    `/api/tablero/embudo-comercial?periodo=${periodo}`,
+    'No se pudo cargar el embudo comercial.',
+  )
+
+  return [...data]
+    .sort((a, b) => a.orden - b.orden)
+    .map((etapa, idx) => ({
+      etapa: etapa.nombre,
+      count: etapa.cantidad,
+      color: EMBUDO_COLORES[idx % EMBUDO_COLORES.length],
+    }))
+}
+
 export function getDashboardResumen() {
   return {
-    embudoResumen: EMBUDO_RESUMEN_MOCK,
     accesosRapidos: ACCESOS_RAPIDOS_MOCK,
   }
 }

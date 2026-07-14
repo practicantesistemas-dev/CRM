@@ -13,7 +13,7 @@ const {
   actividades, errorActividades,
   distribucion, errorDistribucion,
   topServicios, errorTopServicios,
-  embudoResumen, accesosRapidos,
+  embudoResumen, errorEmbudo, accesosRapidos,
 } = useDashboard()
 </script>
 
@@ -47,7 +47,7 @@ const {
     </div>
 
     <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
-      <EmbudoResumen :etapas="embudoResumen" />
+      <EmbudoResumen :etapas="embudoResumen" :error="errorEmbudo" />
       <AccesosRapidos :accesos="accesosRapidos" />
     </div>
 

@@ -3,7 +3,7 @@ import {
   Phone, Mail, Calendar, FileText, Heart, Target, GitBranch, Megaphone, Zap,
 } from 'lucide-vue-next'
 import type {
-  Kpi, EmbudoEtapa, AccesoRapido, PeriodoOption,
+  Kpi, AccesoRapido, PeriodoOption,
   TableroResumenResponse, DistribucionContactosResponse,
 } from '../types/dashboard'
 
@@ -36,21 +36,17 @@ export const DISTRIBUCION_META: Record<keyof Omit<DistribucionContactosResponse,
   inactivos:          { label: 'Inactivos',          color: '#EC4899' },
 }
 
-export const EMBUDO_RESUMEN_MOCK: EmbudoEtapa[] = [
-  { etapa: 'Lead',            count: 12, color: '#94A3B8' },
-  { etapa: 'Primer Contacto', count: 8,  color: '#2447F9' },
-  { etapa: 'Cotización',      count: 5,  color: '#C9A227' },
-  { etapa: 'Negociación',     count: 3,  color: '#1A2A6C' },
-  { etapa: 'Ganado',          count: 6,  color: '#059669' },
-]
+// Colores asignados por posición de etapa (las etapas de un embudo son
+// configurables, no hay un set fijo de nombres para mapear por clave).
+export const EMBUDO_COLORES = ['#94A3B8', '#2447F9', '#C9A227', '#1A2A6C', '#059669', '#EC4899', '#0EA5E9', '#F97316']
 
 export const ACCESOS_RAPIDOS_MOCK: AccesoRapido[] = [
-  { label: 'Plan Liga',      icono: Heart,        color: '#EC4899', bg: '#FCE7F3' },
-  { label: 'Oportunidades',  icono: Target,       color: '#2447F9', bg: '#EEF2FF' },
-  { label: 'Embudos',        icono: GitBranch,    color: '#1A2A6C', bg: '#E8EAF6' },
-  { label: 'Campañas',       icono: Megaphone,    color: '#C9A227', bg: '#FEF9C3' },
-  { label: 'Bitácora',       icono: ClipboardList,color: '#059669', bg: '#D1FAE5' },
-  { label: 'Automatización', icono: Zap,          color: '#EC4899', bg: '#FCE7F3' },
+  { label: 'Titulares y Beneficiarios', ruta: 'plan-liga',       icono: Heart,        color: '#EC4899', bg: '#FCE7F3' },
+  { label: 'Oportunidades',             ruta: 'oportunidades',   icono: Target,       color: '#2447F9', bg: '#EEF2FF' },
+  { label: 'Tablero',                   ruta: 'embudos',         icono: GitBranch,    color: '#1A2A6C', bg: '#E8EAF6' },
+  { label: 'Campañas Masivas',          ruta: 'campanas',        icono: Megaphone,    color: '#C9A227', bg: '#FEF9C3' },
+  { label: 'Bitácora',                  ruta: 'relacionamiento', icono: ClipboardList,color: '#059669', bg: '#D1FAE5' },
+  { label: 'Automatizaciones',          ruta: 'automatizaciones',icono: Zap,          color: '#EC4899', bg: '#FCE7F3' },
 ]
 
 export const PERIODO_OPTIONS: PeriodoOption[] = [

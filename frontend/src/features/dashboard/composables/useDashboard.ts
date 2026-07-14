@@ -1,9 +1,10 @@
 import { onMounted, ref, watch } from 'vue'
 import {
   getDashboardResumen, getKpis, getActividadReciente, getDistribucionContactos, getTopServicios,
+  getEmbudoComercial,
 } from '../services/dashboard.api'
 import { PERIODO_OPTIONS } from '../constants/dashboard.constants'
-import type { Kpi, ActividadReciente, DistribucionItem, ServicioTop } from '../types/dashboard'
+import type { Kpi, ActividadReciente, DistribucionItem, ServicioTop, EmbudoEtapa } from '../types/dashboard'
 
 export function useDashboard() {
   const periodo = ref('30d')
@@ -20,6 +21,9 @@ export function useDashboard() {
 
   const topServicios = ref<ServicioTop[]>([])
   const errorTopServicios = ref<string | null>(null)
+
+  const embudoResumen = ref<EmbudoEtapa[]>([])
+  const errorEmbudo = ref<string | null>(null)
 
   const resumen = getDashboardResumen()
 
@@ -62,9 +66,19 @@ export function useDashboard() {
     }
   }
 
+  const cargarEmbudo = async () => {
+    errorEmbudo.value = null
+    try {
+      embudoResumen.value = await getEmbudoComercial(periodo.value)
+    } catch (e) {
+      errorEmbudo.value = e instanceof Error ? e.message : 'No se pudo cargar el embudo comercial.'
+    }
+  }
+
   watch(periodo, () => {
     cargarKpis()
     cargarDistribucion()
+    cargarEmbudo()
   })
 
   onMounted(() => {
@@ -72,6 +86,7 @@ export function useDashboard() {
     cargarDistribucion()
     cargarActividades()
     cargarTopServicios()
+    cargarEmbudo()
   })
 
   return {
@@ -80,6 +95,7 @@ export function useDashboard() {
     distribucion, errorDistribucion,
     actividades, errorActividades,
     topServicios, errorTopServicios,
+    embudoResumen, errorEmbudo,
     ...resumen,
   }
 }

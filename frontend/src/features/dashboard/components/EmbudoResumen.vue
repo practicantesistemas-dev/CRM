@@ -1,9 +1,10 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { GitBranch } from 'lucide-vue-next'
 import type { EmbudoEtapa } from '../types/dashboard'
 
-const props = defineProps<{ etapas: EmbudoEtapa[] }>()
-const max = props.etapas[0]?.count ?? 1
+const props = defineProps<{ etapas: EmbudoEtapa[]; error?: string | null }>()
+const max = computed(() => Math.max(1, ...props.etapas.map((e) => e.count)))
 </script>
 
 <template>
@@ -12,7 +13,8 @@ const max = props.etapas[0]?.count ?? 1
       <GitBranch :size="14" class="text-[#2447F9]" />
       <h3 class="text-[13px] font-bold text-[#0F172A]">Embudo Comercial</h3>
     </div>
-    <div class="flex items-end gap-3 h-28">
+    <p v-if="error" class="text-[11px] text-red-500">{{ error }}</p>
+    <div v-else class="flex items-end gap-3 h-28">
       <div
         v-for="etapa in etapas"
         :key="etapa.etapa"
@@ -22,7 +24,7 @@ const max = props.etapas[0]?.count ?? 1
         <div
           class="w-full rounded-t-lg transition-all"
           :style="{
-            height: (etapa.count / max * 96) + 'px',
+            height: Math.max(4, etapa.count / max * 96) + 'px',
             backgroundColor: etapa.color,
             opacity: 0.85
           }"

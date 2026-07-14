@@ -1,7 +1,10 @@
 <script setup lang="ts">
+import { useRouter } from 'vue-router'
 import type { AccesoRapido } from '../types/dashboard'
 
 defineProps<{ accesos: AccesoRapido[] }>()
+
+const router = useRouter()
 </script>
 
 <template>
@@ -11,6 +14,7 @@ defineProps<{ accesos: AccesoRapido[] }>()
       <div
         v-for="item in accesos"
         :key="item.label"
+        @click="router.push('/' + item.ruta)"
         class="flex flex-col items-center gap-2 p-3 rounded-xl border border-slate-100 hover:border-slate-200 hover:shadow-sm transition-all cursor-pointer group"
       >
         <div
