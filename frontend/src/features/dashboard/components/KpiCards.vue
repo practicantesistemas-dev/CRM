@@ -17,6 +17,7 @@ defineProps<{ kpis: Kpi[] }>()
           <component :is="kpi.icono" :size="17" :style="{ color: kpi.color }" />
         </div>
         <span
+          v-if="kpi.delta"
           class="flex items-center gap-0.5 text-[10px] font-bold px-2 py-0.5 rounded-full"
           :class="kpi.positivo ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'"
         >

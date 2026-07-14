@@ -49,3 +49,12 @@ export interface PeriodoOption {
   value: string
   label: string
 }
+
+export interface TableroResumenResponse {
+  contactos: { valor: number }
+  titulares_pl: { valor: number }
+  empresas: { valor: number }
+  oportunidades: { valor: number }
+  servicios: { valor: number }
+  seguimientos: { valor: number }
+}

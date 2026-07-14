@@ -9,7 +9,7 @@ import AccesosRapidos from '../components/AccesosRapidos.vue'
 import TableauEmbed from '../components/TableauEmbed.vue'
 
 const {
-  periodo, periodoOptions, kpis, actividades, distribucion,
+  periodo, periodoOptions, kpis, cargandoKpis, errorKpis, actividades, distribucion,
   topServicios, embudoResumen, accesosRapidos,
 } = useDashboard()
 </script>
@@ -24,11 +24,14 @@ const {
       </div>
       <select
         v-model="periodo"
-        class="h-8 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer"
+        :disabled="cargandoKpis"
+        class="h-8 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
       >
         <option v-for="o in periodoOptions" :key="o.value" :value="o.value">{{ o.label }}</option>
       </select>
     </div>
+
+    <p v-if="errorKpis" class="text-[12px] text-red-600 bg-red-50 rounded-lg px-3 py-2">{{ errorKpis }}</p>
 
     <KpiCards :kpis="kpis" />
 
