@@ -3,8 +3,8 @@ import {
   Phone, Mail, Calendar, FileText, Heart, Target, GitBranch, Megaphone, Zap,
 } from 'lucide-vue-next'
 import type {
-  Kpi, ActividadReciente, DistribucionItem, ServicioTop, EmbudoEtapa, AccesoRapido, PeriodoOption,
-  TableroResumenResponse,
+  Kpi, EmbudoEtapa, AccesoRapido, PeriodoOption,
+  TableroResumenResponse, DistribucionContactosResponse,
 } from '../types/dashboard'
 
 // Metadata visual de cada KPI del tablero. El valor numérico llega de
@@ -18,27 +18,23 @@ export const KPI_META: Record<keyof TableroResumenResponse, Omit<Kpi, 'valor'>> 
   seguimientos:  { label: 'Seguimientos',  delta: '', positivo: true, icono: ClipboardList, color: '#059669', bg: '#D1FAE5', subtexto: 'pendientes'        },
 }
 
-export const ACTIVIDADES_MOCK: ActividadReciente[] = [
-  { tipo: 'Llamada', icono: Phone,    contacto: 'Carlos Mendoza',    empresa: 'Global Tech S.A.S',    hace: 'Hace 15 min', usuario: 'María García',  color: '#2447F9', bg: '#EEF2FF' },
-  { tipo: 'Correo',  icono: Mail,     contacto: 'Ana Victoria Ruiz', empresa: 'Estética Mayo',         hace: 'Hace 1h',     usuario: 'Juan López',    color: '#EC4899', bg: '#FCE7F3' },
-  { tipo: 'Reunión', icono: Calendar, contacto: 'Pedro Sánchez',     empresa: 'Constructora ABC',      hace: 'Hace 2h',     usuario: 'Carlos Torres', color: '#C9A227', bg: '#FEF9C3' },
-  { tipo: 'Nota',    icono: FileText, contacto: 'Laura Gómez',       empresa: 'Farmacia Norte',        hace: 'Hace 3h',     usuario: 'María García',  color: '#059669', bg: '#D1FAE5' },
-  { tipo: 'Llamada', icono: Phone,    contacto: 'Roberto Díaz',      empresa: 'Tech Solutions',        hace: 'Hace 5h',     usuario: 'Juan López',    color: '#2447F9', bg: '#EEF2FF' },
-  { tipo: 'Correo',  icono: Mail,     contacto: 'Sandra Morales',    empresa: 'Grupo Empresarial XYZ', hace: 'Hace 6h',     usuario: 'Carlos Torres', color: '#EC4899', bg: '#FCE7F3' },
-]
+// Ícono/color por tipo de actividad devuelto por GET /api/tablero/actividad-reciente.
+// Se indexa por texto normalizado (sin tildes, minúsculas) porque el backend
+// no expone un enum fijo para "tipo" (ej. llega "Reunion" sin tilde).
+export const TIPO_ACTIVIDAD_META: Record<string, { icono: unknown; color: string; bg: string }> = {
+  llamada: { icono: Phone,    color: '#2447F9', bg: '#EEF2FF' },
+  correo:  { icono: Mail,     color: '#EC4899', bg: '#FCE7F3' },
+  reunion: { icono: Calendar, color: '#C9A227', bg: '#FEF9C3' },
+  nota:    { icono: FileText, color: '#059669', bg: '#D1FAE5' },
+}
+export const TIPO_ACTIVIDAD_DEFAULT = { icono: FileText, color: '#64748B', bg: '#F1F5F9' }
 
-export const DISTRIBUCION_MOCK: DistribucionItem[] = [
-  { label: 'Activos',    porcentaje: 68, color: '#2447F9' },
-  { label: 'En proceso', porcentaje: 22, color: '#C9A227' },
-  { label: 'Inactivos',  porcentaje: 10, color: '#EC4899' },
-]
-
-export const TOP_SERVICIOS_MOCK: ServicioTop[] = [
-  { nombre: 'Plan Liga Empresarial', solicitudes: 312, conversion: '42%' },
-  { nombre: 'Plan Liga Individual',  solicitudes: 245, conversion: '35%' },
-  { nombre: 'Brigadas de Salud',     solicitudes: 187, conversion: '28%' },
-  { nombre: 'Tamizajes',             solicitudes: 134, conversion: '31%' },
-]
+// Label/color por categoría de GET /api/tablero/distribucion-contactos.
+export const DISTRIBUCION_META: Record<keyof Omit<DistribucionContactosResponse, 'total'>, { label: string; color: string }> = {
+  clientes_activos:   { label: 'Clientes activos',   color: '#2447F9' },
+  prospectos_activos: { label: 'Prospectos activos', color: '#C9A227' },
+  inactivos:          { label: 'Inactivos',          color: '#EC4899' },
+}
 
 export const EMBUDO_RESUMEN_MOCK: EmbudoEtapa[] = [
   { etapa: 'Lead',            count: 12, color: '#94A3B8' },

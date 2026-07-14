@@ -22,6 +22,7 @@ export interface ActividadReciente {
 
 export interface DistribucionItem {
   label: string
+  cantidad: number
   porcentaje: number
   color: string
 }
@@ -57,4 +58,32 @@ export interface TableroResumenResponse {
   oportunidades: { valor: number }
   servicios: { valor: number }
   seguimientos: { valor: number }
+}
+
+export interface ActividadRecienteResponse {
+  id: number
+  tipo: string | null
+  descripcion: string | null
+  proximo_paso: string | null
+  fecha: string | null
+  contacto_id: number | null
+  contacto_nombre: string | null
+  empresa_id: number | null
+  empresa_nombre: string | null
+  usuario_id: number | null
+  usuario_nombre: string | null
+}
+
+export interface DistribucionContactosResponse {
+  total: number
+  clientes_activos: { cantidad: number; porcentaje: number }
+  prospectos_activos: { cantidad: number; porcentaje: number }
+  inactivos: { cantidad: number; porcentaje: number }
+}
+
+export interface TopServicioResponse {
+  servicio_id: number
+  nombre: string
+  solicitudes: number
+  porcentaje: number
 }

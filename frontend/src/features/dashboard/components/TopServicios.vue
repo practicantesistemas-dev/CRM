@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { ServicioTop } from '../types/dashboard'
 
-defineProps<{ servicios: ServicioTop[] }>()
+defineProps<{ servicios: ServicioTop[]; error?: string | null }>()
 
 const puestoColor = (idx: number) =>
   idx === 0 ? '#C9A227' : idx === 1 ? '#94A3B8' : idx === 2 ? '#CD7F32' : '#CBD5E1'
@@ -13,7 +13,8 @@ const puestoColor = (idx: number) =>
       <h3 class="text-[12px] font-bold text-[#0F172A]">Top Servicios</h3>
       <span class="text-[10px] text-slate-400">Por solicitudes</span>
     </div>
-    <div class="space-y-3">
+    <p v-if="error" class="text-[11px] text-red-500">{{ error }}</p>
+    <div v-else class="space-y-3">
       <div v-for="(svc, idx) in servicios" :key="svc.nombre" class="flex items-center gap-3">
         <span
           class="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold text-white flex-shrink-0"

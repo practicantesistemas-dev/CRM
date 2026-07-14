@@ -9,8 +9,11 @@ import AccesosRapidos from '../components/AccesosRapidos.vue'
 import TableauEmbed from '../components/TableauEmbed.vue'
 
 const {
-  periodo, periodoOptions, kpis, cargandoKpis, errorKpis, actividades, distribucion,
-  topServicios, embudoResumen, accesosRapidos,
+  periodo, periodoOptions, kpis, cargandoKpis, errorKpis,
+  actividades, errorActividades,
+  distribucion, errorDistribucion,
+  topServicios, errorTopServicios,
+  embudoResumen, accesosRapidos,
 } = useDashboard()
 </script>
 
@@ -36,10 +39,10 @@ const {
     <KpiCards :kpis="kpis" />
 
     <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
-      <ActividadReciente :actividades="actividades" />
+      <ActividadReciente :actividades="actividades" :error="errorActividades" />
       <div class="flex flex-col gap-4">
-        <DistribucionContactos :distribucion="distribucion" />
-        <TopServicios :servicios="topServicios" />
+        <DistribucionContactos :distribucion="distribucion" :error="errorDistribucion" />
+        <TopServicios :servicios="topServicios" :error="errorTopServicios" />
       </div>
     </div>
 

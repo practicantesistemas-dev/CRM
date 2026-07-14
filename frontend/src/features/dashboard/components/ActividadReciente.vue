@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { ActividadReciente } from '../types/dashboard'
 
-defineProps<{ actividades: ActividadReciente[] }>()
+defineProps<{ actividades: ActividadReciente[]; error?: string | null }>()
 </script>
 
 <template>
@@ -12,7 +12,8 @@ defineProps<{ actividades: ActividadReciente[] }>()
         <p class="text-[11px] text-slate-400 mt-0.5">Últimas interacciones registradas</p>
       </div>
     </div>
-    <div class="divide-y divide-slate-50">
+    <p v-if="error" class="text-[11px] text-red-500 px-5 py-3">{{ error }}</p>
+    <div v-else class="divide-y divide-slate-50">
       <div
         v-for="act in actividades"
         :key="act.contacto + act.hace"
