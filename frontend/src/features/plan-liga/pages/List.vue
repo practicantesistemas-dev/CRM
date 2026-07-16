@@ -14,7 +14,7 @@ import ImportacionPlanLigaDialog from '../dialogs/ImportacionPlanLigaDialog.vue'
 const {
   buscar, filtroEstado, filtroPlan, filtroSexo, filtroEdad,
   titularesFiltrados, planes,
-  totalActivos, totalBeneficiarios, titularesTope,
+  totalActivos, totalBeneficiarios,
   activosPorTitular, puedeAgregar,
   crearTitular, actualizarTitular, toggleEstadoTitular,
   beneficiariosDeTitular, crearBeneficiario, actualizarBeneficiario, cambiarEstadoBeneficiario,
@@ -132,7 +132,7 @@ const modalImportVisible = ref(false)
       </div>
     </div>
 
-    <div class="grid grid-cols-3 gap-4">
+    <div class="grid grid-cols-2 gap-4">
       <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
         <div class="w-9 h-9 rounded-xl bg-[#FCE7F3] flex items-center justify-center mb-3"><Heart :size="17" class="text-[#EC4899]" /></div>
         <div class="text-[28px] font-bold text-[#0F172A] leading-none">{{ totalActivos }}</div>
@@ -142,11 +142,6 @@ const modalImportVisible = ref(false)
         <div class="w-9 h-9 rounded-xl bg-[#EEF2FF] flex items-center justify-center mb-3"><Users :size="17" class="text-[#2447F9]" /></div>
         <div class="text-[28px] font-bold text-[#0F172A] leading-none">{{ totalBeneficiarios }}</div>
         <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wide mt-1">Beneficiarios activos</div>
-      </div>
-      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
-        <div class="w-9 h-9 rounded-xl bg-[#FEF9C3] flex items-center justify-center mb-3"><Users :size="17" class="text-[#C9A227]" /></div>
-        <div class="text-[28px] font-bold text-[#0F172A] leading-none">{{ titularesTope }}</div>
-        <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wide mt-1">Titulares en tope ({{ CUPO_MAXIMO }}/{{ CUPO_MAXIMO }})</div>
       </div>
     </div>
 

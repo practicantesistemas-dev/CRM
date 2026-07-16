@@ -1,5 +1,13 @@
-import type { Beneficiario, BeneficiarioDraft, Titular, TitularDraft } from '../types/plan-liga'
+import type { Beneficiario, BeneficiarioDraft, Titular, TitularDraft, ResumenTitularesResponse } from '../types/plan-liga'
 import { BENEFICIARIOS_MOCK, TITULARES_MOCK } from '../constants/plan-liga.constants'
+
+const API_URL = import.meta.env.VITE_CRM_API_URL
+
+async function obtenerJson<T>(ruta: string, mensajeError: string): Promise<T> {
+  const response = await fetch(`${API_URL}${ruta}`)
+  if (!response.ok) throw new Error(mensajeError)
+  return response.json()
+}
 
 let titulares: Titular[] = [...TITULARES_MOCK]
 let beneficiarios: Beneficiario[] = [...BENEFICIARIOS_MOCK]
@@ -38,4 +46,11 @@ export function updateBeneficiario(id: number, data: Partial<BeneficiarioDraft>)
   const actualizado: Beneficiario = { ...beneficiarios[idx], ...data, id }
   beneficiarios = [...beneficiarios.slice(0, idx), actualizado, ...beneficiarios.slice(idx + 1)]
   return actualizado
+}
+
+export async function getResumenTitulares(): Promise<ResumenTitularesResponse> {
+  return obtenerJson<ResumenTitularesResponse>(
+    '/api/titulares-beneficiarios/resumen',
+    'No se pudo cargar el resumen de titulares.',
+  )
 }

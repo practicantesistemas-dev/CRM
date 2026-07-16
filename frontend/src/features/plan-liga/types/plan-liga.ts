@@ -53,3 +53,9 @@ export interface ResultadoImportacion {
   exitosos: number
   errores: number
 }
+
+export interface ResumenTitularesResponse {
+  titulares_activos: number
+  beneficiarios_activos: number
+}
+

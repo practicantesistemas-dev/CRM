@@ -1,9 +1,9 @@
-import { ref, computed } from 'vue'
+import { ref, computed,onMounted  } from 'vue'
 import type { Beneficiario, BeneficiarioDraft, Titular, TitularDraft } from '../types/plan-liga'
 import { CUPO_MAXIMO } from '../constants/plan-liga.constants'
 import {
   getTitulares, createTitular, updateTitular,
-  getBeneficiarios, createBeneficiario, updateBeneficiario,
+  getBeneficiarios, createBeneficiario, updateBeneficiario, getResumenTitulares,
 } from '../services/plan-liga.api'
 
 export function usePlanLiga() {
@@ -41,8 +41,25 @@ export function usePlanLiga() {
   )
   const planes = computed(() => [...new Set(titulares.value.map(t => t.planContratado))].sort())
 
-  const totalActivos       = computed(() => titulares.value.filter(t => t.estado === 'Activo').length)
-  const totalBeneficiarios = computed(() => beneficiarios.value.filter(b => b.estado === 'Activo').length)
+  const totalActivos = ref(0)
+  const totalBeneficiarios = ref(0)
+  const errorResumen = ref<string | null>(null)
+
+  const cargarResumen = async () => {
+    errorResumen.value = null
+    try {
+      const data = await getResumenTitulares()
+      totalActivos.value = data.titulares_activos
+      totalBeneficiarios.value = data.beneficiarios_activos
+    } catch (e) {
+      errorResumen.value = e instanceof Error ? e.message : 'No se pudo cargar el resumen de titulares.'
+    }
+  }
+
+  onMounted(() => {
+    cargarResumen()
+  })
+
   const titularesTope      = computed(() => titulares.value.filter(t => activosPorTitular(t.id) >= CUPO_MAXIMO).length)
 
   const crearTitular = (data: TitularDraft) => {
@@ -81,7 +98,7 @@ export function usePlanLiga() {
     titulares, beneficiarios,
     buscar, filtroEstado, filtroPlan, filtroSexo, filtroEdad,
     titularesFiltrados, planes,
-    totalActivos, totalBeneficiarios, titularesTope,
+    totalActivos, totalBeneficiarios, titularesTope, errorResumen,
     activosPorTitular, puedeAgregar,
     crearTitular, actualizarTitular, toggleEstadoTitular,
     beneficiariosDeTitular, crearBeneficiario, actualizarBeneficiario, cambiarEstadoBeneficiario,
