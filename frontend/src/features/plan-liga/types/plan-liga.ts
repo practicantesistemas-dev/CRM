@@ -1,15 +1,27 @@
 export interface Titular {
   id: number
+  tipoDocumento: string
   documento: string
   nombre: string
   fechaNacimiento: string
   sexo: 'Masculino' | 'Femenino' | 'Otro'
   correo: string
   telefono: string
+  direccion: string
+  ciudad: string
+  departamento: string
   empresa: string
   planContratado: string
+  tipoPlan: string
+  tipoAfiliado: string
+  eps: string
+  otraEps: string
+  planSalud: string
+  planNombre: string
   fechaInscripcion: string
   estado: 'Activo' | 'Inactivo'
+  /** Detalle por plan (nombre + cupo) cuando el titular viene del listado del backend. */
+  planesDetalle?: PlanTitular[]
 }
 
 export type TitularDraft = Omit<Titular, 'id'>
@@ -57,5 +69,51 @@ export interface ResultadoImportacion {
 export interface ResumenTitularesResponse {
   titulares_activos: number
   beneficiarios_activos: number
+}
+
+export interface PlanTitular {
+  nombre: string
+  activos: number
+  cupo: number
+}
+
+export interface TitularListadoResponse {
+  ID_TITULAR: number
+  TITULAR: string
+  EMAIL: string
+  TELEFONO: string
+  TIPO_DOCUMENTO: string
+  DOCUMENTO: string
+  EMPRESA: string
+  PLANES: string
+  BENEFICIARIOS: string
+  INSCRIPCION: string
+  ESTADO: string
+}
+
+export interface TitularDetalleResponse {
+  ID_TITULAR: number
+  DOCUMENTO: string
+  TIPO_DOCUMENTO: string
+  NOMBRE1: string
+  NOMBRE2: string | null
+  APELLIDO1: string
+  APELLIDO2: string | null
+  FECHA_NACIMIENTO: string | null
+  SEXO: string | null
+  CORREO: string | null
+  TELEFONO: string | null
+  DIRECCION: string | null
+  CIUDAD: string | null
+  DEPARTAMENTO: string | null
+  TIPO_PLAN: string | null
+  TIPO_AFILIADO: string | null
+  EMPRESA: string | null
+  EPS: string | null
+  OTRAEPS: string | null
+  PLAN_SALUD: string | null
+  PLAN_NOMBRE: string | null
+  ESTADO: string
+  FECHA_INGRESO: string | null
 }
 

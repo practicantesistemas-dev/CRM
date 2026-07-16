@@ -3,13 +3,18 @@ import type {
   Beneficiario, BeneficiarioDraft, OpcionImportacion, Titular, TitularDraft, TipoSeguimiento,
 } from '../types/plan-liga'
 
+const TITULAR_EXTRA_VACIO = {
+  tipoDocumento: 'CC', direccion: '', ciudad: '', departamento: '',
+  tipoPlan: '', tipoAfiliado: '', eps: '', otraEps: '', planSalud: '', planNombre: '',
+}
+
 export const TITULARES_MOCK: Titular[] = [
-  { id: 1, documento: '10293844', nombre: 'Carlos Mendoza Ruiz',  fechaNacimiento: '1989-03-15', sexo: 'Masculino', correo: 'carlos@globaltech.com', telefono: '300-555-0192', empresa: 'Global Tech S.A.S',    planContratado: 'Plan Liga Empresarial', fechaInscripcion: '2026-01-10', estado: 'Activo'   },
-  { id: 2, documento: '25841203', nombre: 'Ana Victoria Ruiz',    fechaNacimiento: '1985-07-22', sexo: 'Femenino',  correo: 'ana@esteticamayo.com',  telefono: '311-222-4455', empresa: 'Estética Mayo',         planContratado: 'Plan Liga Individual',  fechaInscripcion: '2026-02-15', estado: 'Activo'   },
-  { id: 3, documento: '71234567', nombre: 'Pedro Sánchez Mejía',  fechaNacimiento: '1978-11-08', sexo: 'Masculino', correo: 'pedro@constructora.co', telefono: '314-888-1122', empresa: 'Constructora ABC',      planContratado: 'Plan Liga Empresarial', fechaInscripcion: '2026-03-01', estado: 'Activo'   },
-  { id: 4, documento: '43901234', nombre: 'Laura Gómez Vargas',   fechaNacimiento: '1993-05-30', sexo: 'Femenino',  correo: 'laura@farmanorte.com',  telefono: '320-777-3344', empresa: 'Farmacia Norte',        planContratado: 'Plan Liga Individual',  fechaInscripcion: '2026-03-20', estado: 'Activo'   },
-  { id: 5, documento: '19283746', nombre: 'Roberto Díaz Castro',  fechaNacimiento: '1982-09-14', sexo: 'Masculino', correo: 'roberto@techsol.co',   telefono: '301-444-9988', empresa: 'Tech Solutions',        planContratado: 'Plan Liga Empresarial', fechaInscripcion: '2026-04-05', estado: 'Inactivo' },
-  { id: 6, documento: '52000111', nombre: 'Sandra Morales López', fechaNacimiento: '1990-01-18', sexo: 'Femenino',  correo: 'smorales@grupoXYZ.com',telefono: '316-555-7766', empresa: 'Grupo Empresarial XYZ', planContratado: 'Plan Liga Empresarial', fechaInscripcion: '2026-04-18', estado: 'Activo'   },
+  { id: 1, ...TITULAR_EXTRA_VACIO, documento: '10293844', nombre: 'Carlos Mendoza Ruiz',  fechaNacimiento: '1989-03-15', sexo: 'Masculino', correo: 'carlos@globaltech.com', telefono: '300-555-0192', empresa: 'Global Tech S.A.S',    planContratado: 'Plan Liga Empresarial', fechaInscripcion: '2026-01-10', estado: 'Activo'   },
+  { id: 2, ...TITULAR_EXTRA_VACIO, documento: '25841203', nombre: 'Ana Victoria Ruiz',    fechaNacimiento: '1985-07-22', sexo: 'Femenino',  correo: 'ana@esteticamayo.com',  telefono: '311-222-4455', empresa: 'Estética Mayo',         planContratado: 'Plan Liga Individual',  fechaInscripcion: '2026-02-15', estado: 'Activo'   },
+  { id: 3, ...TITULAR_EXTRA_VACIO, documento: '71234567', nombre: 'Pedro Sánchez Mejía',  fechaNacimiento: '1978-11-08', sexo: 'Masculino', correo: 'pedro@constructora.co', telefono: '314-888-1122', empresa: 'Constructora ABC',      planContratado: 'Plan Liga Empresarial', fechaInscripcion: '2026-03-01', estado: 'Activo'   },
+  { id: 4, ...TITULAR_EXTRA_VACIO, documento: '43901234', nombre: 'Laura Gómez Vargas',   fechaNacimiento: '1993-05-30', sexo: 'Femenino',  correo: 'laura@farmanorte.com',  telefono: '320-777-3344', empresa: 'Farmacia Norte',        planContratado: 'Plan Liga Individual',  fechaInscripcion: '2026-03-20', estado: 'Activo'   },
+  { id: 5, ...TITULAR_EXTRA_VACIO, documento: '19283746', nombre: 'Roberto Díaz Castro',  fechaNacimiento: '1982-09-14', sexo: 'Masculino', correo: 'roberto@techsol.co',   telefono: '301-444-9988', empresa: 'Tech Solutions',        planContratado: 'Plan Liga Empresarial', fechaInscripcion: '2026-04-05', estado: 'Inactivo' },
+  { id: 6, ...TITULAR_EXTRA_VACIO, documento: '52000111', nombre: 'Sandra Morales López', fechaNacimiento: '1990-01-18', sexo: 'Femenino',  correo: 'smorales@grupoXYZ.com',telefono: '316-555-7766', empresa: 'Grupo Empresarial XYZ', planContratado: 'Plan Liga Empresarial', fechaInscripcion: '2026-04-18', estado: 'Activo'   },
 ]
 
 export const BENEFICIARIOS_MOCK: Beneficiario[] = [
@@ -28,6 +33,7 @@ export const BENEFICIARIOS_MOCK: Beneficiario[] = [
 ]
 
 export const TITULAR_DRAFT_VACIO: TitularDraft = {
+  ...TITULAR_EXTRA_VACIO,
   documento: '', nombre: '', fechaNacimiento: '', sexo: 'Masculino', correo: '', telefono: '',
   empresa: '', planContratado: 'Plan Liga Individual', fechaInscripcion: new Date().toISOString().split('T')[0], estado: 'Activo',
 }

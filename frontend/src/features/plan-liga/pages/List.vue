@@ -16,6 +16,7 @@ const {
   titularesFiltrados, planes,
   totalActivos, totalBeneficiarios,
   activosPorTitular, puedeAgregar,
+  obtenerTitular,
   crearTitular, actualizarTitular, toggleEstadoTitular,
   beneficiariosDeTitular, crearBeneficiario, actualizarBeneficiario, cambiarEstadoBeneficiario,
 } = usePlanLiga()
@@ -32,10 +33,15 @@ const abrirNuevoTitular = () => {
   draftTitular.value = { ...TITULAR_DRAFT_VACIO, fechaInscripcion: new Date().toISOString().split('T')[0] }
   modalTitularVisible.value = true
 }
-const abrirEditarTitular = (t: Titular) => {
+const cargandoEditarId = ref<number | null>(null)
+const abrirEditarTitular = async (t: Titular) => {
+  cargandoEditarId.value = t.id
+  const detalle = await obtenerTitular(t.id)
+  cargandoEditarId.value = null
+
   modalModo.value = 'editar'
-  titularEditando.value = t
-  draftTitular.value = { ...t }
+  titularEditando.value = detalle ?? t
+  draftTitular.value = { ...t, ...detalle }
   modalTitularVisible.value = true
 }
 const guardarTitular = () => {
@@ -183,6 +189,7 @@ const modalImportVisible = ref(false)
     <TitularesTable
       :rows="titularesFiltrados"
       :activos-por-titular="activosPorTitular"
+      :cargando-editar-id="cargandoEditarId"
       @seguimiento="abrirSeguimiento"
       @editar="abrirEditarTitular"
       @toggle-estado="toggleEstadoTitular"

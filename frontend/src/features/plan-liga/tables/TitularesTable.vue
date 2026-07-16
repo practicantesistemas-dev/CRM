@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Edit2, ToggleLeft, ToggleRight, Users, ClipboardList } from 'lucide-vue-next'
+import { Edit2, Loader2, ToggleLeft, ToggleRight, Users, ClipboardList } from 'lucide-vue-next'
 import type { Titular } from '../types/plan-liga'
 import { estadoTitularStyle, planStyle } from '../constants/plan-liga.constants'
 import PersonaAvatar from '../components/PersonaAvatar.vue'
@@ -8,6 +8,7 @@ import CuposIndicador from '../components/CuposIndicador.vue'
 defineProps<{
   rows: Titular[]
   activosPorTitular: (id: number) => number
+  cargandoEditarId?: number | null
 }>()
 
 const emit = defineEmits<{
@@ -49,7 +50,12 @@ const emit = defineEmits<{
             <td class="px-4 py-3.5 text-[11px] text-slate-600 font-medium">{{ t.documento }}</td>
             <td class="px-4 py-3.5 text-[11px] text-slate-600 truncate max-w-[140px]">{{ t.empresa }}</td>
             <td class="px-4 py-3.5">
-              <span class="text-[11px] font-semibold" :class="planStyle(t.planContratado)">{{ t.planContratado }}</span>
+              <div v-if="t.planesDetalle?.length" class="flex flex-col gap-0.5">
+                <span v-for="p in t.planesDetalle" :key="p.nombre" class="text-[11px] font-semibold" :class="planStyle(p.nombre)">
+                  {{ p.nombre }} <span class="text-slate-400 font-medium">({{ p.activos }}/{{ p.cupo }})</span>
+                </span>
+              </div>
+              <span v-else class="text-[11px] font-semibold" :class="planStyle(t.planContratado)">{{ t.planContratado }}</span>
             </td>
             <td class="px-4 py-3.5">
               <div class="flex items-center gap-2">
@@ -69,9 +75,12 @@ const emit = defineEmits<{
                   title="Registrar seguimiento">
                   <ClipboardList :size="12" />
                 </button>
-                <button @click="emit('editar', t)"
-                  class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-[#EEF2FF] hover:text-[#2447F9] text-slate-500 flex items-center justify-center transition-all"
-                  title="Editar"><Edit2 :size="12" /></button>
+                <button @click="emit('editar', t)" :disabled="cargandoEditarId === t.id"
+                  class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-[#EEF2FF] hover:text-[#2447F9] text-slate-500 flex items-center justify-center transition-all disabled:opacity-60"
+                  title="Editar">
+                  <Loader2 v-if="cargandoEditarId === t.id" :size="12" class="animate-spin" />
+                  <Edit2 v-else :size="12" />
+                </button>
                 <button @click="emit('toggle-estado', t)"
                   class="w-7 h-7 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center transition-all"
                   :class="t.estado === 'Activo' ? 'hover:bg-red-50 hover:text-red-500' : 'hover:bg-emerald-50 hover:text-emerald-600'"
