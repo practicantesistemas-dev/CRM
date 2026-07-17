@@ -20,6 +20,7 @@ const {
   activosPorTitular,
   obtenerTitular,
   crearTitular, actualizarTitular, toggleEstadoTitular,
+  guardandoTitular, errorGuardarTitular,
   crearBeneficiario, actualizarBeneficiario, cambiarEstadoBeneficiario,
   guardandoBeneficiario, errorGuardarBeneficiario,
   beneficiariosTitular, cargandoBeneficiariosTitular, cargarBeneficiariosTitular,
@@ -43,18 +44,20 @@ const abrirEditarTitular = async (t: Titular) => {
   const detalle = await obtenerTitular(t.id)
   cargandoEditarId.value = null
 
+  errorGuardarTitular.value = null
   modalModo.value = 'editar'
   titularEditando.value = detalle ?? t
   draftTitular.value = { ...t, ...detalle }
   modalTitularVisible.value = true
 }
-const guardarTitular = () => {
+const guardarTitular = async () => {
   if (modalModo.value === 'nuevo') {
     crearTitular(draftTitular.value)
+    modalTitularVisible.value = false
   } else if (titularEditando.value) {
-    actualizarTitular(titularEditando.value.id, draftTitular.value)
+    const ok = await actualizarTitular(titularEditando.value.id, draftTitular.value)
+    if (ok) modalTitularVisible.value = false
   }
-  modalTitularVisible.value = false
 }
 
 // ─── Drawer Beneficiarios ────────────────────────────────────────
@@ -224,7 +227,8 @@ const modalImportVisible = ref(false)
       </button>
     </div>
 
-    <TitularFormDialog v-model:visible="modalTitularVisible" v-model:draft="draftTitular" :modo="modalModo" @submit="guardarTitular" />
+    <TitularFormDialog v-model:visible="modalTitularVisible" v-model:draft="draftTitular" :modo="modalModo"
+      :guardando="guardandoTitular" :error="errorGuardarTitular" @submit="guardarTitular" />
 
     <BeneficiariosDrawer
       v-model:visible="drawerVisible"

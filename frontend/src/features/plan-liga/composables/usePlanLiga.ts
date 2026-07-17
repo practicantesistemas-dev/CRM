@@ -128,11 +128,24 @@ export function usePlanLiga() {
   const crearTitular = (data: TitularDraft) => {
     titulares.value = [createTitular(data), ...titulares.value]
   }
-  const actualizarTitular = (id: number, data: TitularDraft) => {
-    const actualizado = updateTitular(id, data)
-    if (!actualizado) return
-    const idx = titulares.value.findIndex(t => t.id === id)
-    if (idx !== -1) titulares.value[idx] = actualizado
+
+  const guardandoTitular = ref(false)
+  const errorGuardarTitular = ref<string | null>(null)
+
+  const actualizarTitular = async (id: number, data: TitularDraft): Promise<boolean> => {
+    guardandoTitular.value = true
+    errorGuardarTitular.value = null
+    try {
+      const actualizado = await updateTitular(id, data)
+      const idx = titulares.value.findIndex(t => t.id === id)
+      if (idx !== -1) titulares.value[idx] = actualizado
+      return true
+    } catch (e) {
+      errorGuardarTitular.value = e instanceof Error ? e.message : 'No se pudo actualizar el titular.'
+      return false
+    } finally {
+      guardandoTitular.value = false
+    }
   }
   const toggleEstadoTitular = (t: Titular) => {
     actualizarTitular(t.id, { ...t, estado: t.estado === 'Activo' ? 'Inactivo' : 'Activo' })
@@ -196,6 +209,7 @@ export function usePlanLiga() {
     activosPorTitular, puedeAgregar,
     cargandoDetalleTitular, obtenerTitular,
     crearTitular, actualizarTitular, toggleEstadoTitular,
+    guardandoTitular, errorGuardarTitular,
     beneficiariosDeTitular, crearBeneficiario, actualizarBeneficiario, cambiarEstadoBeneficiario,
     guardandoBeneficiario, errorGuardarBeneficiario,
     beneficiariosTitular, cargandoBeneficiariosTitular, errorBeneficiariosTitular, cargarBeneficiariosTitular,

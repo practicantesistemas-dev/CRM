@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import type { TitularDraft } from '../types/plan-liga'
 import { titularSchema } from '../schemas/titular.schema'
 import { useZodForm } from '@/shared/composables/useZodForm'
@@ -6,6 +7,7 @@ import { useNombreCompuesto } from '@/shared/composables/useNombreCompuesto'
 import { fieldStateClass } from '@/shared/utils/fieldStateClass'
 import FieldError from '@/shared/components/FieldError.vue'
 
+const props = defineProps<{ modo?: 'nuevo' | 'editar' }>()
 const draft = defineModel<TitularDraft>({ required: true })
 const emit = defineEmits<{ validSubmit: [] }>()
 
@@ -13,6 +15,10 @@ const { errors, tocar, esVisible, onValidSubmit } = useZodForm(titularSchema, dr
 defineExpose({ submit: onValidSubmit(() => emit('validSubmit')) })
 
 const nombre = useNombreCompuesto(draft, 'nombre')
+
+// La fecha de inscripción queda fijada al crear el titular: se muestra de
+// solo lectura en edición para evitar registrar cambios que nunca se guardan.
+const soloFechaInscripcion = computed(() => props.modo === 'editar')
 </script>
 
 <template>
@@ -113,7 +119,7 @@ const nombre = useNombreCompuesto(draft, 'nombre')
     </div>
     <div>
       <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Fecha de inscripción</label>
-      <input v-model="draft.fechaInscripcion" type="date" class="w-full h-10 px-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white transition-all" />
+      <input v-model="draft.fechaInscripcion" type="date" :disabled="soloFechaInscripcion" class="w-full h-10 px-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed" />
     </div>
     <div>
       <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Estado</label>
