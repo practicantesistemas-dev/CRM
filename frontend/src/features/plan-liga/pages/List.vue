@@ -21,6 +21,7 @@ const {
   obtenerTitular,
   crearTitular, actualizarTitular, toggleEstadoTitular,
   crearBeneficiario, actualizarBeneficiario, cambiarEstadoBeneficiario,
+  guardandoBeneficiario, errorGuardarBeneficiario,
   beneficiariosTitular, cargandoBeneficiariosTitular, cargarBeneficiariosTitular,
 } = usePlanLiga()
 
@@ -88,19 +89,21 @@ const abrirNuevoBeneficiario = () => {
 }
 const abrirEditarBeneficiario = (b: Beneficiario) => {
   errLimite.value = false
+  errorGuardarBeneficiario.value = null
   modalBeneModo.value = 'editar'
   beneficiarioEditando.value = b
   draftBene.value = { ...b }
   modalBeneVisible.value = true
 }
-const guardarBeneficiario = () => {
+const guardarBeneficiario = async () => {
   if (!titularSeleccionado.value) return
   if (modalBeneModo.value === 'nuevo') {
     crearBeneficiario(titularSeleccionado.value.id, draftBene.value)
+    modalBeneVisible.value = false
   } else if (beneficiarioEditando.value) {
-    actualizarBeneficiario(beneficiarioEditando.value.id, draftBene.value)
+    const ok = await actualizarBeneficiario(titularSeleccionado.value.id, beneficiarioEditando.value.id, draftBene.value)
+    if (ok) modalBeneVisible.value = false
   }
-  modalBeneVisible.value = false
 }
 const activarBeneficiario = (b: Beneficiario) => {
   if (!puedeAgregarActual.value) { errLimite.value = true; return }
@@ -245,6 +248,8 @@ const modalImportVisible = ref(false)
       :modo="modalBeneModo"
       :titular-nombre="titularSeleccionado?.nombre"
       :cupos-restantes="cupoMaximoActual - activosActual"
+      :guardando="guardandoBeneficiario"
+      :error="errorGuardarBeneficiario"
       @submit="guardarBeneficiario"
     />
 

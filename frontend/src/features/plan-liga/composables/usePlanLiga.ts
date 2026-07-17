@@ -161,17 +161,29 @@ export function usePlanLiga() {
   const crearBeneficiario = (titularId: number, data: BeneficiarioDraft) => {
     beneficiarios.value = [...beneficiarios.value, createBeneficiario(titularId, data)]
   }
-  const actualizarBeneficiario = (id: number, data: BeneficiarioDraft) => {
-    const actualizado = updateBeneficiario(id, data)
-    if (!actualizado) return
-    const idx = beneficiarios.value.findIndex(b => b.id === id)
-    if (idx !== -1) beneficiarios.value[idx] = actualizado
+
+  const guardandoBeneficiario = ref(false)
+  const errorGuardarBeneficiario = ref<string | null>(null)
+
+  const actualizarBeneficiario = async (titularId: number, id: number, data: BeneficiarioDraft): Promise<boolean> => {
+    guardandoBeneficiario.value = true
+    errorGuardarBeneficiario.value = null
+    try {
+      const actualizado = await updateBeneficiario(titularId, id, data)
+      const idx = beneficiariosTitular.value.findIndex(b => b.id === id)
+      if (idx !== -1) beneficiariosTitular.value[idx] = actualizado
+      return true
+    } catch (e) {
+      errorGuardarBeneficiario.value = e instanceof Error ? e.message : 'No se pudo actualizar el beneficiario.'
+      return false
+    } finally {
+      guardandoBeneficiario.value = false
+    }
   }
+
   const cambiarEstadoBeneficiario = (b: Beneficiario, estado: Beneficiario['estado']) => {
-    const actualizado = updateBeneficiario(b.id, { ...b, estado })
-    if (!actualizado) return
-    const idx = beneficiarios.value.findIndex(x => x.id === b.id)
-    if (idx !== -1) beneficiarios.value[idx] = actualizado
+    const idx = beneficiariosTitular.value.findIndex(x => x.id === b.id)
+    if (idx !== -1) beneficiariosTitular.value[idx] = { ...b, estado }
   }
 
   return {
@@ -185,6 +197,7 @@ export function usePlanLiga() {
     cargandoDetalleTitular, obtenerTitular,
     crearTitular, actualizarTitular, toggleEstadoTitular,
     beneficiariosDeTitular, crearBeneficiario, actualizarBeneficiario, cambiarEstadoBeneficiario,
+    guardandoBeneficiario, errorGuardarBeneficiario,
     beneficiariosTitular, cargandoBeneficiariosTitular, errorBeneficiariosTitular, cargarBeneficiariosTitular,
   }
 }

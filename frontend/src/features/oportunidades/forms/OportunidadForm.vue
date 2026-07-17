@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import type { OportunidadDraft, TipoCliente } from '../types/oportunidad'
 import { ETAPAS, TIPOS_CLIENTE } from '../constants/oportunidades.constants'
 import { oportunidadSchema } from '../schemas/oportunidad.schema'
@@ -10,6 +10,7 @@ import BuscadorEntidad, { type OpcionBuscador } from '@/shared/components/Buscad
 import { getEmpresas } from '@/features/empresas/services/empresas.api'
 import { getContactos } from '@/features/contactos/services/contactos.api'
 import { getTitulares } from '@/features/plan-liga/services/plan-liga.api'
+import type { Titular } from '@/features/plan-liga/types/plan-liga'
 
 const draft = defineModel<OportunidadDraft>({ required: true })
 const emit = defineEmits<{ validSubmit: [] }>()
@@ -33,8 +34,11 @@ const opcionesContactosDeEmpresa = computed<OpcionBuscador[]>(() => {
     .map(c => ({ id: c.id, label: c.nombre, sublabel: c.cargo }))
 })
 
+const titulares = ref<Titular[]>([])
+onMounted(async () => { titulares.value = await getTitulares() })
+
 const opcionesTitulares = computed<OpcionBuscador[]>(() =>
-  getTitulares().map(t => ({ id: t.id, label: t.nombre, sublabel: t.empresa })),
+  titulares.value.map(t => ({ id: t.id, label: t.nombre, sublabel: t.empresa })),
 )
 
 function cambiarTipoCliente(tipo: TipoCliente) {

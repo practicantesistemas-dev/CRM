@@ -3,8 +3,7 @@ import type {
   ResumenTitularesResponse, TitularListadoResponse, ListadoTitularesResponse,
   BeneficiarioListadoResponse, TitularDetalleResponse, PlanTitular,
 } from '../types/plan-liga'
-import { joinNombreCompleto } from '@/shared/utils/nombreCompuesto'
-import { BENEFICIARIOS_MOCK, TITULARES_MOCK } from '../constants/plan-liga.constants'
+import { joinNombreCompleto, splitNombreCompleto } from '@/shared/utils/nombreCompuesto'
 
 const API_URL = import.meta.env.VITE_CRM_API_URL
 
@@ -14,11 +13,15 @@ async function obtenerJson<T>(ruta: string, mensajeError: string): Promise<T> {
   return response.json()
 }
 
-let titulares: Titular[] = [...TITULARES_MOCK]
-let beneficiarios: Beneficiario[] = [...BENEFICIARIOS_MOCK]
+// Titulares y beneficiarios creados en esta sesión que aún no tienen contraparte
+// en el backend (no existe endpoint de creación todavía).
+let titulares: Titular[] = []
+let beneficiarios: Beneficiario[] = []
 
-export function getTitulares(): Titular[] {
-  return titulares
+/** Selector de titulares (usado por Oportunidades/Actividades): trae el listado real del backend. */
+export async function getTitulares(): Promise<Titular[]> {
+  const { items } = await getListadoTitulares({ limit: 2000 })
+  return items
 }
 
 export function createTitular(data: TitularDraft): Titular {
@@ -45,12 +48,37 @@ export function createBeneficiario(titularId: number, data: BeneficiarioDraft): 
   return nuevo
 }
 
-export function updateBeneficiario(id: number, data: Partial<BeneficiarioDraft>): Beneficiario | null {
-  const idx = beneficiarios.findIndex(b => b.id === id)
-  if (idx === -1) return null
-  const actualizado: Beneficiario = { ...beneficiarios[idx], ...data, id }
-  beneficiarios = [...beneficiarios.slice(0, idx), actualizado, ...beneficiarios.slice(idx + 1)]
-  return actualizado
+const ESTADO_BENEFICIARIO_API: Record<Beneficiario['estado'], string> = {
+  Activo: 'A', Inactivo: 'I', Reemplazado: 'R', Retirado: 'X',
+}
+const SEXO_BENEFICIARIO_API: Record<Beneficiario['sexo'], string> = { Masculino: 'M', Femenino: 'F', Otro: 'O' }
+
+export async function updateBeneficiario(idTitular: number, idBeneficiario: number, data: BeneficiarioDraft): Promise<Beneficiario> {
+  const { nombre1, nombre2, apellido1, apellido2 } = splitNombreCompleto(data.nombre)
+  const body = {
+    TIPO_DOCUMENTO: data.tipoDocumento,
+    DOCUMENTO: data.documento,
+    NOMBRE1: nombre1,
+    NOMBRE2: nombre2,
+    APELLIDO1: apellido1,
+    APELLIDO2: apellido2,
+    FECHA_NACIMIENTO: data.fechaNacimiento,
+    SEXO: SEXO_BENEFICIARIO_API[data.sexo],
+    DIRECCION: data.direccion,
+    CIUDAD: data.ciudad,
+    DEPARTAMENTO: data.departamento,
+    CORREO: data.correo,
+    TELEFONO: data.telefono,
+    EMPRESA: data.empresa,
+    ESTADO: ESTADO_BENEFICIARIO_API[data.estado],
+  }
+  const response = await fetch(`${API_URL}/api/titulares-beneficiarios/${idTitular}/beneficiarios/${idBeneficiario}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  if (!response.ok) throw new Error('No se pudo actualizar el beneficiario.')
+  return { ...data, id: idBeneficiario, titularId: idTitular }
 }
 
 export async function getResumenTitulares(): Promise<ResumenTitularesResponse> {

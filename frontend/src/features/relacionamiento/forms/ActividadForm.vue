@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import type { ActividadDraft } from '../types/actividad'
 import { TIPOS_ACTIVIDAD, TIPO_META } from '../constants/relacionamiento.constants'
 import { actividadSchema } from '../schemas/actividad.schema'
@@ -12,6 +12,7 @@ import { clienteLabel } from '@/features/oportunidades/constants/oportunidades.c
 import { getContactos } from '@/features/contactos/services/contactos.api'
 import { getEmpresas } from '@/features/empresas/services/empresas.api'
 import { getTitulares } from '@/features/plan-liga/services/plan-liga.api'
+import type { Titular } from '@/features/plan-liga/types/plan-liga'
 
 const draft = defineModel<ActividadDraft>({ required: true })
 const emit = defineEmits<{ validSubmit: [] }>()
@@ -25,8 +26,11 @@ const opcionesContactos = computed<OpcionBuscador[]>(() =>
 const opcionesEmpresas = computed<OpcionBuscador[]>(() =>
   getEmpresas().map(e => ({ id: e.id, label: e.razonSocial, sublabel: e.ciudad })),
 )
+const titulares = ref<Titular[]>([])
+onMounted(async () => { titulares.value = await getTitulares() })
+
 const opcionesTitulares = computed<OpcionBuscador[]>(() =>
-  getTitulares().map(t => ({ id: t.id, label: t.nombre, sublabel: t.empresa })),
+  titulares.value.map(t => ({ id: t.id, label: t.nombre, sublabel: t.empresa })),
 )
 
 function alSeleccionarContacto(item: OpcionBuscador | null) {
