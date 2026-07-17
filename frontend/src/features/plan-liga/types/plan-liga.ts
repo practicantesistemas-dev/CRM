@@ -29,10 +29,17 @@ export type TitularDraft = Omit<Titular, 'id'>
 export interface Beneficiario {
   id: number
   titularId: number
+  tipoDocumento: string
   documento: string
   nombre: string
   fechaNacimiento: string
-  parentesco: string
+  sexo: 'Masculino' | 'Femenino' | 'Otro'
+  correo: string
+  telefono: string
+  direccion: string
+  ciudad: string
+  departamento: string
+  empresa: string
   estado: 'Activo' | 'Inactivo' | 'Reemplazado' | 'Retirado'
   fechaInscripcion: string
 }
@@ -80,13 +87,13 @@ export interface PlanTitular {
 export interface TitularListadoResponse {
   ID_TITULAR: number
   TITULAR: string
-  EMAIL: string
-  TELEFONO: string
-  TIPO_DOCUMENTO: string
+  EMAIL: string | null
+  TELEFONO: string | null
+  TIPO_DOCUMENTO: string | null
   DOCUMENTO: string
-  EMPRESA: string
-  PLANES: string
-  BENEFICIARIOS: string
+  EMPRESA: string | null
+  PLANES: string | null
+  BENEFICIARIOS: string | null
   INSCRIPCION: string
   ESTADO: string
 }
@@ -96,6 +103,26 @@ export interface ListadoTitularesResponse {
   total: number
   limit: number
   offset: number
+}
+
+export interface BeneficiarioListadoResponse {
+  ID: number
+  TIPO_DOCUMENTO: string
+  DOCUMENTO: string
+  NOMBRE1: string
+  NOMBRE2: string | null
+  APELLIDO1: string
+  APELLIDO2: string | null
+  FECHA_NACIMIENTO: string | null
+  SEXO: string | null
+  DIRECCION: string | null
+  CIUDAD: string | null
+  DEPARTAMENTO: string | null
+  CORREO: string | null
+  TELEFONO: string | null
+  FECHA_INGRESO: string | null
+  EMPRESA: string | null
+  ESTADO: string
 }
 
 export interface TitularDetalleResponse {

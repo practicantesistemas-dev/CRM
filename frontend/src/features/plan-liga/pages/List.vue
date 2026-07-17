@@ -2,7 +2,7 @@
 import { ref, computed } from 'vue'
 import { Heart, Users, Plus, Search, Download, Upload, ChevronLeft, ChevronRight } from 'lucide-vue-next'
 import type { Beneficiario, BeneficiarioDraft, Titular, TitularDraft } from '../types/plan-liga'
-import { BENEFICIARIO_DRAFT_VACIO, CUPO_MAXIMO, TITULAR_DRAFT_VACIO } from '../constants/plan-liga.constants'
+import { BENEFICIARIO_DRAFT_VACIO, TITULAR_DRAFT_VACIO, cupoMaximoTitular } from '../constants/plan-liga.constants'
 import { usePlanLiga } from '../composables/usePlanLiga'
 import TitularesTable from '../tables/TitularesTable.vue'
 import TitularFormDialog from '../dialogs/TitularFormDialog.vue'
@@ -13,14 +13,15 @@ import ImportacionPlanLigaDialog from '../dialogs/ImportacionPlanLigaDialog.vue'
 
 const {
   buscar, filtroEstado, filtroPlan, filtroSexo, filtroEdad,
-  titularesFiltrados, planes,
+  titulares, planes,
   totalActivos, totalBeneficiarios,
   totalTitulares, paginaActual, totalPaginas, hayPaginaAnterior, hayPaginaSiguiente,
   paginaSiguiente, paginaAnterior,
-  activosPorTitular, puedeAgregar,
+  activosPorTitular,
   obtenerTitular,
   crearTitular, actualizarTitular, toggleEstadoTitular,
-  beneficiariosDeTitular, crearBeneficiario, actualizarBeneficiario, cambiarEstadoBeneficiario,
+  crearBeneficiario, actualizarBeneficiario, cambiarEstadoBeneficiario,
+  beneficiariosTitular, cargandoBeneficiariosTitular, cargarBeneficiariosTitular,
 } = usePlanLiga()
 
 // ─── Modal Titular ───────────────────────────────────────────────
@@ -60,9 +61,15 @@ const drawerVisible = ref(false)
 const titularSeleccionado = ref<Titular | null>(null)
 const errLimite = ref(false)
 
-const abrirBeneficiarios = (t: Titular) => { titularSeleccionado.value = t; drawerVisible.value = true; errLimite.value = false }
-const beneficiariosTitular = computed(() => titularSeleccionado.value ? beneficiariosDeTitular(titularSeleccionado.value.id) : [])
-const activosActual = computed(() => titularSeleccionado.value ? activosPorTitular(titularSeleccionado.value.id) : 0)
+const abrirBeneficiarios = (t: Titular) => {
+  titularSeleccionado.value = t
+  drawerVisible.value = true
+  errLimite.value = false
+  cargarBeneficiariosTitular(t.id)
+}
+const activosActual = computed(() => beneficiariosTitular.value.filter(b => b.estado === 'Activo').length)
+const cupoMaximoActual = computed(() => titularSeleccionado.value ? cupoMaximoTitular(titularSeleccionado.value) : 0)
+const puedeAgregarActual = computed(() => activosActual.value < cupoMaximoActual.value)
 
 // ─── Modal Beneficiario ──────────────────────────────────────────
 const modalBeneVisible = ref(false)
@@ -72,7 +79,7 @@ const draftBene = ref<BeneficiarioDraft>({ ...BENEFICIARIO_DRAFT_VACIO })
 
 const abrirNuevoBeneficiario = () => {
   if (!titularSeleccionado.value) return
-  if (!puedeAgregar(titularSeleccionado.value.id)) { errLimite.value = true; return }
+  if (!puedeAgregarActual.value) { errLimite.value = true; return }
   errLimite.value = false
   modalBeneModo.value = 'nuevo'
   beneficiarioEditando.value = null
@@ -96,7 +103,7 @@ const guardarBeneficiario = () => {
   modalBeneVisible.value = false
 }
 const activarBeneficiario = (b: Beneficiario) => {
-  if (!titularSeleccionado.value || !puedeAgregar(titularSeleccionado.value.id)) { errLimite.value = true; return }
+  if (!puedeAgregarActual.value) { errLimite.value = true; return }
   cambiarEstadoBeneficiario(b, 'Activo')
 }
 const desactivarBeneficiario = (b: Beneficiario) => cambiarEstadoBeneficiario(b, 'Inactivo')
@@ -186,12 +193,12 @@ const modalImportVisible = ref(false)
         </div>
       </div>
       <div class="mt-2 text-[11px] text-slate-400">
-        Mostrando <strong class="text-slate-600">{{ titularesFiltrados.length }}</strong> de <strong class="text-slate-600">{{ totalTitulares }}</strong> titulares
+        Mostrando <strong class="text-slate-600">{{ titulares.length }}</strong> de <strong class="text-slate-600">{{ totalTitulares }}</strong> titulares
       </div>
     </div>
 
     <TitularesTable
-      :rows="titularesFiltrados"
+      :rows="titulares"
       :activos-por-titular="activosPorTitular"
       :cargando-editar-id="cargandoEditarId"
       @seguimiento="abrirSeguimiento"
@@ -221,8 +228,10 @@ const modalImportVisible = ref(false)
       v-model:err-limite="errLimite"
       :titular="titularSeleccionado"
       :beneficiarios="beneficiariosTitular"
+      :cargando="cargandoBeneficiariosTitular"
       :activos-actual="activosActual"
-      :puede-agregar="puedeAgregar(titularSeleccionado?.id ?? 0)"
+      :cupo-maximo="cupoMaximoActual"
+      :puede-agregar="puedeAgregarActual"
       @editar="abrirEditarBeneficiario"
       @activar="activarBeneficiario"
       @desactivar="desactivarBeneficiario"
@@ -235,7 +244,7 @@ const modalImportVisible = ref(false)
       v-model:draft="draftBene"
       :modo="modalBeneModo"
       :titular-nombre="titularSeleccionado?.nombre"
-      :cupos-restantes="CUPO_MAXIMO - activosActual"
+      :cupos-restantes="cupoMaximoActual - activosActual"
       @submit="guardarBeneficiario"
     />
 

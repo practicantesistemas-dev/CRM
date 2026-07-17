@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Edit2, Loader2, ToggleLeft, ToggleRight, Users, ClipboardList } from 'lucide-vue-next'
 import type { Titular } from '../types/plan-liga'
-import { estadoTitularStyle, planStyle, CUPO_MAXIMO } from '../constants/plan-liga.constants'
+import { estadoTitularStyle, planStyle, cupoMaximoTitular } from '../constants/plan-liga.constants'
 import PersonaAvatar from '../components/PersonaAvatar.vue'
 import CuposIndicador from '../components/CuposIndicador.vue'
 
@@ -20,10 +20,10 @@ const emit = defineEmits<{
 
 // El backend trae el conteo real de beneficiarios por plan (planesDetalle); si no viene
 // (titulares creados/editados localmente), se usa el conteo mock con el tope fijo.
-const cuposTitular = (t: Titular, activosLocal: number) =>
-  t.planesDetalle?.length
-    ? t.planesDetalle.reduce((acc, p) => ({ activos: acc.activos + p.activos, cupo: acc.cupo + p.cupo }), { activos: 0, cupo: 0 })
-    : { activos: activosLocal, cupo: CUPO_MAXIMO }
+const cuposTitular = (t: Titular, activosLocal: number) => ({
+  activos: t.planesDetalle?.length ? t.planesDetalle.reduce((sum, p) => sum + p.activos, 0) : activosLocal,
+  cupo: cupoMaximoTitular(t),
+})
 </script>
 
 <template>

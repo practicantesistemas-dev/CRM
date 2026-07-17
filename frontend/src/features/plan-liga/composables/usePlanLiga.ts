@@ -4,7 +4,7 @@ import { CUPO_MAXIMO } from '../constants/plan-liga.constants'
 import {
   createTitular, updateTitular,
   getBeneficiarios, createBeneficiario, updateBeneficiario, getResumenTitulares,
-  getListadoTitulares, getNombresPlanes, getTitular,
+  getListadoTitulares, getNombresPlanes, getTitular, getBeneficiariosTitular,
 } from '../services/plan-liga.api'
 
 const TITULARES_POR_PAGINA = 6
@@ -32,13 +32,6 @@ export function usePlanLiga() {
   const filtroSexo   = ref('todos')
   const filtroEdad   = ref('todos')
 
-  // estado, plan, sexo y edad ya vienen filtrados desde el backend (ver cargarTitulares).
-  const titularesFiltrados = computed(() =>
-    titulares.value.filter(t => {
-      const q = buscar.value.toLowerCase()
-      return !q || [t.nombre, t.documento, t.empresa, t.correo].some(f => f.toLowerCase().includes(q))
-    })
-  )
   const planes = ref<string[]>([])
   const cargarPlanes = async () => {
     try {
@@ -60,6 +53,7 @@ export function usePlanLiga() {
         // 'Otro' no tiene código en el backend (solo M/F), así que no se envía y no filtra.
         sexo: filtroSexo.value === 'Masculino' || filtroSexo.value === 'Femenino' ? filtroSexo.value : undefined,
         edad: filtroEdad.value === 'todos' ? undefined : (filtroEdad.value as '0-17' | '18-35' | '36-50' | '51+'),
+        busqueda: buscar.value.trim() || undefined,
       })
       titulares.value = resultado.items
       totalTitulares.value = resultado.total
@@ -84,6 +78,16 @@ export function usePlanLiga() {
   watch([filtroEstado, filtroPlan, filtroSexo, filtroEdad], () => {
     offsetTitulares.value = 0
     cargarTitulares()
+  })
+
+  // La búsqueda se debounce para no disparar una petición por cada tecla.
+  let busquedaTimeout: ReturnType<typeof setTimeout> | undefined
+  watch(buscar, () => {
+    clearTimeout(busquedaTimeout)
+    busquedaTimeout = setTimeout(() => {
+      offsetTitulares.value = 0
+      cargarTitulares()
+    }, 350)
   })
 
   const totalActivos = ref(0)
@@ -137,6 +141,23 @@ export function usePlanLiga() {
   const beneficiariosDeTitular = (titularId: number) =>
     beneficiarios.value.filter(b => b.titularId === titularId)
 
+  const beneficiariosTitular = ref<Beneficiario[]>([])
+  const cargandoBeneficiariosTitular = ref(false)
+  const errorBeneficiariosTitular = ref<string | null>(null)
+
+  const cargarBeneficiariosTitular = async (titularId: number) => {
+    cargandoBeneficiariosTitular.value = true
+    errorBeneficiariosTitular.value = null
+    try {
+      beneficiariosTitular.value = await getBeneficiariosTitular(titularId)
+    } catch (e) {
+      errorBeneficiariosTitular.value = e instanceof Error ? e.message : 'No se pudo cargar los beneficiarios del titular.'
+      beneficiariosTitular.value = []
+    } finally {
+      cargandoBeneficiariosTitular.value = false
+    }
+  }
+
   const crearBeneficiario = (titularId: number, data: BeneficiarioDraft) => {
     beneficiarios.value = [...beneficiarios.value, createBeneficiario(titularId, data)]
   }
@@ -156,7 +177,7 @@ export function usePlanLiga() {
   return {
     titulares, beneficiarios,
     buscar, filtroEstado, filtroPlan, filtroSexo, filtroEdad,
-    titularesFiltrados, planes, cargandoTitulares, errorTitulares,
+    planes, cargandoTitulares, errorTitulares,
     totalActivos, totalBeneficiarios, titularesTope, errorResumen,
     totalTitulares, paginaActual, totalPaginas, hayPaginaAnterior, hayPaginaSiguiente,
     paginaSiguiente, paginaAnterior,
@@ -164,5 +185,6 @@ export function usePlanLiga() {
     cargandoDetalleTitular, obtenerTitular,
     crearTitular, actualizarTitular, toggleEstadoTitular,
     beneficiariosDeTitular, crearBeneficiario, actualizarBeneficiario, cambiarEstadoBeneficiario,
+    beneficiariosTitular, cargandoBeneficiariosTitular, errorBeneficiariosTitular, cargarBeneficiariosTitular,
   }
 }

@@ -17,19 +17,21 @@ export const TITULARES_MOCK: Titular[] = [
   { id: 6, ...TITULAR_EXTRA_VACIO, documento: '52000111', nombre: 'Sandra Morales López', fechaNacimiento: '1990-01-18', sexo: 'Femenino',  correo: 'smorales@grupoXYZ.com',telefono: '316-555-7766', empresa: 'Grupo Empresarial XYZ', planContratado: 'Plan Liga Empresarial', fechaInscripcion: '2026-04-18', estado: 'Activo'   },
 ]
 
+const BENEFICIARIO_EXTRA_VACIO = { tipoDocumento: 'CC', sexo: 'Otro' as const, correo: '', telefono: '', direccion: '', ciudad: '', departamento: '', empresa: '' }
+
 export const BENEFICIARIOS_MOCK: Beneficiario[] = [
-  { id: 101, titularId: 1, documento: '1001122334', nombre: 'María Mendoza',    fechaNacimiento: '2015-06-10', parentesco: 'Hijo(a)',     estado: 'Activo',      fechaInscripcion: '2026-01-10' },
-  { id: 102, titularId: 1, documento: '1001122335', nombre: 'José Mendoza',     fechaNacimiento: '2017-09-22', parentesco: 'Hijo(a)',     estado: 'Activo',      fechaInscripcion: '2026-01-10' },
-  { id: 103, titularId: 1, documento: '55667788',   nombre: 'Rosa Ruiz',        fechaNacimiento: '1960-03-05', parentesco: 'Padre/Madre', estado: 'Activo',      fechaInscripcion: '2026-01-10' },
-  { id: 104, titularId: 1, documento: '55667789',   nombre: 'Luis Mendoza',     fechaNacimiento: '1958-11-20', parentesco: 'Padre/Madre', estado: 'Activo',      fechaInscripcion: '2026-01-10' },
-  { id: 201, titularId: 2, documento: '1009988776', nombre: 'Tomás Ruiz',       fechaNacimiento: '2010-03-15', parentesco: 'Hijo(a)',     estado: 'Activo',      fechaInscripcion: '2026-02-15' },
-  { id: 202, titularId: 2, documento: '3344556677', nombre: 'Carmen Vásquez',   fechaNacimiento: '1958-08-01', parentesco: 'Padre/Madre', estado: 'Activo',      fechaInscripcion: '2026-02-15' },
-  { id: 203, titularId: 2, documento: '3344556678', nombre: 'Andrés Vásquez',   fechaNacimiento: '2012-12-30', parentesco: 'Hijo(a)',     estado: 'Retirado',    fechaInscripcion: '2026-02-15' },
-  { id: 301, titularId: 3, documento: '7788990011', nombre: 'Sofia Sánchez',    fechaNacimiento: '2008-05-20', parentesco: 'Hijo(a)',     estado: 'Activo',      fechaInscripcion: '2026-03-01' },
-  { id: 302, titularId: 3, documento: '7788990012', nombre: 'Daniela Sánchez',  fechaNacimiento: '2005-07-14', parentesco: 'Hijo(a)',     estado: 'Reemplazado', fechaInscripcion: '2026-03-01' },
-  { id: 601, titularId: 6, documento: '9900112233', nombre: 'Camila Morales',   fechaNacimiento: '2014-02-11', parentesco: 'Hijo(a)',     estado: 'Activo',      fechaInscripcion: '2026-04-18' },
-  { id: 602, titularId: 6, documento: '9900112234', nombre: 'Rodrigo Morales',  fechaNacimiento: '2016-09-03', parentesco: 'Hijo(a)',     estado: 'Activo',      fechaInscripcion: '2026-04-18' },
-  { id: 603, titularId: 6, documento: '8899001122', nombre: 'Elena López',      fechaNacimiento: '1955-04-25', parentesco: 'Padre/Madre', estado: 'Activo',      fechaInscripcion: '2026-04-18' },
+  { id: 101, ...BENEFICIARIO_EXTRA_VACIO, titularId: 1, documento: '1001122334', nombre: 'María Mendoza',    fechaNacimiento: '2015-06-10', estado: 'Activo',      fechaInscripcion: '2026-01-10' },
+  { id: 102, ...BENEFICIARIO_EXTRA_VACIO, titularId: 1, documento: '1001122335', nombre: 'José Mendoza',     fechaNacimiento: '2017-09-22', estado: 'Activo',      fechaInscripcion: '2026-01-10' },
+  { id: 103, ...BENEFICIARIO_EXTRA_VACIO, titularId: 1, documento: '55667788',   nombre: 'Rosa Ruiz',        fechaNacimiento: '1960-03-05', estado: 'Activo',      fechaInscripcion: '2026-01-10' },
+  { id: 104, ...BENEFICIARIO_EXTRA_VACIO, titularId: 1, documento: '55667789',   nombre: 'Luis Mendoza',     fechaNacimiento: '1958-11-20', estado: 'Activo',      fechaInscripcion: '2026-01-10' },
+  { id: 201, ...BENEFICIARIO_EXTRA_VACIO, titularId: 2, documento: '1009988776', nombre: 'Tomás Ruiz',       fechaNacimiento: '2010-03-15', estado: 'Activo',      fechaInscripcion: '2026-02-15' },
+  { id: 202, ...BENEFICIARIO_EXTRA_VACIO, titularId: 2, documento: '3344556677', nombre: 'Carmen Vásquez',   fechaNacimiento: '1958-08-01', estado: 'Activo',      fechaInscripcion: '2026-02-15' },
+  { id: 203, ...BENEFICIARIO_EXTRA_VACIO, titularId: 2, documento: '3344556678', nombre: 'Andrés Vásquez',   fechaNacimiento: '2012-12-30', estado: 'Retirado',    fechaInscripcion: '2026-02-15' },
+  { id: 301, ...BENEFICIARIO_EXTRA_VACIO, titularId: 3, documento: '7788990011', nombre: 'Sofia Sánchez',    fechaNacimiento: '2008-05-20', estado: 'Activo',      fechaInscripcion: '2026-03-01' },
+  { id: 302, ...BENEFICIARIO_EXTRA_VACIO, titularId: 3, documento: '7788990012', nombre: 'Daniela Sánchez',  fechaNacimiento: '2005-07-14', estado: 'Reemplazado', fechaInscripcion: '2026-03-01' },
+  { id: 601, ...BENEFICIARIO_EXTRA_VACIO, titularId: 6, documento: '9900112233', nombre: 'Camila Morales',   fechaNacimiento: '2014-02-11', estado: 'Activo',      fechaInscripcion: '2026-04-18' },
+  { id: 602, ...BENEFICIARIO_EXTRA_VACIO, titularId: 6, documento: '9900112234', nombre: 'Rodrigo Morales',  fechaNacimiento: '2016-09-03', estado: 'Activo',      fechaInscripcion: '2026-04-18' },
+  { id: 603, ...BENEFICIARIO_EXTRA_VACIO, titularId: 6, documento: '8899001122', nombre: 'Elena López',      fechaNacimiento: '1955-04-25', estado: 'Activo',      fechaInscripcion: '2026-04-18' },
 ]
 
 export const TITULAR_DRAFT_VACIO: TitularDraft = {
@@ -39,13 +41,22 @@ export const TITULAR_DRAFT_VACIO: TitularDraft = {
 }
 
 export const BENEFICIARIO_DRAFT_VACIO: BeneficiarioDraft = {
-  documento: '', nombre: '', fechaNacimiento: '', parentesco: 'Hijo(a)', estado: 'Activo',
+  ...BENEFICIARIO_EXTRA_VACIO,
+  documento: '', nombre: '', fechaNacimiento: '', estado: 'Activo',
   fechaInscripcion: new Date().toISOString().split('T')[0],
 }
 
-export const PARENTESCOS = ['Cónyuge', 'Hijo(a)', 'Padre/Madre', 'Hermano(a)', 'Otro']
-
 export const CUPO_MAXIMO = 4
+
+/**
+ * Cupo real de beneficiarios de un titular según los planes que trae el backend.
+ * Si no hay ese dato (titular creado localmente) o el plan no quedó vinculado
+ * (cupo en 0 aunque sí haya beneficiarios activos), usa el tope por defecto.
+ */
+export const cupoMaximoTitular = (t: Titular): number => {
+  const cupo = t.planesDetalle?.reduce((sum, p) => sum + p.cupo, 0) ?? 0
+  return cupo > 0 ? cupo : CUPO_MAXIMO
+}
 
 export const TIPO_SEG_META: Record<TipoSeguimiento, { icono: unknown; color: string }> = {
   'Llamada':  { icono: Phone,         color: '#2447F9' },

@@ -1,6 +1,7 @@
 import type {
   Beneficiario, BeneficiarioDraft, Titular, TitularDraft,
-  ResumenTitularesResponse, TitularListadoResponse, ListadoTitularesResponse, TitularDetalleResponse, PlanTitular,
+  ResumenTitularesResponse, TitularListadoResponse, ListadoTitularesResponse,
+  BeneficiarioListadoResponse, TitularDetalleResponse, PlanTitular,
 } from '../types/plan-liga'
 import { joinNombreCompleto } from '@/shared/utils/nombreCompuesto'
 import { BENEFICIARIOS_MOCK, TITULARES_MOCK } from '../constants/plan-liga.constants'
@@ -69,6 +70,7 @@ export interface ListadoTitularesParams {
   plan?: string
   sexo?: 'Masculino' | 'Femenino'
   edad?: '0-17' | '18-35' | '36-50' | '51+'
+  busqueda?: string
 }
 
 export interface ListadoTitulares {
@@ -78,12 +80,16 @@ export interface ListadoTitulares {
   offset: number
 }
 
-function parsePlanesDetalle(planesStr: string, beneficiariosStr: string): PlanTitular[] {
-  const nombres = planesStr.split('|').map(s => s.trim()).filter(Boolean)
-  const cupos = beneficiariosStr.split('|').map(s => s.trim())
-  return nombres.map((nombre, i) => {
+// El backend puede traer BENEFICIARIOS (conteo real) sin PLANES (nombre) cuando el
+// titular no tiene un plan vinculado correctamente; no se descartan esos conteos solo
+// porque falte el nombre del plan.
+function parsePlanesDetalle(planesStr: string | null, beneficiariosStr: string | null): PlanTitular[] {
+  const nombres = (planesStr ?? '').split('|').map(s => s.trim()).filter(Boolean)
+  const cupos = (beneficiariosStr ?? '').split('|').map(s => s.trim()).filter(Boolean)
+  const cantidad = Math.max(nombres.length, cupos.length)
+  return Array.from({ length: cantidad }, (_, i) => {
     const [activos, cupo] = (cupos[i] ?? '0/0').split('/').map(n => Number(n) || 0)
-    return { nombre, activos, cupo }
+    return { nombre: nombres[i] ?? '', activos, cupo }
   })
 }
 
@@ -96,12 +102,12 @@ function mapTitularListado(r: TitularListadoResponse): Titular {
     nombre: r.TITULAR,
     fechaNacimiento: '',
     sexo: 'Otro',
-    correo: r.EMAIL,
-    telefono: r.TELEFONO,
+    correo: r.EMAIL ?? '',
+    telefono: r.TELEFONO ?? '',
     direccion: '',
     ciudad: '',
     departamento: '',
-    empresa: r.EMPRESA,
+    empresa: r.EMPRESA ?? '',
     planContratado: planesDetalle.map(p => p.nombre).join(' | '),
     tipoPlan: '',
     tipoAfiliado: '',
@@ -148,6 +154,39 @@ function mapTitularDetalle(r: TitularDetalleResponse): Titular {
   }
 }
 
+function mapBeneficiarioListado(r: BeneficiarioListadoResponse, titularId: number): Beneficiario {
+  return {
+    id: r.ID,
+    titularId,
+    tipoDocumento: r.TIPO_DOCUMENTO ?? '',
+    documento: r.DOCUMENTO,
+    nombre: joinNombreCompleto({
+      nombre1: r.NOMBRE1 ?? '',
+      nombre2: r.NOMBRE2 ?? '',
+      apellido1: r.APELLIDO1 ?? '',
+      apellido2: r.APELLIDO2 ?? '',
+    }),
+    fechaNacimiento: r.FECHA_NACIMIENTO ?? '',
+    sexo: (r.SEXO && SEXO_DESDE_API[r.SEXO]) || 'Otro',
+    correo: r.CORREO ?? '',
+    telefono: r.TELEFONO ?? '',
+    direccion: r.DIRECCION ?? '',
+    ciudad: r.CIUDAD ?? '',
+    departamento: r.DEPARTAMENTO ?? '',
+    empresa: r.EMPRESA ?? '',
+    estado: r.ESTADO === 'A' ? 'Activo' : 'Inactivo',
+    fechaInscripcion: r.FECHA_INGRESO ?? '',
+  }
+}
+
+export async function getBeneficiariosTitular(idTitular: number): Promise<Beneficiario[]> {
+  const data = await obtenerJson<BeneficiarioListadoResponse[]>(
+    `/api/titulares-beneficiarios/${idTitular}/beneficiarios`,
+    'No se pudo cargar los beneficiarios del titular.',
+  )
+  return data.map(r => mapBeneficiarioListado(r, idTitular))
+}
+
 export async function getTitular(idTitular: number): Promise<Titular> {
   const data = await obtenerJson<TitularDetalleResponse>(
     `/api/titulares-beneficiarios/${idTitular}`,
@@ -164,6 +203,7 @@ export async function getListadoTitulares(params: ListadoTitularesParams = {}): 
   if (params.plan) query.set('plan', params.plan)
   if (params.sexo) query.set('sexo', SEXO_API[params.sexo])
   if (params.edad) query.set('edad', params.edad)
+  if (params.busqueda) query.set('busqueda', params.busqueda)
   const qs = query.toString()
 
   const data = await obtenerJson<ListadoTitularesResponse>(
