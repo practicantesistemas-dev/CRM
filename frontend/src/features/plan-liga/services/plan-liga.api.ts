@@ -1,6 +1,6 @@
 import type {
   Beneficiario, BeneficiarioDraft, Titular, TitularDraft,
-  ResumenTitularesResponse, TitularListadoResponse, TitularDetalleResponse, PlanTitular,
+  ResumenTitularesResponse, TitularListadoResponse, ListadoTitularesResponse, TitularDetalleResponse, PlanTitular,
 } from '../types/plan-liga'
 import { joinNombreCompleto } from '@/shared/utils/nombreCompuesto'
 import { BENEFICIARIOS_MOCK, TITULARES_MOCK } from '../constants/plan-liga.constants'
@@ -64,10 +64,18 @@ const SEXO_API: Record<'Masculino' | 'Femenino', string> = { Masculino: 'M', Fem
 
 export interface ListadoTitularesParams {
   limit?: number
+  offset?: number
   estado?: 'Activo' | 'Inactivo'
   plan?: string
   sexo?: 'Masculino' | 'Femenino'
   edad?: '0-17' | '18-35' | '36-50' | '51+'
+}
+
+export interface ListadoTitulares {
+  items: Titular[]
+  total: number
+  limit: number
+  offset: number
 }
 
 function parsePlanesDetalle(planesStr: string, beneficiariosStr: string): PlanTitular[] {
@@ -148,20 +156,26 @@ export async function getTitular(idTitular: number): Promise<Titular> {
   return mapTitularDetalle(data)
 }
 
-export async function getListadoTitulares(params: ListadoTitularesParams = {}): Promise<Titular[]> {
+export async function getListadoTitulares(params: ListadoTitularesParams = {}): Promise<ListadoTitulares> {
   const query = new URLSearchParams()
   if (params.limit) query.set('limit', String(params.limit))
+  if (params.offset) query.set('offset', String(params.offset))
   if (params.estado) query.set('estado', ESTADO_API[params.estado])
   if (params.plan) query.set('plan', params.plan)
   if (params.sexo) query.set('sexo', SEXO_API[params.sexo])
   if (params.edad) query.set('edad', params.edad)
   const qs = query.toString()
 
-  const data = await obtenerJson<TitularListadoResponse[]>(
+  const data = await obtenerJson<ListadoTitularesResponse>(
     `/api/titulares-beneficiarios/listado${qs ? `?${qs}` : ''}`,
     'No se pudo cargar el listado de titulares.',
   )
-  return data.map(mapTitularListado)
+  return {
+    items: data.items.map(mapTitularListado),
+    total: data.total,
+    limit: data.limit,
+    offset: data.offset,
+  }
 }
 
 export async function getNombresPlanes(): Promise<string[]> {

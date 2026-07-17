@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Edit2, Loader2, ToggleLeft, ToggleRight, Users, ClipboardList } from 'lucide-vue-next'
 import type { Titular } from '../types/plan-liga'
-import { estadoTitularStyle, planStyle } from '../constants/plan-liga.constants'
+import { estadoTitularStyle, planStyle, CUPO_MAXIMO } from '../constants/plan-liga.constants'
 import PersonaAvatar from '../components/PersonaAvatar.vue'
 import CuposIndicador from '../components/CuposIndicador.vue'
 
@@ -17,6 +17,13 @@ const emit = defineEmits<{
   'toggle-estado': [t: Titular]
   beneficiarios: [t: Titular]
 }>()
+
+// El backend trae el conteo real de beneficiarios por plan (planesDetalle); si no viene
+// (titulares creados/editados localmente), se usa el conteo mock con el tope fijo.
+const cuposTitular = (t: Titular, activosLocal: number) =>
+  t.planesDetalle?.length
+    ? t.planesDetalle.reduce((acc, p) => ({ activos: acc.activos + p.activos, cupo: acc.cupo + p.cupo }), { activos: 0, cupo: 0 })
+    : { activos: activosLocal, cupo: CUPO_MAXIMO }
 </script>
 
 <template>
@@ -52,15 +59,15 @@ const emit = defineEmits<{
             <td class="px-4 py-3.5">
               <div v-if="t.planesDetalle?.length" class="flex flex-col gap-0.5">
                 <span v-for="p in t.planesDetalle" :key="p.nombre" class="text-[11px] font-semibold" :class="planStyle(p.nombre)">
-                  {{ p.nombre }} <span class="text-slate-400 font-medium">({{ p.activos }}/{{ p.cupo }})</span>
+                  {{ p.nombre }}
                 </span>
               </div>
               <span v-else class="text-[11px] font-semibold" :class="planStyle(t.planContratado)">{{ t.planContratado }}</span>
             </td>
             <td class="px-4 py-3.5">
               <div class="flex items-center gap-2">
-                <CuposIndicador :activos="activosPorTitular(t.id)" variant="dots" />
-                <span class="text-[11px] font-bold" :class="activosPorTitular(t.id) >= 4 ? 'text-[#EC4899]' : 'text-slate-600'">{{ activosPorTitular(t.id) }}/4</span>
+                <CuposIndicador :activos="cuposTitular(t, activosPorTitular(t.id)).activos" :max="cuposTitular(t, activosPorTitular(t.id)).cupo" variant="dots" />
+                <span class="text-[11px] font-bold" :class="cuposTitular(t, activosPorTitular(t.id)).activos >= cuposTitular(t, activosPorTitular(t.id)).cupo ? 'text-[#EC4899]' : 'text-slate-600'">{{ cuposTitular(t, activosPorTitular(t.id)).activos }}/{{ cuposTitular(t, activosPorTitular(t.id)).cupo }}</span>
               </div>
               <button @click="emit('beneficiarios', t)" class="text-[10px] text-[#2447F9] hover:underline mt-0.5 block">Ver beneficiarios</button>
             </td>

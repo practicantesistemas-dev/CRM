@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { Heart, Users, Plus, Search, Download, Upload } from 'lucide-vue-next'
+import { Heart, Users, Plus, Search, Download, Upload, ChevronLeft, ChevronRight } from 'lucide-vue-next'
 import type { Beneficiario, BeneficiarioDraft, Titular, TitularDraft } from '../types/plan-liga'
 import { BENEFICIARIO_DRAFT_VACIO, CUPO_MAXIMO, TITULAR_DRAFT_VACIO } from '../constants/plan-liga.constants'
 import { usePlanLiga } from '../composables/usePlanLiga'
@@ -15,6 +15,8 @@ const {
   buscar, filtroEstado, filtroPlan, filtroSexo, filtroEdad,
   titularesFiltrados, planes,
   totalActivos, totalBeneficiarios,
+  totalTitulares, paginaActual, totalPaginas, hayPaginaAnterior, hayPaginaSiguiente,
+  paginaSiguiente, paginaAnterior,
   activosPorTitular, puedeAgregar,
   obtenerTitular,
   crearTitular, actualizarTitular, toggleEstadoTitular,
@@ -183,7 +185,9 @@ const modalImportVisible = ref(false)
           </select>
         </div>
       </div>
-      <div class="mt-2 text-[11px] text-slate-400">Mostrando <strong class="text-slate-600">{{ titularesFiltrados.length }}</strong> titulares</div>
+      <div class="mt-2 text-[11px] text-slate-400">
+        Mostrando <strong class="text-slate-600">{{ titularesFiltrados.length }}</strong> de <strong class="text-slate-600">{{ totalTitulares }}</strong> titulares
+      </div>
     </div>
 
     <TitularesTable
@@ -195,6 +199,20 @@ const modalImportVisible = ref(false)
       @toggle-estado="toggleEstadoTitular"
       @beneficiarios="abrirBeneficiarios"
     />
+
+    <div v-if="totalTitulares > 0" class="flex items-center justify-center gap-3 px-1">
+      <button @click="paginaAnterior" :disabled="!hayPaginaAnterior"
+        class="w-8 h-8 rounded-lg border border-slate-200 bg-white text-slate-500 flex items-center justify-center hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+        title="Página anterior">
+        <ChevronLeft :size="15" />
+      </button>
+      <span class="text-[11px] text-slate-400">Página <strong class="text-slate-600">{{ paginaActual }}</strong> de <strong class="text-slate-600">{{ totalPaginas }}</strong></span>
+      <button @click="paginaSiguiente" :disabled="!hayPaginaSiguiente"
+        class="w-8 h-8 rounded-lg border border-slate-200 bg-white text-slate-500 flex items-center justify-center hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+        title="Página siguiente">
+        <ChevronRight :size="15" />
+      </button>
+    </div>
 
     <TitularFormDialog v-model:visible="modalTitularVisible" v-model:draft="draftTitular" :modo="modalModo" @submit="guardarTitular" />
 

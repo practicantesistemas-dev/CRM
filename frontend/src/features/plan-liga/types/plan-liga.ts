@@ -91,6 +91,13 @@ export interface TitularListadoResponse {
   ESTADO: string
 }
 
+export interface ListadoTitularesResponse {
+  items: TitularListadoResponse[]
+  total: number
+  limit: number
+  offset: number
+}
+
 export interface TitularDetalleResponse {
   ID_TITULAR: number
   DOCUMENTO: string

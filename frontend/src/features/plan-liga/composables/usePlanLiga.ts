@@ -7,11 +7,20 @@ import {
   getListadoTitulares, getNombresPlanes, getTitular,
 } from '../services/plan-liga.api'
 
+const TITULARES_POR_PAGINA = 6
+
 export function usePlanLiga() {
   const titulares = ref<Titular[]>([])
   const cargandoTitulares = ref(false)
   const errorTitulares = ref<string | null>(null)
   const beneficiarios = ref<Beneficiario[]>(getBeneficiarios())
+
+  const offsetTitulares = ref(0)
+  const totalTitulares = ref(0)
+  const paginaActual = computed(() => Math.floor(offsetTitulares.value / TITULARES_POR_PAGINA) + 1)
+  const totalPaginas = computed(() => Math.max(1, Math.ceil(totalTitulares.value / TITULARES_POR_PAGINA)))
+  const hayPaginaAnterior = computed(() => offsetTitulares.value > 0)
+  const hayPaginaSiguiente = computed(() => offsetTitulares.value + TITULARES_POR_PAGINA < totalTitulares.value)
 
   const activosPorTitular = (id: number) =>
     beneficiarios.value.filter(b => b.titularId === id && b.estado === 'Activo').length
@@ -43,14 +52,17 @@ export function usePlanLiga() {
     cargandoTitulares.value = true
     errorTitulares.value = null
     try {
-      titulares.value = await getListadoTitulares({
-        limit: 1000,
+      const resultado = await getListadoTitulares({
+        limit: TITULARES_POR_PAGINA,
+        offset: offsetTitulares.value,
         estado: filtroEstado.value === 'todos' ? undefined : (filtroEstado.value as 'Activo' | 'Inactivo'),
         plan: filtroPlan.value === 'todos' ? undefined : filtroPlan.value,
         // 'Otro' no tiene código en el backend (solo M/F), así que no se envía y no filtra.
         sexo: filtroSexo.value === 'Masculino' || filtroSexo.value === 'Femenino' ? filtroSexo.value : undefined,
         edad: filtroEdad.value === 'todos' ? undefined : (filtroEdad.value as '0-17' | '18-35' | '36-50' | '51+'),
       })
+      titulares.value = resultado.items
+      totalTitulares.value = resultado.total
     } catch (e) {
       errorTitulares.value = e instanceof Error ? e.message : 'No se pudo cargar el listado de titulares.'
     } finally {
@@ -58,7 +70,21 @@ export function usePlanLiga() {
     }
   }
 
-  watch([filtroEstado, filtroPlan, filtroSexo, filtroEdad], cargarTitulares)
+  const paginaSiguiente = () => {
+    if (!hayPaginaSiguiente.value) return
+    offsetTitulares.value += TITULARES_POR_PAGINA
+    cargarTitulares()
+  }
+  const paginaAnterior = () => {
+    if (!hayPaginaAnterior.value) return
+    offsetTitulares.value = Math.max(0, offsetTitulares.value - TITULARES_POR_PAGINA)
+    cargarTitulares()
+  }
+
+  watch([filtroEstado, filtroPlan, filtroSexo, filtroEdad], () => {
+    offsetTitulares.value = 0
+    cargarTitulares()
+  })
 
   const totalActivos = ref(0)
   const totalBeneficiarios = ref(0)
@@ -132,6 +158,8 @@ export function usePlanLiga() {
     buscar, filtroEstado, filtroPlan, filtroSexo, filtroEdad,
     titularesFiltrados, planes, cargandoTitulares, errorTitulares,
     totalActivos, totalBeneficiarios, titularesTope, errorResumen,
+    totalTitulares, paginaActual, totalPaginas, hayPaginaAnterior, hayPaginaSiguiente,
+    paginaSiguiente, paginaAnterior,
     activosPorTitular, puedeAgregar,
     cargandoDetalleTitular, obtenerTitular,
     crearTitular, actualizarTitular, toggleEstadoTitular,
