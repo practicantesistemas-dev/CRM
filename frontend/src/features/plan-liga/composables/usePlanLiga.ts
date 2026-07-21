@@ -2,7 +2,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import type { Beneficiario, BeneficiarioDraft, Titular, TitularDraft } from '../types/plan-liga'
 import { CUPO_MAXIMO } from '../constants/plan-liga.constants'
 import {
-  createTitular, updateTitular,
+  createTitular, updateTitular, activarTitular, desactivarTitular,
   getBeneficiarios, createBeneficiario, updateBeneficiario, getResumenTitulares,
   getListadoTitulares, getNombresPlanes, getTitular, getBeneficiariosTitular,
 } from '../services/plan-liga.api'
@@ -147,8 +147,27 @@ export function usePlanLiga() {
       guardandoTitular.value = false
     }
   }
-  const toggleEstadoTitular = (t: Titular) => {
-    actualizarTitular(t.id, { ...t, estado: t.estado === 'Activo' ? 'Inactivo' : 'Activo' })
+  const toggleEstadoTitular = async (t: Titular) => {
+    const activando = t.estado !== 'Activo'
+    const nuevoEstado = activando ? 'Activo' : 'Inactivo'
+    guardandoTitular.value = true
+    errorGuardarTitular.value = null
+    try {
+      if (activando) {
+        await activarTitular(t.id)
+      } else {
+        await desactivarTitular(t.id)
+      }
+      const idx = titulares.value.findIndex(x => x.id === t.id)
+      if (idx !== -1) titulares.value[idx] = { ...t, estado: nuevoEstado }
+      cargarResumen()
+    } catch (e) {
+      errorGuardarTitular.value = e instanceof Error
+        ? e.message
+        : `No se pudo ${activando ? 'activar' : 'desactivar'} el titular.`
+    } finally {
+      guardandoTitular.value = false
+    }
   }
 
   const beneficiariosDeTitular = (titularId: number) =>

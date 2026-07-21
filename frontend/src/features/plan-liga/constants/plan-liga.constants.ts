@@ -8,11 +8,11 @@ const TITULAR_EXTRA_VACIO = {
   tipoPlan: '', tipoAfiliado: '', eps: '', otraEps: '', planSalud: '', planNombre: '',
 }
 
-const BENEFICIARIO_EXTRA_VACIO = { tipoDocumento: 'CC', sexo: 'Otro' as const, correo: '', telefono: '', direccion: '', ciudad: '', departamento: '', empresa: '' }
+const BENEFICIARIO_EXTRA_VACIO = { tipoDocumento: 'CC', sexo: '' as const, correo: '', telefono: '', direccion: '', ciudad: '', departamento: '', empresa: '' }
 
 export const TITULAR_DRAFT_VACIO: TitularDraft = {
   ...TITULAR_EXTRA_VACIO,
-  documento: '', nombre: '', fechaNacimiento: '', sexo: 'Masculino', correo: '', telefono: '',
+  documento: '', nombre: '', fechaNacimiento: '', sexo: '', correo: '', telefono: '',
   empresa: '', planContratado: 'Plan Liga Individual', fechaInscripcion: new Date().toISOString().split('T')[0], estado: 'Activo',
 }
 

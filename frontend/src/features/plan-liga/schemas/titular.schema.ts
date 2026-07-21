@@ -6,7 +6,7 @@ export const titularSchema = z.object({
   documento: documentoIdentidad(),
   nombre: nombrePersona(),
   fechaNacimiento: z.string().trim(),
-  sexo: z.enum(['Masculino', 'Femenino', 'Otro']),
+  sexo: z.union([z.enum(['Masculino', 'Femenino']), z.literal('')]),
   correo: optionalEmail(),
   telefono: telefonoCO(),
   direccion: z.string().trim(),

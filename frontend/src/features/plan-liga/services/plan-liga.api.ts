@@ -19,7 +19,7 @@ let titulares: Titular[] = []
 let beneficiarios: Beneficiario[] = []
 
 const ESTADO_TITULAR_API: Record<Titular['estado'], string> = { Activo: 'A', Inactivo: 'I' }
-const SEXO_TITULAR_API: Record<Titular['sexo'], string> = { Masculino: 'M', Femenino: 'F', Otro: 'O' }
+const SEXO_TITULAR_API: Record<Titular['sexo'], string | null> = { Masculino: 'M', Femenino: 'F', '': null }
 
 /** Selector de titulares (usado por Oportunidades/Actividades): trae el listado real del backend. */
 export async function getTitulares(): Promise<Titular[]> {
@@ -61,6 +61,20 @@ export async function updateTitular(id: number, data: TitularDraft): Promise<Tit
   return { ...data, id }
 }
 
+export async function activarTitular(idTitular: number): Promise<void> {
+  const response = await fetch(`${API_URL}/api/titulares-beneficiarios/${idTitular}/activar`, {
+    method: 'POST',
+  })
+  if (!response.ok) throw new Error('No se pudo activar el titular.')
+}
+
+export async function desactivarTitular(idTitular: number): Promise<void> {
+  const response = await fetch(`${API_URL}/api/titulares-beneficiarios/${idTitular}/desactivar`, {
+    method: 'POST',
+  })
+  if (!response.ok) throw new Error('No se pudo desactivar el titular.')
+}
+
 export function getBeneficiarios(): Beneficiario[] {
   return beneficiarios
 }
@@ -74,7 +88,7 @@ export function createBeneficiario(titularId: number, data: BeneficiarioDraft): 
 const ESTADO_BENEFICIARIO_API: Record<Beneficiario['estado'], string> = {
   Activo: 'A', Inactivo: 'I', Reemplazado: 'R', Retirado: 'X',
 }
-const SEXO_BENEFICIARIO_API: Record<Beneficiario['sexo'], string> = { Masculino: 'M', Femenino: 'F', Otro: 'O' }
+const SEXO_BENEFICIARIO_API: Record<Beneficiario['sexo'], string | null> = { Masculino: 'M', Femenino: 'F', '': null }
 
 export async function updateBeneficiario(idTitular: number, idBeneficiario: number, data: BeneficiarioDraft): Promise<Beneficiario> {
   const { nombre1, nombre2, apellido1, apellido2 } = splitNombreCompleto(data.nombre)
@@ -152,7 +166,7 @@ function mapTitularListado(r: TitularListadoResponse): Titular {
     documento: r.DOCUMENTO,
     nombre: r.TITULAR,
     fechaNacimiento: '',
-    sexo: 'Otro',
+    sexo: '',
     correo: r.EMAIL ?? '',
     telefono: r.TELEFONO ?? '',
     direccion: '',
@@ -172,7 +186,7 @@ function mapTitularListado(r: TitularListadoResponse): Titular {
   }
 }
 
-const SEXO_DESDE_API: Record<string, 'Masculino' | 'Femenino'> = { M: 'Masculino', F: 'Femenino' }
+const SEXO_DESDE_API: Record<string, 'Masculino' | 'Femenino' | undefined> = { M: 'Masculino', F: 'Femenino' }
 
 function mapTitularDetalle(r: TitularDetalleResponse): Titular {
   return {
@@ -186,7 +200,7 @@ function mapTitularDetalle(r: TitularDetalleResponse): Titular {
       apellido2: r.APELLIDO2 ?? '',
     }),
     fechaNacimiento: r.FECHA_NACIMIENTO ?? '',
-    sexo: (r.SEXO && SEXO_DESDE_API[r.SEXO]) || 'Otro',
+    sexo: (r.SEXO && SEXO_DESDE_API[r.SEXO]) || '',
     correo: r.CORREO ?? '',
     telefono: r.TELEFONO ?? '',
     direccion: r.DIRECCION ?? '',
@@ -218,7 +232,7 @@ function mapBeneficiarioListado(r: BeneficiarioListadoResponse, titularId: numbe
       apellido2: r.APELLIDO2 ?? '',
     }),
     fechaNacimiento: r.FECHA_NACIMIENTO ?? '',
-    sexo: (r.SEXO && SEXO_DESDE_API[r.SEXO]) || 'Otro',
+    sexo: (r.SEXO && SEXO_DESDE_API[r.SEXO]) || '',
     correo: r.CORREO ?? '',
     telefono: r.TELEFONO ?? '',
     direccion: r.DIRECCION ?? '',
