@@ -18,9 +18,10 @@ const apellidoFaltante = computed(() => faltaApellido(nombre))
 
 defineExpose({ submit: onValidSubmit(() => { if (!apellidoFaltante.value) emit('validSubmit') }) })
 
-// La fecha de inscripción queda fijada al crear el beneficiario: se muestra de
-// solo lectura en edición para evitar registrar cambios que nunca se guardan.
-const soloFechaInscripcion = computed(() => props.modo === 'editar')
+// Fecha de inscripción y estado quedan fijados al crear el beneficiario: se muestran
+// de solo lectura en edición para evitar registrar cambios que nunca se guardan.
+// El estado solo se cambia desde el botón de desactivar en la lista de beneficiarios.
+const soloLecturaEnEdicion = computed(() => props.modo === 'editar')
 </script>
 
 <template>
@@ -111,7 +112,7 @@ const soloFechaInscripcion = computed(() => props.modo === 'editar')
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Estado</label>
-          <select v-model="draft.estado" class="w-full h-10 px-3 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white transition-all cursor-pointer">
+          <select v-model="draft.estado" :disabled="soloLecturaEnEdicion" title="Usa el botón de desactivar en la lista de beneficiarios para cambiar el estado" class="w-full h-10 px-3 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white transition-all cursor-pointer disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed">
             <option value="Activo">Activo</option>
             <option value="Inactivo">Inactivo</option>
             <option value="Reemplazado">Reemplazado</option>
@@ -120,7 +121,7 @@ const soloFechaInscripcion = computed(() => props.modo === 'editar')
         </div>
         <div>
           <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Fecha inscripción</label>
-          <input v-model="draft.fechaInscripcion" type="date" :disabled="soloFechaInscripcion" class="w-full h-10 px-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed" />
+          <input v-model="draft.fechaInscripcion" type="date" :disabled="soloLecturaEnEdicion" class="w-full h-10 px-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed" />
         </div>
       </div>
     </div>
