@@ -126,12 +126,25 @@ export function usePlanLiga() {
     }
   }
 
-  const crearTitular = (data: TitularDraft) => {
-    titulares.value = [createTitular(data), ...titulares.value]
-  }
-
   const guardandoTitular = ref(false)
   const errorGuardarTitular = ref<string | null>(null)
+
+  const crearTitular = async (data: TitularDraft): Promise<boolean> => {
+    guardandoTitular.value = true
+    errorGuardarTitular.value = null
+    try {
+      await createTitular(data)
+      offsetTitulares.value = 0
+      await cargarTitulares()
+      cargarResumen()
+      return true
+    } catch (e) {
+      errorGuardarTitular.value = e instanceof Error ? e.message : 'No se pudo crear el titular.'
+      return false
+    } finally {
+      guardandoTitular.value = false
+    }
+  }
 
   const actualizarTitular = async (id: number, data: TitularDraft): Promise<boolean> => {
     guardandoTitular.value = true

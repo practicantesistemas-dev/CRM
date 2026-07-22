@@ -54,8 +54,8 @@ const abrirEditarTitular = async (t: Titular) => {
 }
 const guardarTitular = async () => {
   if (modalModo.value === 'nuevo') {
-    crearTitular(draftTitular.value)
-    modalTitularVisible.value = false
+    const ok = await crearTitular(draftTitular.value)
+    if (ok) modalTitularVisible.value = false
   } else if (titularEditando.value) {
     const ok = await actualizarTitular(titularEditando.value.id, draftTitular.value)
     if (ok) modalTitularVisible.value = false
@@ -261,7 +261,7 @@ const modalImportVisible = ref(false)
     </div>
 
     <TitularFormDialog v-model:visible="modalTitularVisible" v-model:draft="draftTitular" :modo="modalModo"
-      :guardando="guardandoTitular" :error="errorGuardarTitular" @submit="guardarTitular" />
+      :guardando="guardandoTitular" :error="errorGuardarTitular" :planes="planes" @submit="guardarTitular" />
 
     <BeneficiariosDrawer
       v-model:visible="drawerVisible"

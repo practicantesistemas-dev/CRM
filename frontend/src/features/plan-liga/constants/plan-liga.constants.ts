@@ -13,7 +13,7 @@ const BENEFICIARIO_EXTRA_VACIO = { tipoDocumento: 'CC', sexo: '' as const, corre
 export const TITULAR_DRAFT_VACIO: TitularDraft = {
   ...TITULAR_EXTRA_VACIO,
   documento: '', nombre: '', fechaNacimiento: '', sexo: '', correo: '', telefono: '',
-  empresa: '', planContratado: 'Plan Liga Individual', fechaInscripcion: new Date().toISOString().split('T')[0], estado: 'Activo',
+  empresa: '', planContratado: '', fechaInscripcion: new Date().toISOString().split('T')[0], estado: 'Activo',
 }
 
 export const BENEFICIARIO_DRAFT_VACIO: BeneficiarioDraft = {

@@ -8,7 +8,7 @@ import { faltaApellido } from '@/shared/utils/nombreCompuesto'
 import { fieldStateClass } from '@/shared/utils/fieldStateClass'
 import FieldError from '@/shared/components/FieldError.vue'
 
-const props = defineProps<{ modo?: 'nuevo' | 'editar' }>()
+const props = defineProps<{ modo?: 'nuevo' | 'editar'; planes?: string[] }>()
 const draft = defineModel<TitularDraft>({ required: true })
 const emit = defineEmits<{ validSubmit: [] }>()
 
@@ -22,6 +22,7 @@ defineExpose({ submit: onValidSubmit(() => { if (!apellidoFaltante.value) emit('
 // solo lectura en edición para evitar registrar cambios que nunca se guardan.
 // El estado solo se cambia desde el botón de activar/desactivar en la tabla.
 const soloLecturaEnEdicion = computed(() => props.modo === 'editar')
+const hoy = new Date().toISOString().split('T')[0]
 </script>
 
 <template>
@@ -92,8 +93,8 @@ const soloLecturaEnEdicion = computed(() => props.modo === 'editar')
     <div>
       <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Plan contratado</label>
       <select v-model="draft.planContratado" class="w-full h-10 px-3 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white transition-all cursor-pointer">
-        <option value="Plan Liga Empresarial">Plan Liga Empresarial</option>
-        <option value="Plan Liga Individual">Plan Liga Individual</option>
+        <option value="">Selecciona un plan</option>
+        <option v-for="p in props.planes" :key="p" :value="p">{{ p }}</option>
       </select>
     </div>
     <div>
@@ -122,11 +123,11 @@ const soloLecturaEnEdicion = computed(() => props.modo === 'editar')
     </div>
     <div>
       <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Fecha de inscripción</label>
-      <input v-model="draft.fechaInscripcion" type="date" :disabled="soloLecturaEnEdicion" class="w-full h-10 px-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed" />
+      <input v-model="draft.fechaInscripcion" type="date" :max="hoy" :disabled="soloLecturaEnEdicion" class="w-full h-10 px-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed" />
     </div>
     <div>
       <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Estado</label>
-      <select v-model="draft.estado" :disabled="soloLecturaEnEdicion" title="Usa el botón de activar/desactivar en la tabla para cambiar el estado" class="w-full h-10 px-3 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white transition-all cursor-pointer disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed">
+      <select v-model="draft.estado" disabled title="El titular se crea como Activo; usa el botón de activar/desactivar en la tabla para cambiar el estado" class="w-full h-10 px-3 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white transition-all cursor-pointer disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed">
         <option value="Activo">Activo</option>
         <option value="Inactivo">Inactivo</option>
       </select>

@@ -8,6 +8,7 @@ defineProps<{
   modo: 'nuevo' | 'editar'
   guardando?: boolean
   error?: string | null
+  planes?: string[]
 }>()
 const emit = defineEmits<{ submit: [] }>()
 
@@ -32,7 +33,7 @@ const formRef = ref<InstanceType<typeof TitularForm>>()
           <AlertCircle :size="13" class="text-red-500 shrink-0" />
           <p class="text-[11px] text-red-600 font-medium">{{ error }}</p>
         </div>
-        <TitularForm ref="formRef" v-model="draft" :modo="modo" @valid-submit="emit('submit')" />
+        <TitularForm ref="formRef" v-model="draft" :modo="modo" :planes="planes" @valid-submit="emit('submit')" />
       </div>
       <div class="flex items-center justify-end gap-2 px-6 py-4 border-t border-slate-200 bg-[#F8FAFC]">
         <button @click="visible = false" class="h-9 px-5 rounded-lg border border-slate-200 bg-white text-[11px] font-semibold text-slate-600 hover:bg-slate-50 transition-all">Cancelar</button>
