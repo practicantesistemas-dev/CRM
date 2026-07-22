@@ -5,6 +5,7 @@ import {
   createTitular, updateTitular, activarTitular, desactivarTitular,
   getBeneficiarios, createBeneficiario, updateBeneficiario, getResumenTitulares,
   getListadoTitulares, getNombresPlanes, getTitular, getBeneficiariosTitular,
+  activarBeneficiario as activarBeneficiarioApi, desactivarBeneficiario as desactivarBeneficiarioApi,
 } from '../services/plan-liga.api'
 
 const TITULARES_POR_PAGINA = 6
@@ -147,14 +148,14 @@ export function usePlanLiga() {
       guardandoTitular.value = false
     }
   }
-  const toggleEstadoTitular = async (t: Titular) => {
+  const toggleEstadoTitular = async (t: Titular, fechaIngreso?: string) => {
     const activando = t.estado !== 'Activo'
     const nuevoEstado = activando ? 'Activo' : 'Inactivo'
     guardandoTitular.value = true
     errorGuardarTitular.value = null
     try {
       if (activando) {
-        await activarTitular(t.id)
+        await activarTitular(t.id, fechaIngreso!)
       } else {
         await desactivarTitular(t.id)
       }
@@ -218,6 +219,39 @@ export function usePlanLiga() {
     if (idx !== -1) beneficiariosTitular.value[idx] = { ...b, estado }
   }
 
+  const guardandoEstadoBeneficiario = ref(false)
+  const errorEstadoBeneficiario = ref<string | null>(null)
+
+  const activarEstadoBeneficiario = async (titularId: number, b: Beneficiario, fechaIngreso: string) => {
+    guardandoEstadoBeneficiario.value = true
+    errorEstadoBeneficiario.value = null
+    try {
+      const actualizado = await activarBeneficiarioApi(titularId, b.id, fechaIngreso)
+      const idx = beneficiariosTitular.value.findIndex(x => x.id === b.id)
+      if (idx !== -1) beneficiariosTitular.value[idx] = actualizado
+      cargarResumen()
+    } catch (e) {
+      errorEstadoBeneficiario.value = e instanceof Error ? e.message : 'No se pudo activar el beneficiario.'
+    } finally {
+      guardandoEstadoBeneficiario.value = false
+    }
+  }
+
+  const desactivarEstadoBeneficiario = async (titularId: number, b: Beneficiario) => {
+    guardandoEstadoBeneficiario.value = true
+    errorEstadoBeneficiario.value = null
+    try {
+      const actualizado = await desactivarBeneficiarioApi(titularId, b.id)
+      const idx = beneficiariosTitular.value.findIndex(x => x.id === b.id)
+      if (idx !== -1) beneficiariosTitular.value[idx] = actualizado
+      cargarResumen()
+    } catch (e) {
+      errorEstadoBeneficiario.value = e instanceof Error ? e.message : 'No se pudo desactivar el beneficiario.'
+    } finally {
+      guardandoEstadoBeneficiario.value = false
+    }
+  }
+
   return {
     titulares, beneficiarios,
     buscar, filtroEstado, filtroPlan, filtroSexo, filtroEdad,
@@ -231,6 +265,8 @@ export function usePlanLiga() {
     guardandoTitular, errorGuardarTitular,
     beneficiariosDeTitular, crearBeneficiario, actualizarBeneficiario, cambiarEstadoBeneficiario,
     guardandoBeneficiario, errorGuardarBeneficiario,
+    activarEstadoBeneficiario, desactivarEstadoBeneficiario,
+    guardandoEstadoBeneficiario, errorEstadoBeneficiario,
     beneficiariosTitular, cargandoBeneficiariosTitular, errorBeneficiariosTitular, cargarBeneficiariosTitular,
   }
 }

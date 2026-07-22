@@ -11,6 +11,7 @@ defineProps<{
   cupoMaximo: number
   puedeAgregar: boolean
   cargando?: boolean
+  error?: string | null
 }>()
 
 const emit = defineEmits<{
@@ -46,6 +47,10 @@ const errLimite = defineModel<boolean>('errLimite', { required: true })
           <AlertCircle :size="13" class="text-red-500 shrink-0" />
           <p class="text-[11px] text-red-600 font-medium">El titular ya cuenta con el máximo permitido de <strong>{{ cupoMaximo }} beneficiarios activos</strong>.</p>
           <button @click="errLimite = false" class="ml-auto text-red-400 hover:text-red-600 shrink-0"><X :size="11" /></button>
+        </div>
+        <div v-if="error" class="mt-2 flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-3 py-2">
+          <AlertCircle :size="13" class="text-red-500 shrink-0" />
+          <p class="text-[11px] text-red-600 font-medium">{{ error }}</p>
         </div>
       </div>
       <div class="flex-1 overflow-y-auto p-4 space-y-3">

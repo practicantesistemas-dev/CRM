@@ -8,6 +8,7 @@ import TitularesTable from '../tables/TitularesTable.vue'
 import TitularFormDialog from '../dialogs/TitularFormDialog.vue'
 import BeneficiarioFormDialog from '../dialogs/BeneficiarioFormDialog.vue'
 import BeneficiariosDrawer from '../dialogs/BeneficiariosDrawer.vue'
+import ActivarFechaDialog from '../dialogs/ActivarFechaDialog.vue'
 import SeguimientoDialog from '../dialogs/SeguimientoDialog.vue'
 import ImportacionPlanLigaDialog from '../dialogs/ImportacionPlanLigaDialog.vue'
 
@@ -23,6 +24,7 @@ const {
   guardandoTitular, errorGuardarTitular,
   crearBeneficiario, actualizarBeneficiario, cambiarEstadoBeneficiario,
   guardandoBeneficiario, errorGuardarBeneficiario,
+  activarEstadoBeneficiario, desactivarEstadoBeneficiario, errorEstadoBeneficiario, guardandoEstadoBeneficiario,
   beneficiariosTitular, cargandoBeneficiariosTitular, cargarBeneficiariosTitular,
 } = usePlanLiga()
 
@@ -58,6 +60,24 @@ const guardarTitular = async () => {
     const ok = await actualizarTitular(titularEditando.value.id, draftTitular.value)
     if (ok) modalTitularVisible.value = false
   }
+}
+
+const modalActivarTitularVisible = ref(false)
+const titularActivando = ref<Titular | null>(null)
+
+const toggleEstadoTitularConFecha = (t: Titular) => {
+  if (t.estado === 'Activo') {
+    toggleEstadoTitular(t)
+    return
+  }
+  errorGuardarTitular.value = null
+  titularActivando.value = t
+  modalActivarTitularVisible.value = true
+}
+const confirmarActivarTitular = async (fechaIngreso: string) => {
+  if (!titularActivando.value) return
+  await toggleEstadoTitular(titularActivando.value, fechaIngreso)
+  if (!errorGuardarTitular.value) modalActivarTitularVisible.value = false
 }
 
 // ─── Drawer Beneficiarios ────────────────────────────────────────
@@ -108,11 +128,25 @@ const guardarBeneficiario = async () => {
     if (ok) modalBeneVisible.value = false
   }
 }
+const modalActivarVisible = ref(false)
+const beneficiarioActivando = ref<Beneficiario | null>(null)
+
 const activarBeneficiario = (b: Beneficiario) => {
+  if (!titularSeleccionado.value) return
   if (!puedeAgregarActual.value) { errLimite.value = true; return }
-  cambiarEstadoBeneficiario(b, 'Activo')
+  errorEstadoBeneficiario.value = null
+  beneficiarioActivando.value = b
+  modalActivarVisible.value = true
 }
-const desactivarBeneficiario = (b: Beneficiario) => cambiarEstadoBeneficiario(b, 'Inactivo')
+const confirmarActivarBeneficiario = async (fechaIngreso: string) => {
+  if (!titularSeleccionado.value || !beneficiarioActivando.value) return
+  await activarEstadoBeneficiario(titularSeleccionado.value.id, beneficiarioActivando.value, fechaIngreso)
+  if (!errorEstadoBeneficiario.value) modalActivarVisible.value = false
+}
+const desactivarBeneficiario = (b: Beneficiario) => {
+  if (!titularSeleccionado.value) return
+  desactivarEstadoBeneficiario(titularSeleccionado.value.id, b)
+}
 const reemplazarBeneficiario = (b: Beneficiario) => {
   cambiarEstadoBeneficiario(b, 'Reemplazado')
   abrirNuevoBeneficiario()
@@ -208,7 +242,7 @@ const modalImportVisible = ref(false)
       :cargando-editar-id="cargandoEditarId"
       @seguimiento="abrirSeguimiento"
       @editar="abrirEditarTitular"
-      @toggle-estado="toggleEstadoTitular"
+      @toggle-estado="toggleEstadoTitularConFecha"
       @beneficiarios="abrirBeneficiarios"
     />
 
@@ -238,11 +272,32 @@ const modalImportVisible = ref(false)
       :activos-actual="activosActual"
       :cupo-maximo="cupoMaximoActual"
       :puede-agregar="puedeAgregarActual"
+      :error="errorEstadoBeneficiario"
       @editar="abrirEditarBeneficiario"
       @activar="activarBeneficiario"
       @desactivar="desactivarBeneficiario"
       @reemplazar="reemplazarBeneficiario"
       @agregar-nuevo="abrirNuevoBeneficiario"
+    />
+
+    <ActivarFechaDialog
+      v-model:visible="modalActivarVisible"
+      titulo="Activar beneficiario"
+      :nombre="beneficiarioActivando?.nombre"
+      :guardando="guardandoEstadoBeneficiario"
+      :error="errorEstadoBeneficiario"
+      @confirmar="confirmarActivarBeneficiario"
+      @cancelar="errorEstadoBeneficiario = null"
+    />
+
+    <ActivarFechaDialog
+      v-model:visible="modalActivarTitularVisible"
+      titulo="Activar titular"
+      :nombre="titularActivando?.nombre"
+      :guardando="guardandoTitular"
+      :error="errorGuardarTitular"
+      @confirmar="confirmarActivarTitular"
+      @cancelar="errorGuardarTitular = null"
     />
 
     <BeneficiarioFormDialog

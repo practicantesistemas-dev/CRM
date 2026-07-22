@@ -133,6 +133,18 @@ const handleLogout = () => {
   router.push('/login')
 }
 
+// ── Menú de usuario (avatar del header) ──────────────────────────
+const menuUsuarioAbierto = ref(false)
+const toggleMenuUsuario = () => { menuUsuarioAbierto.value = !menuUsuarioAbierto.value }
+const cerrarMenuUsuarioAfuera = (e: MouseEvent) => {
+  const target = e.target as HTMLElement
+  if (!target.closest('.menu-usuario-trigger') && !target.closest('.menu-usuario-panel')) {
+    menuUsuarioAbierto.value = false
+  }
+}
+onMounted(() => document.addEventListener('click', cerrarMenuUsuarioAfuera))
+onUnmounted(() => document.removeEventListener('click', cerrarMenuUsuarioAfuera))
+
 // ── Misc ──────────────────────────────────────────────────────────
 const sidebarCollapsed = ref(false)
 
@@ -283,16 +295,35 @@ const activeGroup = computed(() => {
           <button class="h-8 w-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-50 transition-all" title="Actualizar">
             <RefreshCw :size="13" />
           </button>
-          <div class="flex items-center gap-2 pl-2 border-l border-slate-200">
-            <div class="text-right hidden sm:block leading-tight">
-              <div class="text-[23px] font-bold text-[#0F172A] whitespace-nowrap">{{ me?.nombres ?? '—' }}</div>
-              <div class="text-[21px] text-slate-400 font-bold uppercase tracking-wider">{{ me?.portal_role ?? '' }}</div>
-            </div>
-            <div
-              class="h-8 w-8 rounded-lg bg-[#1E3A8A] text-white text-[10px] font-bold flex items-center justify-center select-none shrink-0"
-              :title="me?.nombres"
+          <div class="relative">
+            <button
+              type="button"
+              @click="toggleMenuUsuario"
+              class="menu-usuario-trigger flex items-center gap-2 pl-2 border-l border-slate-200 rounded-lg hover:bg-slate-50 transition-all py-1 pr-1"
             >
-              {{ initials }}
+              <div class="text-right hidden sm:block leading-tight">
+                <div class="text-[23px] font-bold text-[#0F172A] whitespace-nowrap">{{ me?.nombres ?? '—' }}</div>
+                <div class="text-[21px] text-slate-400 font-bold uppercase tracking-wider">{{ me?.portal_role ?? '' }}</div>
+              </div>
+              <div
+                class="h-8 w-8 rounded-lg bg-[#1E3A8A] text-white text-[10px] font-bold flex items-center justify-center select-none shrink-0"
+                :title="me?.nombres"
+              >
+                {{ initials }}
+              </div>
+            </button>
+
+            <div
+              v-if="menuUsuarioAbierto"
+              class="menu-usuario-panel absolute right-0 top-full mt-2 w-48 bg-white rounded-xl border border-slate-200 shadow-lg py-1.5 z-30"
+            >
+              <button
+                @click="menuUsuarioAbierto = false; handleLogout()"
+                class="flex items-center gap-2 w-full px-3 py-2 text-[12px] font-semibold text-slate-600 hover:bg-red-50 hover:text-red-600 transition-all"
+              >
+                <LogOut :size="14" class="shrink-0" />
+                Cerrar sesión
+              </button>
             </div>
           </div>
         </div>

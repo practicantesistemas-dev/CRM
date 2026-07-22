@@ -9,8 +9,16 @@ const API_URL = import.meta.env.VITE_CRM_API_URL
 
 async function obtenerJson<T>(ruta: string, mensajeError: string): Promise<T> {
   const response = await fetch(`${API_URL}${ruta}`)
-  if (!response.ok) throw new Error(mensajeError)
+  if (!response.ok) await lanzarErrorConDetalle(response, mensajeError)
   return response.json()
+}
+
+// El backend devuelve el motivo puntual del rechazo en { detail }
+// (ej. "el titular {id} está inactivo"); se usa ese mensaje en vez de uno genérico.
+async function lanzarErrorConDetalle(response: Response, mensajeError: string): Promise<never> {
+  const body = await response.json().catch(() => null)
+  const detail = typeof body?.detail === 'string' ? body.detail : null
+  throw new Error(detail ?? mensajeError)
 }
 
 // Titulares y beneficiarios creados en esta sesión que aún no tienen contraparte
@@ -57,22 +65,24 @@ export async function updateTitular(id: number, data: TitularDraft): Promise<Tit
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   })
-  if (!response.ok) throw new Error('No se pudo actualizar el titular.')
+  if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo actualizar el titular.')
   return { ...data, id }
 }
 
-export async function activarTitular(idTitular: number): Promise<void> {
+export async function activarTitular(idTitular: number, fechaIngreso: string): Promise<void> {
   const response = await fetch(`${API_URL}/api/titulares-beneficiarios/${idTitular}/activar`, {
     method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ FECHA_INGRESO: fechaIngreso }),
   })
-  if (!response.ok) throw new Error('No se pudo activar el titular.')
+  if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo activar el titular.')
 }
 
 export async function desactivarTitular(idTitular: number): Promise<void> {
   const response = await fetch(`${API_URL}/api/titulares-beneficiarios/${idTitular}/desactivar`, {
     method: 'POST',
   })
-  if (!response.ok) throw new Error('No se pudo desactivar el titular.')
+  if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo desactivar el titular.')
 }
 
 export function getBeneficiarios(): Beneficiario[] {
@@ -114,7 +124,7 @@ export async function updateBeneficiario(idTitular: number, idBeneficiario: numb
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   })
-  if (!response.ok) throw new Error('No se pudo actualizar el beneficiario.')
+  if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo actualizar el beneficiario.')
   return { ...data, id: idBeneficiario, titularId: idTitular }
 }
 
@@ -250,6 +260,27 @@ export async function getBeneficiariosTitular(idTitular: number): Promise<Benefi
     'No se pudo cargar los beneficiarios del titular.',
   )
   return data.map(r => mapBeneficiarioListado(r, idTitular))
+}
+
+export async function activarBeneficiario(idTitular: number, idBeneficiario: number, fechaIngreso: string): Promise<Beneficiario> {
+  const body = { FECHA_INGRESO: fechaIngreso }
+  const response = await fetch(`${API_URL}/api/titulares-beneficiarios/${idTitular}/beneficiarios/${idBeneficiario}/activar`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo activar el beneficiario.')
+  const data: { beneficiario: BeneficiarioListadoResponse } = await response.json()
+  return mapBeneficiarioListado(data.beneficiario, idTitular)
+}
+
+export async function desactivarBeneficiario(idTitular: number, idBeneficiario: number): Promise<Beneficiario> {
+  const response = await fetch(`${API_URL}/api/titulares-beneficiarios/${idTitular}/beneficiarios/${idBeneficiario}/desactivar`, {
+    method: 'POST',
+  })
+  if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo desactivar el beneficiario.')
+  const data: { beneficiario: BeneficiarioListadoResponse } = await response.json()
+  return mapBeneficiarioListado(data.beneficiario, idTitular)
 }
 
 export async function getTitular(idTitular: number): Promise<Titular> {
