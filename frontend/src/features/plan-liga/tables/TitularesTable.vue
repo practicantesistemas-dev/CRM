@@ -69,7 +69,7 @@ const cuposTitular = (t: Titular, activosLocal: number) => ({
                 <CuposIndicador :activos="cuposTitular(t, activosPorTitular(t.id)).activos" :max="cuposTitular(t, activosPorTitular(t.id)).cupo" variant="dots" />
                 <span class="text-[11px] font-bold" :class="cuposTitular(t, activosPorTitular(t.id)).activos >= cuposTitular(t, activosPorTitular(t.id)).cupo ? 'text-[#EC4899]' : 'text-slate-600'">{{ cuposTitular(t, activosPorTitular(t.id)).activos }}/{{ cuposTitular(t, activosPorTitular(t.id)).cupo }}</span>
               </div>
-              <button @click="emit('beneficiarios', t)" class="text-[10px] text-[#2447F9] hover:underline mt-0.5 block">Ver beneficiarios</button>
+              <button @click="emit('beneficiarios', t)" class="text-[10px] text-[#2447F9] hover:underline mt-0.5 block cursor-pointer">Ver beneficiarios</button>
             </td>
             <td class="px-4 py-3.5 text-[11px] text-slate-500">{{ t.fechaInscripcion }}</td>
             <td class="px-4 py-3.5">

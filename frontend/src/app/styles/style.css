@@ -1,6 +1,7 @@
 @import "tailwindcss";
-@source "./**/*.vue";
-@source "./modules/**/*.vue";
+
+@source "../../**/*.vue";
+@source "../../**/*.ts";
 
 @theme {
   /* La Liga - Colores institucionales */
@@ -19,8 +20,18 @@
   --color-sf-bg: #f3f2f1;
 }
 
+@layer base {
+  html, body {
+    background-color: var(--color-liga-bg);
+    color: var(--color-liga-text);
+  }
+}
+
 /* Override Ant Design primary color */
 :root {
+
+  color-scheme: light;
+
   --ant-color-primary: #2447F9;
   --ant-color-primary-hover: #1D3DD9;
   --ant-color-primary-active: #1A2A6C;
