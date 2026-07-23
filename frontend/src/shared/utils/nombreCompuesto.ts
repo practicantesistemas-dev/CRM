@@ -26,3 +26,12 @@ export function joinNombreCompleto(partes: NombreCompuesto): string {
     .filter(Boolean)
     .join(' ')
 }
+
+/**
+ * true si hay nombre pero no apellido. Se valida sobre los 4 campos del formulario
+ * (no sobre el string ya unido) porque una vez unidas dos palabras cualquiera, como
+ * "Juan Carlos", no hay forma de saber si el usuario diligenció dos nombres o un
+ * nombre y un apellido.
+ */
+export const faltaApellido = (partes: NombreCompuesto): boolean =>
+  partes.nombre1.trim() !== '' && partes.apellido1.trim() === ''

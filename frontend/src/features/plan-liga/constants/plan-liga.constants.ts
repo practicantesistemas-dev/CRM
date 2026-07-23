@@ -8,12 +8,12 @@ const TITULAR_EXTRA_VACIO = {
   tipoPlan: '', tipoAfiliado: '', eps: '', otraEps: '', planSalud: '', planNombre: '',
 }
 
-const BENEFICIARIO_EXTRA_VACIO = { tipoDocumento: 'CC', sexo: 'Otro' as const, correo: '', telefono: '', direccion: '', ciudad: '', departamento: '', empresa: '' }
+const BENEFICIARIO_EXTRA_VACIO = { tipoDocumento: 'CC', sexo: '' as const, correo: '', telefono: '', direccion: '', ciudad: '', departamento: '', empresa: '' }
 
 export const TITULAR_DRAFT_VACIO: TitularDraft = {
   ...TITULAR_EXTRA_VACIO,
-  documento: '', nombre: '', fechaNacimiento: '', sexo: 'Masculino', correo: '', telefono: '',
-  empresa: '', planContratado: 'Plan Liga Individual', fechaInscripcion: new Date().toISOString().split('T')[0], estado: 'Activo',
+  documento: '', nombre: '', fechaNacimiento: '', sexo: '', correo: '', telefono: '',
+  empresa: '', planContratado: '', fechaInscripcion: new Date().toISOString().split('T')[0], estado: 'Activo',
 }
 
 export const BENEFICIARIO_DRAFT_VACIO: BeneficiarioDraft = {
@@ -23,6 +23,18 @@ export const BENEFICIARIO_DRAFT_VACIO: BeneficiarioDraft = {
 }
 
 export const CUPO_MAXIMO = 4
+
+// Ventana permitida al elegir la fecha de ingreso en los diálogos de activación:
+// no se permite una fecha futura ni una muy antigua (más de 3 meses atrás).
+const FECHA_INGRESO_MESES_ATRAS = 3
+
+export const fechaIngresoMinima = (): string => {
+  const d = new Date()
+  d.setMonth(d.getMonth() - FECHA_INGRESO_MESES_ATRAS)
+  return d.toISOString().split('T')[0]
+}
+
+export const fechaIngresoMaxima = (): string => new Date().toISOString().split('T')[0]
 
 /**
  * Cupo real de beneficiarios de un titular según los planes que trae el backend.

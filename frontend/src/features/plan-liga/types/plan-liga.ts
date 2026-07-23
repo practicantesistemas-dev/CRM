@@ -4,7 +4,7 @@ export interface Titular {
   documento: string
   nombre: string
   fechaNacimiento: string
-  sexo: 'Masculino' | 'Femenino' | 'Otro'
+  sexo: 'Masculino' | 'Femenino' | ''
   correo: string
   telefono: string
   direccion: string
@@ -33,7 +33,7 @@ export interface Beneficiario {
   documento: string
   nombre: string
   fechaNacimiento: string
-  sexo: 'Masculino' | 'Femenino' | 'Otro'
+  sexo: 'Masculino' | 'Femenino' | ''
   correo: string
   telefono: string
   direccion: string

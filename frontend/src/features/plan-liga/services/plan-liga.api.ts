@@ -9,14 +9,24 @@ const API_URL = import.meta.env.VITE_CRM_API_URL
 
 async function obtenerJson<T>(ruta: string, mensajeError: string): Promise<T> {
   const response = await fetch(`${API_URL}${ruta}`)
-  if (!response.ok) throw new Error(mensajeError)
+  if (!response.ok) await lanzarErrorConDetalle(response, mensajeError)
   return response.json()
 }
 
-// Titulares y beneficiarios creados en esta sesión que aún no tienen contraparte
-// en el backend (no existe endpoint de creación todavía).
-let titulares: Titular[] = []
+// El backend devuelve el motivo puntual del rechazo en { detail }
+// (ej. "el titular {id} está inactivo"); se usa ese mensaje en vez de uno genérico.
+async function lanzarErrorConDetalle(response: Response, mensajeError: string): Promise<never> {
+  const body = await response.json().catch(() => null)
+  const detail = typeof body?.detail === 'string' ? body.detail : null
+  throw new Error(detail ?? mensajeError)
+}
+
+// Beneficiarios creados en esta sesión que aún no tienen contraparte en el backend
+// (no existe endpoint de creación todavía).
 let beneficiarios: Beneficiario[] = []
+
+const ESTADO_TITULAR_API: Record<Titular['estado'], string> = { Activo: 'A', Inactivo: 'I' }
+const SEXO_TITULAR_API: Record<Titular['sexo'], string | null> = { Masculino: 'M', Femenino: 'F', '': null }
 
 /** Selector de titulares (usado por Oportunidades/Actividades): trae el listado real del backend. */
 export async function getTitulares(): Promise<Titular[]> {
@@ -24,18 +34,82 @@ export async function getTitulares(): Promise<Titular[]> {
   return items
 }
 
-export function createTitular(data: TitularDraft): Titular {
-  const nuevo: Titular = { ...data, id: Date.now() }
-  titulares = [nuevo, ...titulares]
-  return nuevo
+export async function createTitular(data: TitularDraft): Promise<void> {
+  const { nombre1, nombre2, apellido1, apellido2 } = splitNombreCompleto(data.nombre)
+  const body = {
+    TIPO_PLAN: data.tipoPlan,
+    TIPO_DOCUMENTO: data.tipoDocumento,
+    DOCUMENTO: data.documento,
+    NOMBRE1: nombre1,
+    NOMBRE2: nombre2,
+    APELLIDO1: apellido1,
+    APELLIDO2: apellido2,
+    FECHA_NACIMIENTO: data.fechaNacimiento,
+    SEXO: SEXO_TITULAR_API[data.sexo],
+    DIRECCION: data.direccion,
+    CIUDAD: data.ciudad,
+    DEPARTAMENTO: data.departamento,
+    CORREO: data.correo,
+    TELEFONO: data.telefono,
+    FECHA_INGRESO: data.fechaInscripcion,
+    TIPO_AFILIADO: data.tipoAfiliado,
+    EMPRESA: data.empresa,
+    EPS: data.eps,
+    OTRAEPS: data.otraEps,
+    PLAN_SALUD: data.planSalud,
+    PLAN_NOMBRE: data.planNombre,
+    SERVICIO_ID: 0,
+  }
+  const response = await fetch(`${API_URL}/api/titulares-beneficiarios`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo crear el titular.')
 }
 
-export function updateTitular(id: number, data: Partial<TitularDraft>): Titular | null {
-  const idx = titulares.findIndex(t => t.id === id)
-  if (idx === -1) return null
-  const actualizado: Titular = { ...titulares[idx], ...data, id }
-  titulares = [...titulares.slice(0, idx), actualizado, ...titulares.slice(idx + 1)]
-  return actualizado
+export async function updateTitular(id: number, data: TitularDraft): Promise<Titular> {
+  const { nombre1, nombre2, apellido1, apellido2 } = splitNombreCompleto(data.nombre)
+  const body = {
+    DOCUMENTO: data.documento,
+    TIPO_DOCUMENTO: data.tipoDocumento,
+    NOMBRE1: nombre1,
+    NOMBRE2: nombre2,
+    APELLIDO1: apellido1,
+    APELLIDO2: apellido2,
+    FECHA_NACIMIENTO: data.fechaNacimiento,
+    SEXO: SEXO_TITULAR_API[data.sexo],
+    CORREO: data.correo,
+    TELEFONO: data.telefono,
+    DIRECCION: data.direccion,
+    CIUDAD: data.ciudad,
+    DEPARTAMENTO: data.departamento,
+    EMPRESA: data.empresa,
+    ESTADO: ESTADO_TITULAR_API[data.estado],
+  }
+  const response = await fetch(`${API_URL}/api/titulares-beneficiarios/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo actualizar el titular.')
+  return { ...data, id }
+}
+
+export async function activarTitular(idTitular: number, fechaIngreso: string): Promise<void> {
+  const response = await fetch(`${API_URL}/api/titulares-beneficiarios/${idTitular}/activar`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ FECHA_INGRESO: fechaIngreso }),
+  })
+  if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo activar el titular.')
+}
+
+export async function desactivarTitular(idTitular: number): Promise<void> {
+  const response = await fetch(`${API_URL}/api/titulares-beneficiarios/${idTitular}/desactivar`, {
+    method: 'POST',
+  })
+  if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo desactivar el titular.')
 }
 
 export function getBeneficiarios(): Beneficiario[] {
@@ -51,7 +125,7 @@ export function createBeneficiario(titularId: number, data: BeneficiarioDraft): 
 const ESTADO_BENEFICIARIO_API: Record<Beneficiario['estado'], string> = {
   Activo: 'A', Inactivo: 'I', Reemplazado: 'R', Retirado: 'X',
 }
-const SEXO_BENEFICIARIO_API: Record<Beneficiario['sexo'], string> = { Masculino: 'M', Femenino: 'F', Otro: 'O' }
+const SEXO_BENEFICIARIO_API: Record<Beneficiario['sexo'], string | null> = { Masculino: 'M', Femenino: 'F', '': null }
 
 export async function updateBeneficiario(idTitular: number, idBeneficiario: number, data: BeneficiarioDraft): Promise<Beneficiario> {
   const { nombre1, nombre2, apellido1, apellido2 } = splitNombreCompleto(data.nombre)
@@ -77,7 +151,7 @@ export async function updateBeneficiario(idTitular: number, idBeneficiario: numb
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   })
-  if (!response.ok) throw new Error('No se pudo actualizar el beneficiario.')
+  if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo actualizar el beneficiario.')
   return { ...data, id: idBeneficiario, titularId: idTitular }
 }
 
@@ -129,7 +203,7 @@ function mapTitularListado(r: TitularListadoResponse): Titular {
     documento: r.DOCUMENTO,
     nombre: r.TITULAR,
     fechaNacimiento: '',
-    sexo: 'Otro',
+    sexo: '',
     correo: r.EMAIL ?? '',
     telefono: r.TELEFONO ?? '',
     direccion: '',
@@ -149,7 +223,7 @@ function mapTitularListado(r: TitularListadoResponse): Titular {
   }
 }
 
-const SEXO_DESDE_API: Record<string, 'Masculino' | 'Femenino'> = { M: 'Masculino', F: 'Femenino' }
+const SEXO_DESDE_API: Record<string, 'Masculino' | 'Femenino' | undefined> = { M: 'Masculino', F: 'Femenino' }
 
 function mapTitularDetalle(r: TitularDetalleResponse): Titular {
   return {
@@ -163,7 +237,7 @@ function mapTitularDetalle(r: TitularDetalleResponse): Titular {
       apellido2: r.APELLIDO2 ?? '',
     }),
     fechaNacimiento: r.FECHA_NACIMIENTO ?? '',
-    sexo: (r.SEXO && SEXO_DESDE_API[r.SEXO]) || 'Otro',
+    sexo: (r.SEXO && SEXO_DESDE_API[r.SEXO]) || '',
     correo: r.CORREO ?? '',
     telefono: r.TELEFONO ?? '',
     direccion: r.DIRECCION ?? '',
@@ -195,7 +269,7 @@ function mapBeneficiarioListado(r: BeneficiarioListadoResponse, titularId: numbe
       apellido2: r.APELLIDO2 ?? '',
     }),
     fechaNacimiento: r.FECHA_NACIMIENTO ?? '',
-    sexo: (r.SEXO && SEXO_DESDE_API[r.SEXO]) || 'Otro',
+    sexo: (r.SEXO && SEXO_DESDE_API[r.SEXO]) || '',
     correo: r.CORREO ?? '',
     telefono: r.TELEFONO ?? '',
     direccion: r.DIRECCION ?? '',
@@ -213,6 +287,27 @@ export async function getBeneficiariosTitular(idTitular: number): Promise<Benefi
     'No se pudo cargar los beneficiarios del titular.',
   )
   return data.map(r => mapBeneficiarioListado(r, idTitular))
+}
+
+export async function activarBeneficiario(idTitular: number, idBeneficiario: number, fechaIngreso: string): Promise<Beneficiario> {
+  const body = { FECHA_INGRESO: fechaIngreso }
+  const response = await fetch(`${API_URL}/api/titulares-beneficiarios/${idTitular}/beneficiarios/${idBeneficiario}/activar`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo activar el beneficiario.')
+  const data: { beneficiario: BeneficiarioListadoResponse } = await response.json()
+  return mapBeneficiarioListado(data.beneficiario, idTitular)
+}
+
+export async function desactivarBeneficiario(idTitular: number, idBeneficiario: number): Promise<Beneficiario> {
+  const response = await fetch(`${API_URL}/api/titulares-beneficiarios/${idTitular}/beneficiarios/${idBeneficiario}/desactivar`, {
+    method: 'POST',
+  })
+  if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo desactivar el beneficiario.')
+  const data: { beneficiario: BeneficiarioListadoResponse } = await response.json()
+  return mapBeneficiarioListado(data.beneficiario, idTitular)
 }
 
 export async function getTitular(idTitular: number): Promise<Titular> {
@@ -246,9 +341,16 @@ export async function getListadoTitulares(params: ListadoTitularesParams = {}): 
   }
 }
 
+interface PlanNombreResponse {
+  ID: number
+  NOMBRE: string
+}
+
+// El endpoint no devuelve strings planos: cada elemento es un objeto { ID, NOMBRE }.
 export async function getNombresPlanes(): Promise<string[]> {
-  return obtenerJson<string[]>(
+  const data = await obtenerJson<PlanNombreResponse[]>(
     '/api/titulares-beneficiarios/planes/nombres',
     'No se pudo cargar la lista de planes.',
   )
+  return data.map(p => p.NOMBRE)
 }

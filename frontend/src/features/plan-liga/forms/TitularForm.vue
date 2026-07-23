@@ -1,18 +1,28 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import type { TitularDraft } from '../types/plan-liga'
 import { titularSchema } from '../schemas/titular.schema'
 import { useZodForm } from '@/shared/composables/useZodForm'
 import { useNombreCompuesto } from '@/shared/composables/useNombreCompuesto'
+import { faltaApellido } from '@/shared/utils/nombreCompuesto'
 import { fieldStateClass } from '@/shared/utils/fieldStateClass'
 import FieldError from '@/shared/components/FieldError.vue'
 
+const props = defineProps<{ modo?: 'nuevo' | 'editar'; planes?: string[] }>()
 const draft = defineModel<TitularDraft>({ required: true })
 const emit = defineEmits<{ validSubmit: [] }>()
 
 const { errors, tocar, esVisible, onValidSubmit } = useZodForm(titularSchema, draft)
-defineExpose({ submit: onValidSubmit(() => emit('validSubmit')) })
-
 const nombre = useNombreCompuesto(draft, 'nombre')
+const apellidoFaltante = computed(() => faltaApellido(nombre))
+
+defineExpose({ submit: onValidSubmit(() => { if (!apellidoFaltante.value) emit('validSubmit') }) })
+
+// Fecha de inscripción y estado quedan fijados al crear el titular: se muestran de
+// solo lectura en edición para evitar registrar cambios que nunca se guardan.
+// El estado solo se cambia desde el botón de activar/desactivar en la tabla.
+const soloLecturaEnEdicion = computed(() => props.modo === 'editar')
+const hoy = new Date().toISOString().split('T')[0]
 </script>
 
 <template>
@@ -20,12 +30,12 @@ const nombre = useNombreCompuesto(draft, 'nombre')
     <div class="sm:col-span-2">
       <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Nombre completo *</label>
       <div class="grid grid-cols-2 gap-3">
-        <input v-model="nombre.nombre1" @blur="tocar('nombre')" placeholder="Primer nombre" class="w-full h-10 px-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all" :class="fieldStateClass(esVisible('nombre') && !!errors.nombre, esVisible('nombre') && !errors.nombre && !!draft.nombre, 'border-slate-200 focus:border-[#EC4899]')" />
-        <input v-model="nombre.nombre2" @blur="tocar('nombre')" placeholder="Segundo nombre" class="w-full h-10 px-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all" :class="fieldStateClass(esVisible('nombre') && !!errors.nombre, esVisible('nombre') && !errors.nombre && !!draft.nombre, 'border-slate-200 focus:border-[#EC4899]')" />
-        <input v-model="nombre.apellido1" @blur="tocar('nombre')" placeholder="Primer apellido" class="w-full h-10 px-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all" :class="fieldStateClass(esVisible('nombre') && !!errors.nombre, esVisible('nombre') && !errors.nombre && !!draft.nombre, 'border-slate-200 focus:border-[#EC4899]')" />
-        <input v-model="nombre.apellido2" @blur="tocar('nombre')" placeholder="Segundo apellido" class="w-full h-10 px-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all" :class="fieldStateClass(esVisible('nombre') && !!errors.nombre, esVisible('nombre') && !errors.nombre && !!draft.nombre, 'border-slate-200 focus:border-[#EC4899]')" />
+        <input v-model="nombre.nombre1" @blur="tocar('nombre')" placeholder="Primer nombre" class="w-full h-10 px-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all" :class="fieldStateClass(esVisible('nombre') && (!!errors.nombre || apellidoFaltante), esVisible('nombre') && !errors.nombre && !apellidoFaltante && !!draft.nombre, 'border-slate-200 focus:border-[#EC4899]')" />
+        <input v-model="nombre.nombre2" @blur="tocar('nombre')" placeholder="Segundo nombre" class="w-full h-10 px-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all" :class="fieldStateClass(esVisible('nombre') && (!!errors.nombre || apellidoFaltante), esVisible('nombre') && !errors.nombre && !apellidoFaltante && !!draft.nombre, 'border-slate-200 focus:border-[#EC4899]')" />
+        <input v-model="nombre.apellido1" @blur="tocar('nombre')" placeholder="Primer apellido" class="w-full h-10 px-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all" :class="fieldStateClass(esVisible('nombre') && (!!errors.nombre || apellidoFaltante), esVisible('nombre') && !errors.nombre && !apellidoFaltante && !!draft.nombre, 'border-slate-200 focus:border-[#EC4899]')" />
+        <input v-model="nombre.apellido2" @blur="tocar('nombre')" placeholder="Segundo apellido" class="w-full h-10 px-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all" :class="fieldStateClass(esVisible('nombre') && (!!errors.nombre || apellidoFaltante), esVisible('nombre') && !errors.nombre && !apellidoFaltante && !!draft.nombre, 'border-slate-200 focus:border-[#EC4899]')" />
       </div>
-      <FieldError :message="esVisible('nombre') ? errors.nombre : undefined" />
+      <FieldError :message="esVisible('nombre') ? (apellidoFaltante ? 'Falta el apellido: mínimo un nombre y un apellido' : errors.nombre) : undefined" />
     </div>
     <div>
       <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Tipo de documento</label>
@@ -57,11 +67,11 @@ const nombre = useNombreCompuesto(draft, 'nombre')
       <FieldError :message="esVisible('telefono') ? errors.telefono : undefined" />
     </div>
     <div>
-      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Sexo</label>
+      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Sexo biológico</label>
       <select v-model="draft.sexo" class="w-full h-10 px-3 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white transition-all cursor-pointer">
+        <option value="">Sin especificar</option>
         <option value="Masculino">Masculino</option>
         <option value="Femenino">Femenino</option>
-        <option value="Otro">Otro</option>
       </select>
     </div>
     <div class="sm:col-span-2">
@@ -83,8 +93,8 @@ const nombre = useNombreCompuesto(draft, 'nombre')
     <div>
       <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Plan contratado</label>
       <select v-model="draft.planContratado" class="w-full h-10 px-3 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white transition-all cursor-pointer">
-        <option value="Plan Liga Empresarial">Plan Liga Empresarial</option>
-        <option value="Plan Liga Individual">Plan Liga Individual</option>
+        <option value="">Selecciona un plan</option>
+        <option v-for="p in props.planes" :key="p" :value="p">{{ p }}</option>
       </select>
     </div>
     <div>
@@ -113,11 +123,11 @@ const nombre = useNombreCompuesto(draft, 'nombre')
     </div>
     <div>
       <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Fecha de inscripción</label>
-      <input v-model="draft.fechaInscripcion" type="date" class="w-full h-10 px-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white transition-all" />
+      <input v-model="draft.fechaInscripcion" type="date" :max="hoy" :disabled="soloLecturaEnEdicion" class="w-full h-10 px-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed" />
     </div>
     <div>
       <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Estado</label>
-      <select v-model="draft.estado" class="w-full h-10 px-3 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white transition-all cursor-pointer">
+      <select v-model="draft.estado" disabled title="El titular se crea como Activo; usa el botón de activar/desactivar en la tabla para cambiar el estado" class="w-full h-10 px-3 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white transition-all cursor-pointer disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed">
         <option value="Activo">Activo</option>
         <option value="Inactivo">Inactivo</option>
       </select>
