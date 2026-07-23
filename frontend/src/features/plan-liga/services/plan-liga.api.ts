@@ -139,12 +139,11 @@ export async function createBeneficiario(idTitular: number, data: BeneficiarioDr
     CORREO: data.correo,
     TELEFONO: data.telefono,
     EMPRESA: data.empresa,
-    FECHA_INGRESO: data.fechaInscripcion,
-    TIPO_PLAN: data.tipoPlan,
     EPS: data.eps,
     OTRAEPS: data.otraEps,
     PLAN_SALUD: data.planSalud,
     PLAN_NOMBRE: data.planNombre,
+    FECHA_INGRESO: data.fechaInscripcion,
   }
   const response = await fetch(`${API_URL}/api/titulares-beneficiarios/${idTitular}/beneficiarios`, {
     method: 'POST',
