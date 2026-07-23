@@ -14,6 +14,7 @@ export const titularSchema = z.object({
   departamento: z.string().trim(),
   empresa: nombreEntidad({ opcional: true }),
   planContratado: z.string().trim(),
+  servicioId: z.number().nullable(),
   tipoPlan: z.string().trim(),
   tipoAfiliado: z.string().trim(),
   eps: z.string().trim(),

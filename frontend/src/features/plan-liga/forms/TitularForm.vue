@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import type { TitularDraft } from '../types/plan-liga'
+import { computed, watch } from 'vue'
+import type { PlanServicio, TitularDraft } from '../types/plan-liga'
 import { titularSchema } from '../schemas/titular.schema'
 import { useZodForm } from '@/shared/composables/useZodForm'
 import { useNombreCompuesto } from '@/shared/composables/useNombreCompuesto'
@@ -8,13 +8,19 @@ import { faltaApellido } from '@/shared/utils/nombreCompuesto'
 import { fieldStateClass } from '@/shared/utils/fieldStateClass'
 import FieldError from '@/shared/components/FieldError.vue'
 
-const props = defineProps<{ modo?: 'nuevo' | 'editar'; planes?: string[] }>()
+const props = defineProps<{ modo?: 'nuevo' | 'editar'; planesServicio?: PlanServicio[] }>()
 const draft = defineModel<TitularDraft>({ required: true })
 const emit = defineEmits<{ validSubmit: [] }>()
 
 const { errors, tocar, esVisible, onValidSubmit } = useZodForm(titularSchema, draft)
 const nombre = useNombreCompuesto(draft, 'nombre')
 const apellidoFaltante = computed(() => faltaApellido(nombre))
+
+// El nombre del plan se guarda aparte (solo para mostrarlo en la tabla); el que
+// realmente se envía al crear el titular es el id (servicioId → SERVICIO_ID).
+watch(() => draft.value.servicioId, (id) => {
+  draft.value.planContratado = props.planesServicio?.find(p => p.id === id)?.nombre ?? ''
+})
 
 defineExpose({ submit: onValidSubmit(() => { if (!apellidoFaltante.value) emit('validSubmit') }) })
 
@@ -92,9 +98,9 @@ const hoy = new Date().toISOString().split('T')[0]
     </div>
     <div>
       <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Plan contratado</label>
-      <select v-model="draft.planContratado" class="w-full h-10 px-3 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white transition-all cursor-pointer">
-        <option value="">Selecciona un plan</option>
-        <option v-for="p in props.planes" :key="p" :value="p">{{ p }}</option>
+      <select v-model="draft.servicioId" class="w-full h-10 px-3 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white transition-all cursor-pointer">
+        <option :value="null">Selecciona un plan</option>
+        <option v-for="p in props.planesServicio" :key="p.id" :value="p.id">{{ p.nombre }}</option>
       </select>
     </div>
     <div>

@@ -1,7 +1,7 @@
 import type {
   Beneficiario, BeneficiarioDraft, Titular, TitularDraft,
   ResumenTitularesResponse, TitularListadoResponse, ListadoTitularesResponse,
-  BeneficiarioListadoResponse, TitularDetalleResponse, PlanTitular,
+  BeneficiarioListadoResponse, TitularDetalleResponse, PlanTitular, PlanServicio,
 } from '../types/plan-liga'
 import { joinNombreCompleto, splitNombreCompleto } from '@/shared/utils/nombreCompuesto'
 
@@ -20,10 +20,6 @@ async function lanzarErrorConDetalle(response: Response, mensajeError: string): 
   const detail = typeof body?.detail === 'string' ? body.detail : null
   throw new Error(detail ?? mensajeError)
 }
-
-// Beneficiarios creados en esta sesión que aún no tienen contraparte en el backend
-// (no existe endpoint de creación todavía).
-let beneficiarios: Beneficiario[] = []
 
 const ESTADO_TITULAR_API: Record<Titular['estado'], string> = { Activo: 'A', Inactivo: 'I' }
 const SEXO_TITULAR_API: Record<Titular['sexo'], string | null> = { Masculino: 'M', Femenino: 'F', '': null }
@@ -58,7 +54,7 @@ export async function createTitular(data: TitularDraft): Promise<void> {
     OTRAEPS: data.otraEps,
     PLAN_SALUD: data.planSalud,
     PLAN_NOMBRE: data.planNombre,
-    SERVICIO_ID: 0,
+    SERVICIO_ID: data.servicioId ?? 0,
   }
   const response = await fetch(`${API_URL}/api/titulares-beneficiarios`, {
     method: 'POST',
@@ -112,20 +108,37 @@ export async function desactivarTitular(idTitular: number): Promise<void> {
   if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo desactivar el titular.')
 }
 
-export function getBeneficiarios(): Beneficiario[] {
-  return beneficiarios
-}
-
-export function createBeneficiario(titularId: number, data: BeneficiarioDraft): Beneficiario {
-  const nuevo: Beneficiario = { ...data, id: Date.now(), titularId }
-  beneficiarios = [...beneficiarios, nuevo]
-  return nuevo
-}
-
 const ESTADO_BENEFICIARIO_API: Record<Beneficiario['estado'], string> = {
   Activo: 'A', Inactivo: 'I', Reemplazado: 'R', Retirado: 'X',
 }
 const SEXO_BENEFICIARIO_API: Record<Beneficiario['sexo'], string | null> = { Masculino: 'M', Femenino: 'F', '': null }
+
+export async function createBeneficiario(idTitular: number, data: BeneficiarioDraft): Promise<void> {
+  const { nombre1, nombre2, apellido1, apellido2 } = splitNombreCompleto(data.nombre)
+  const body = {
+    TIPO_DOCUMENTO: data.tipoDocumento,
+    DOCUMENTO: data.documento,
+    NOMBRE1: nombre1,
+    NOMBRE2: nombre2,
+    APELLIDO1: apellido1,
+    APELLIDO2: apellido2,
+    FECHA_NACIMIENTO: data.fechaNacimiento,
+    SEXO: SEXO_BENEFICIARIO_API[data.sexo],
+    DIRECCION: data.direccion,
+    CIUDAD: data.ciudad,
+    DEPARTAMENTO: data.departamento,
+    CORREO: data.correo,
+    TELEFONO: data.telefono,
+    EMPRESA: data.empresa,
+    FECHA_INGRESO: data.fechaInscripcion,
+  }
+  const response = await fetch(`${API_URL}/api/titulares-beneficiarios/${idTitular}/beneficiarios`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo crear el beneficiario.')
+}
 
 export async function updateBeneficiario(idTitular: number, idBeneficiario: number, data: BeneficiarioDraft): Promise<Beneficiario> {
   const { nombre1, nombre2, apellido1, apellido2 } = splitNombreCompleto(data.nombre)
@@ -211,6 +224,7 @@ function mapTitularListado(r: TitularListadoResponse): Titular {
     departamento: '',
     empresa: r.EMPRESA ?? '',
     planContratado: planesDetalle.map(p => p.nombre).join(' | '),
+    servicioId: null,
     tipoPlan: '',
     tipoAfiliado: '',
     eps: '',
@@ -245,6 +259,7 @@ function mapTitularDetalle(r: TitularDetalleResponse): Titular {
     departamento: r.DEPARTAMENTO ?? '',
     empresa: r.EMPRESA ?? '',
     planContratado: '',
+    servicioId: null,
     tipoPlan: r.TIPO_PLAN ?? '',
     tipoAfiliado: r.TIPO_AFILIADO ?? '',
     eps: r.EPS ?? '',
@@ -346,11 +361,22 @@ interface PlanNombreResponse {
   NOMBRE: string
 }
 
-// El endpoint no devuelve strings planos: cada elemento es un objeto { ID, NOMBRE }.
-export async function getNombresPlanes(): Promise<string[]> {
-  const data = await obtenerJson<PlanNombreResponse[]>(
+async function fetchPlanesNombres(): Promise<PlanNombreResponse[]> {
+  return obtenerJson<PlanNombreResponse[]>(
     '/api/titulares-beneficiarios/planes/nombres',
     'No se pudo cargar la lista de planes.',
   )
+}
+
+// El endpoint no devuelve strings planos: cada elemento es un objeto { ID, NOMBRE }.
+export async function getNombresPlanes(): Promise<string[]> {
+  const data = await fetchPlanesNombres()
   return data.map(p => p.NOMBRE)
+}
+
+// Mismo endpoint que getNombresPlanes, pero conservando el ID: se usa para asociar
+// el titular a su plan/servicio (SERVICIO_ID) al crearlo.
+export async function getPlanesServicio(): Promise<PlanServicio[]> {
+  const data = await fetchPlanesNombres()
+  return data.map(p => ({ id: p.ID, nombre: p.NOMBRE }))
 }

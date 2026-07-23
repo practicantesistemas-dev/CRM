@@ -12,6 +12,8 @@ export interface Titular {
   departamento: string
   empresa: string
   planContratado: string
+  /** Id del plan/servicio (tabla de planes) al que queda asociado el titular. */
+  servicioId: number | null
   tipoPlan: string
   tipoAfiliado: string
   eps: string
@@ -82,6 +84,12 @@ export interface PlanTitular {
   nombre: string
   activos: number
   cupo: number
+}
+
+/** Plan/servicio del catálogo (GET /api/titulares-beneficiarios/planes/nombres). */
+export interface PlanServicio {
+  id: number
+  nombre: string
 }
 
 export interface TitularListadoResponse {

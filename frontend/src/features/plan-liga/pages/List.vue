@@ -14,7 +14,7 @@ import ImportacionPlanLigaDialog from '../dialogs/ImportacionPlanLigaDialog.vue'
 
 const {
   buscar, filtroEstado, filtroPlan, filtroSexo, filtroEdad,
-  titulares, planes,
+  titulares, planes, planesServicio,
   totalActivos, totalBeneficiarios,
   totalTitulares, paginaActual, totalPaginas, hayPaginaAnterior, hayPaginaSiguiente,
   paginaSiguiente, paginaAnterior,
@@ -121,8 +121,8 @@ const abrirEditarBeneficiario = (b: Beneficiario) => {
 const guardarBeneficiario = async () => {
   if (!titularSeleccionado.value) return
   if (modalBeneModo.value === 'nuevo') {
-    crearBeneficiario(titularSeleccionado.value.id, draftBene.value)
-    modalBeneVisible.value = false
+    const ok = await crearBeneficiario(titularSeleccionado.value.id, draftBene.value)
+    if (ok) modalBeneVisible.value = false
   } else if (beneficiarioEditando.value) {
     const ok = await actualizarBeneficiario(titularSeleccionado.value.id, beneficiarioEditando.value.id, draftBene.value)
     if (ok) modalBeneVisible.value = false
@@ -261,7 +261,7 @@ const modalImportVisible = ref(false)
     </div>
 
     <TitularFormDialog v-model:visible="modalTitularVisible" v-model:draft="draftTitular" :modo="modalModo"
-      :guardando="guardandoTitular" :error="errorGuardarTitular" :planes="planes" @submit="guardarTitular" />
+      :guardando="guardandoTitular" :error="errorGuardarTitular" :planes-servicio="planesServicio" @submit="guardarTitular" />
 
     <BeneficiariosDrawer
       v-model:visible="drawerVisible"
