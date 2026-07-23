@@ -3,7 +3,7 @@
     <tableau-viz
       v-if="jwtToken"
       id="tableau-viz"
-      src="https://us-east-1.online.tableau.com/t/laliga-amasalvarvidas/views/Produccion-PlanLigaUso/Inicio-Informe-PlanLigaUso"
+      src="https://us-east-1.online.tableau.com/t/laliga-amasalvarvidas/views/Produccion-PlanLigaUso_17846654795520/Inicio-Produccion-PlanLigaUso"
       :token="jwtToken"
       width="100%"
       height="100%"
