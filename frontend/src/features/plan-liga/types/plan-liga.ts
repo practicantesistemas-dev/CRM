@@ -42,6 +42,11 @@ export interface Beneficiario {
   ciudad: string
   departamento: string
   empresa: string
+  tipoPlan: string
+  eps: string
+  otraEps: string
+  planSalud: string
+  planNombre: string
   estado: 'Activo' | 'Inactivo' | 'Reemplazado' | 'Retirado'
   fechaInscripcion: string
 }
@@ -130,6 +135,11 @@ export interface BeneficiarioListadoResponse {
   TELEFONO: string | null
   FECHA_INGRESO: string | null
   EMPRESA: string | null
+  TIPO_PLAN: string | null
+  EPS: string | null
+  OTRAEPS: string | null
+  PLAN_SALUD: string | null
+  PLAN_NOMBRE: string | null
   ESTADO: string
 }
 

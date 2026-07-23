@@ -21,6 +21,15 @@ async function lanzarErrorConDetalle(response: Response, mensajeError: string): 
   throw new Error(detail ?? mensajeError)
 }
 
+// Quita comas, puntos, guiones, numerales y demás caracteres raros de la dirección
+// antes de mandarla al backend (deja solo letras, números y espacios).
+function limpiarDireccion(direccion: string): string {
+  return direccion
+    .replace(/[^\p{L}\p{N}\s]/gu, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
 const ESTADO_TITULAR_API: Record<Titular['estado'], string> = { Activo: 'A', Inactivo: 'I' }
 const SEXO_TITULAR_API: Record<Titular['sexo'], string | null> = { Masculino: 'M', Femenino: 'F', '': null }
 
@@ -42,7 +51,7 @@ export async function createTitular(data: TitularDraft): Promise<void> {
     APELLIDO2: apellido2,
     FECHA_NACIMIENTO: data.fechaNacimiento,
     SEXO: SEXO_TITULAR_API[data.sexo],
-    DIRECCION: data.direccion,
+    DIRECCION: limpiarDireccion(data.direccion),
     CIUDAD: data.ciudad,
     DEPARTAMENTO: data.departamento,
     CORREO: data.correo,
@@ -77,7 +86,7 @@ export async function updateTitular(id: number, data: TitularDraft): Promise<Tit
     SEXO: SEXO_TITULAR_API[data.sexo],
     CORREO: data.correo,
     TELEFONO: data.telefono,
-    DIRECCION: data.direccion,
+    DIRECCION: limpiarDireccion(data.direccion),
     CIUDAD: data.ciudad,
     DEPARTAMENTO: data.departamento,
     EMPRESA: data.empresa,
@@ -124,13 +133,18 @@ export async function createBeneficiario(idTitular: number, data: BeneficiarioDr
     APELLIDO2: apellido2,
     FECHA_NACIMIENTO: data.fechaNacimiento,
     SEXO: SEXO_BENEFICIARIO_API[data.sexo],
-    DIRECCION: data.direccion,
+    DIRECCION: limpiarDireccion(data.direccion),
     CIUDAD: data.ciudad,
     DEPARTAMENTO: data.departamento,
     CORREO: data.correo,
     TELEFONO: data.telefono,
     EMPRESA: data.empresa,
     FECHA_INGRESO: data.fechaInscripcion,
+    TIPO_PLAN: data.tipoPlan,
+    EPS: data.eps,
+    OTRAEPS: data.otraEps,
+    PLAN_SALUD: data.planSalud,
+    PLAN_NOMBRE: data.planNombre,
   }
   const response = await fetch(`${API_URL}/api/titulares-beneficiarios/${idTitular}/beneficiarios`, {
     method: 'POST',
@@ -151,12 +165,17 @@ export async function updateBeneficiario(idTitular: number, idBeneficiario: numb
     APELLIDO2: apellido2,
     FECHA_NACIMIENTO: data.fechaNacimiento,
     SEXO: SEXO_BENEFICIARIO_API[data.sexo],
-    DIRECCION: data.direccion,
+    DIRECCION: limpiarDireccion(data.direccion),
     CIUDAD: data.ciudad,
     DEPARTAMENTO: data.departamento,
     CORREO: data.correo,
     TELEFONO: data.telefono,
     EMPRESA: data.empresa,
+    TIPO_PLAN: data.tipoPlan,
+    EPS: data.eps,
+    OTRAEPS: data.otraEps,
+    PLAN_SALUD: data.planSalud,
+    PLAN_NOMBRE: data.planNombre,
     ESTADO: ESTADO_BENEFICIARIO_API[data.estado],
   }
   const response = await fetch(`${API_URL}/api/titulares-beneficiarios/${idTitular}/beneficiarios/${idBeneficiario}`, {
@@ -291,6 +310,11 @@ function mapBeneficiarioListado(r: BeneficiarioListadoResponse, titularId: numbe
     ciudad: r.CIUDAD ?? '',
     departamento: r.DEPARTAMENTO ?? '',
     empresa: r.EMPRESA ?? '',
+    tipoPlan: r.TIPO_PLAN ?? '',
+    eps: r.EPS ?? '',
+    otraEps: r.OTRAEPS ?? '',
+    planSalud: r.PLAN_SALUD ?? '',
+    planNombre: r.PLAN_NOMBRE ?? '',
     estado: r.ESTADO === 'A' ? 'Activo' : 'Inactivo',
     fechaInscripcion: r.FECHA_INGRESO ?? '',
   }

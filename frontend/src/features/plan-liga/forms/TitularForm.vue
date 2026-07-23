@@ -44,14 +44,15 @@ const hoy = new Date().toISOString().split('T')[0]
       <FieldError :message="esVisible('nombre') ? (apellidoFaltante ? 'Falta el apellido: mínimo un nombre y un apellido' : errors.nombre) : undefined" />
     </div>
     <div>
-      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Tipo de documento</label>
-      <select v-model="draft.tipoDocumento" class="w-full h-10 px-3 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white transition-all cursor-pointer">
+      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Tipo de documento *</label>
+      <select v-model="draft.tipoDocumento" @change="tocar('tipoDocumento')" class="w-full h-10 px-3 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all cursor-pointer" :class="fieldStateClass(esVisible('tipoDocumento') && !!errors.tipoDocumento, esVisible('tipoDocumento') && !errors.tipoDocumento && !!draft.tipoDocumento, 'border-slate-200 focus:border-[#EC4899]')">
         <option value="CC">Cédula de Ciudadanía (CC)</option>
         <option value="CE">Cédula de Extranjería (CE)</option>
         <option value="TI">Tarjeta de Identidad (TI)</option>
         <option value="NIT">NIT</option>
         <option value="PP">Pasaporte (PP)</option>
       </select>
+      <FieldError :message="esVisible('tipoDocumento') ? errors.tipoDocumento : undefined" />
     </div>
     <div>
       <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Documento *</label>
@@ -59,8 +60,9 @@ const hoy = new Date().toISOString().split('T')[0]
       <FieldError :message="esVisible('documento') ? errors.documento : undefined" />
     </div>
     <div>
-      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Fecha de nacimiento</label>
-      <input v-model="draft.fechaNacimiento" type="date" class="w-full h-10 px-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white transition-all" />
+      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Fecha de nacimiento *</label>
+      <input v-model="draft.fechaNacimiento" @blur="tocar('fechaNacimiento')" type="date" class="w-full h-10 px-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all" :class="fieldStateClass(esVisible('fechaNacimiento') && !!errors.fechaNacimiento, esVisible('fechaNacimiento') && !errors.fechaNacimiento && !!draft.fechaNacimiento, 'border-slate-200 focus:border-[#EC4899]')" />
+      <FieldError :message="esVisible('fechaNacimiento') ? errors.fechaNacimiento : undefined" />
     </div>
     <div>
       <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Correo</label>
@@ -73,47 +75,53 @@ const hoy = new Date().toISOString().split('T')[0]
       <FieldError :message="esVisible('telefono') ? errors.telefono : undefined" />
     </div>
     <div>
-      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Sexo biológico</label>
-      <select v-model="draft.sexo" class="w-full h-10 px-3 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white transition-all cursor-pointer">
+      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Sexo biológico *</label>
+      <select v-model="draft.sexo" @change="tocar('sexo')" class="w-full h-10 px-3 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all cursor-pointer" :class="fieldStateClass(esVisible('sexo') && !!errors.sexo, esVisible('sexo') && !errors.sexo && !!draft.sexo, 'border-slate-200 focus:border-[#EC4899]')">
         <option value="">Sin especificar</option>
         <option value="Masculino">Masculino</option>
         <option value="Femenino">Femenino</option>
       </select>
+      <FieldError :message="esVisible('sexo') ? errors.sexo : undefined" />
     </div>
     <div class="sm:col-span-2">
       <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Dirección</label>
       <input v-model="draft.direccion" placeholder="Dirección de residencia" class="w-full h-10 px-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white transition-all" />
     </div>
     <div>
-      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Ciudad</label>
-      <input v-model="draft.ciudad" placeholder="Código o nombre de ciudad" class="w-full h-10 px-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white transition-all" />
+      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Ciudad *</label>
+      <input v-model="draft.ciudad" @blur="tocar('ciudad')" placeholder="Ej: 001" class="w-full h-10 px-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all" :class="fieldStateClass(esVisible('ciudad') && !!errors.ciudad, esVisible('ciudad') && !errors.ciudad && !!draft.ciudad, 'border-slate-200 focus:border-[#EC4899]')" />
+      <FieldError :message="esVisible('ciudad') ? errors.ciudad : undefined" />
     </div>
     <div>
-      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Departamento</label>
-      <input v-model="draft.departamento" placeholder="Código o nombre de departamento" class="w-full h-10 px-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white transition-all" />
+      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Departamento *</label>
+      <input v-model="draft.departamento" @blur="tocar('departamento')" placeholder="Ej: 66" class="w-full h-10 px-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all" :class="fieldStateClass(esVisible('departamento') && !!errors.departamento, esVisible('departamento') && !errors.departamento && !!draft.departamento, 'border-slate-200 focus:border-[#EC4899]')" />
+      <FieldError :message="esVisible('departamento') ? errors.departamento : undefined" />
     </div>
     <div>
       <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Empresa</label>
       <input v-model="draft.empresa" placeholder="Nombre empresa" class="w-full h-10 px-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white transition-all" />
     </div>
     <div>
-      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Plan contratado</label>
-      <select v-model="draft.servicioId" class="w-full h-10 px-3 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white transition-all cursor-pointer">
+      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Plan contratado *</label>
+      <select v-model="draft.servicioId" @change="tocar('planContratado')" class="w-full h-10 px-3 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all cursor-pointer" :class="fieldStateClass(esVisible('planContratado') && !!errors.planContratado, esVisible('planContratado') && !errors.planContratado && !!draft.planContratado, 'border-slate-200 focus:border-[#EC4899]')">
         <option :value="null">Selecciona un plan</option>
         <option v-for="p in props.planesServicio" :key="p.id" :value="p.id">{{ p.nombre }}</option>
       </select>
+      <FieldError :message="esVisible('planContratado') ? errors.planContratado : undefined" />
     </div>
     <div>
-      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Tipo de plan</label>
-      <input v-model="draft.tipoPlan" placeholder="Tipo de plan" class="w-full h-10 px-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white transition-all" />
+      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Tipo de plan *</label>
+      <input v-model="draft.tipoPlan" @blur="tocar('tipoPlan')" placeholder="Liga - Energia - Camara" class="w-full h-10 px-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all" :class="fieldStateClass(esVisible('tipoPlan') && !!errors.tipoPlan, esVisible('tipoPlan') && !errors.tipoPlan && !!draft.tipoPlan, 'border-slate-200 focus:border-[#EC4899]')" />
+      <FieldError :message="esVisible('tipoPlan') ? errors.tipoPlan : undefined" />
     </div>
     <div>
       <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Tipo de afiliado</label>
-      <input v-model="draft.tipoAfiliado" placeholder="Tipo de afiliado" class="w-full h-10 px-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white transition-all" />
+      <input :value="draft.tipoAfiliado" disabled title="El titular siempre se crea como tipo de afiliado 1 (cotizante)" class="w-full h-10 px-4 rounded-lg border border-slate-200 bg-slate-100 text-slate-400 text-[12px] outline-none cursor-not-allowed" />
     </div>
     <div>
-      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">EPS</label>
-      <input v-model="draft.eps" placeholder="EPS" class="w-full h-10 px-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white transition-all" />
+      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">EPS *</label>
+      <input v-model="draft.eps" @blur="tocar('eps')" placeholder="EPS" class="w-full h-10 px-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all" :class="fieldStateClass(esVisible('eps') && !!errors.eps, esVisible('eps') && !errors.eps && !!draft.eps, 'border-slate-200 focus:border-[#EC4899]')" />
+      <FieldError :message="esVisible('eps') ? errors.eps : undefined" />
     </div>
     <div>
       <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Otra EPS</label>
@@ -124,12 +132,14 @@ const hoy = new Date().toISOString().split('T')[0]
       <input v-model="draft.planSalud" placeholder="Plan de salud" class="w-full h-10 px-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white transition-all" />
     </div>
     <div>
-      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Nombre del plan</label>
-      <input v-model="draft.planNombre" placeholder="Nombre del plan" class="w-full h-10 px-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white transition-all" />
+      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Nombre del plan *</label>
+      <input v-model="draft.planNombre" @blur="tocar('planNombre')" placeholder="Nombre comercial del plan" class="w-full h-10 px-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all" :class="fieldStateClass(esVisible('planNombre') && !!errors.planNombre, esVisible('planNombre') && !errors.planNombre && !!draft.planNombre, 'border-slate-200 focus:border-[#EC4899]')" />
+      <FieldError :message="esVisible('planNombre') ? errors.planNombre : undefined" />
     </div>
     <div>
-      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Fecha de inscripción</label>
-      <input v-model="draft.fechaInscripcion" type="date" :max="hoy" :disabled="soloLecturaEnEdicion" class="w-full h-10 px-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed" />
+      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Fecha de inscripción *</label>
+      <input v-model="draft.fechaInscripcion" @blur="tocar('fechaInscripcion')" type="date" :max="hoy" :disabled="soloLecturaEnEdicion" class="w-full h-10 px-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed" :class="fieldStateClass(esVisible('fechaInscripcion') && !!errors.fechaInscripcion, esVisible('fechaInscripcion') && !errors.fechaInscripcion && !!draft.fechaInscripcion, 'border-slate-200 focus:border-[#EC4899]')" />
+      <FieldError :message="esVisible('fechaInscripcion') ? errors.fechaInscripcion : undefined" />
     </div>
     <div>
       <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Estado</label>
