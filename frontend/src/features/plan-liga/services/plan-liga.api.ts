@@ -63,7 +63,7 @@ export async function createTitular(data: TitularDraft): Promise<void> {
     OTRAEPS: data.otraEps,
     PLAN_SALUD: data.planSalud,
     PLAN_NOMBRE: data.planNombre,
-    SERVICIO_ID: data.servicioId ?? 0,
+    TIPO_PLAN_ID: data.tipoPlanId ?? 0,
   }
   const response = await fetch(`${API_URL}/api/titulares-beneficiarios`, {
     method: 'POST',
@@ -143,7 +143,7 @@ export async function createBeneficiario(idTitular: number, data: BeneficiarioDr
     OTRAEPS: data.otraEps,
     PLAN_SALUD: data.planSalud,
     PLAN_NOMBRE: data.planNombre,
-    FECHA_INGRESO: data.fechaInscripcion,
+    // FECHA_INGRESO no se manda: el backend la hereda automáticamente de la del titular.
   }
   const response = await fetch(`${API_URL}/api/titulares-beneficiarios/${idTitular}/beneficiarios`, {
     method: 'POST',
@@ -200,7 +200,7 @@ export interface ListadoTitularesParams {
   limit?: number
   offset?: number
   estado?: 'Activo' | 'Inactivo'
-  plan?: string
+  tipoPlanId?: number
   sexo?: 'Masculino' | 'Femenino'
   edad?: '0-17' | '18-35' | '36-50' | '51+'
   busqueda?: string
@@ -242,7 +242,7 @@ function mapTitularListado(r: TitularListadoResponse): Titular {
     departamento: '',
     empresa: r.EMPRESA ?? '',
     planContratado: planesDetalle.map(p => p.nombre).join(' | '),
-    servicioId: null,
+    tipoPlanId: null,
     tipoPlan: '',
     tipoAfiliado: '',
     eps: '',
@@ -277,7 +277,7 @@ function mapTitularDetalle(r: TitularDetalleResponse): Titular {
     departamento: r.DEPARTAMENTO ?? '',
     empresa: r.EMPRESA ?? '',
     planContratado: '',
-    servicioId: null,
+    tipoPlanId: null,
     tipoPlan: r.TIPO_PLAN ?? '',
     tipoAfiliado: r.TIPO_AFILIADO ?? '',
     eps: r.EPS ?? '',
@@ -361,7 +361,7 @@ export async function getListadoTitulares(params: ListadoTitularesParams = {}): 
   if (params.limit) query.set('limit', String(params.limit))
   if (params.offset) query.set('offset', String(params.offset))
   if (params.estado) query.set('estado', ESTADO_API[params.estado])
-  if (params.plan) query.set('plan', params.plan)
+  if (params.tipoPlanId) query.set('tipo_plan_id', String(params.tipoPlanId))
   if (params.sexo) query.set('sexo', SEXO_API[params.sexo])
   if (params.edad) query.set('edad', params.edad)
   if (params.busqueda) query.set('busqueda', params.busqueda)
@@ -391,14 +391,8 @@ async function fetchPlanesNombres(): Promise<PlanNombreResponse[]> {
   )
 }
 
-// El endpoint no devuelve strings planos: cada elemento es un objeto { ID, NOMBRE }.
-export async function getNombresPlanes(): Promise<string[]> {
-  const data = await fetchPlanesNombres()
-  return data.map(p => p.NOMBRE)
-}
-
-// Mismo endpoint que getNombresPlanes, pero conservando el ID: se usa para asociar
-// el titular a su plan/servicio (SERVICIO_ID) al crearlo.
+// Catálogo de planes { ID, NOMBRE }: alimenta tanto el selector "Plan contratado"
+// al crear un titular (TIPO_PLAN_ID) como el filtro de plan del listado (tipo_plan_id).
 export async function getPlanesServicio(): Promise<PlanServicio[]> {
   const data = await fetchPlanesNombres()
   return data.map(p => ({ id: p.ID, nombre: p.NOMBRE }))

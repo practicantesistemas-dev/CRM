@@ -17,7 +17,7 @@ const BENEFICIARIO_EXTRA_VACIO = {
 export const TITULAR_DRAFT_VACIO: TitularDraft = {
   ...TITULAR_EXTRA_VACIO,
   documento: '', nombre: '', fechaNacimiento: '', sexo: '', correo: '', telefono: '',
-  empresa: '', planContratado: '', servicioId: null, fechaInscripcion: new Date().toISOString().split('T')[0], estado: 'Activo',
+  empresa: '', planContratado: '', tipoPlanId: null, fechaInscripcion: new Date().toISOString().split('T')[0], estado: 'Activo',
 }
 
 export const BENEFICIARIO_DRAFT_VACIO: BeneficiarioDraft = {

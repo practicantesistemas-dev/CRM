@@ -56,8 +56,9 @@ const soloLecturaEnEdicion = computed(() => props.modo === 'editar')
           <FieldError :message="esVisible('documento') ? errors.documento : undefined" />
         </div>
         <div>
-          <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Fecha nacimiento</label>
-          <input v-model="draft.fechaNacimiento" type="date" class="w-full h-10 px-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white transition-all" />
+          <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Fecha nacimiento *</label>
+          <input v-model="draft.fechaNacimiento" @blur="tocar('fechaNacimiento')" type="date" class="w-full h-10 px-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all" :class="fieldStateClass(esVisible('fechaNacimiento') && !!errors.fechaNacimiento, esVisible('fechaNacimiento') && !errors.fechaNacimiento && !!draft.fechaNacimiento, 'border-slate-200 focus:border-[#EC4899]')" />
+          <FieldError :message="esVisible('fechaNacimiento') ? errors.fechaNacimiento : undefined" />
         </div>
         <div>
           <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Sexo biológico</label>
@@ -149,9 +150,8 @@ const soloLecturaEnEdicion = computed(() => props.modo === 'editar')
           </select>
         </div>
         <div>
-          <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Fecha inscripción *</label>
-          <input v-model="draft.fechaInscripcion" @blur="tocar('fechaInscripcion')" type="date" :disabled="soloLecturaEnEdicion" class="w-full h-10 px-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed" :class="fieldStateClass(esVisible('fechaInscripcion') && !!errors.fechaInscripcion, esVisible('fechaInscripcion') && !errors.fechaInscripcion && !!draft.fechaInscripcion, 'border-slate-200 focus:border-[#EC4899]')" />
-          <FieldError :message="esVisible('fechaInscripcion') ? errors.fechaInscripcion : undefined" />
+          <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Fecha inscripción</label>
+          <input :value="draft.fechaInscripcion" type="date" disabled title="Se hereda automáticamente de la fecha de ingreso del titular" class="w-full h-10 px-4 rounded-lg border border-slate-200 bg-slate-100 text-slate-400 text-[12px] outline-none cursor-not-allowed" />
         </div>
       </div>
     </div>

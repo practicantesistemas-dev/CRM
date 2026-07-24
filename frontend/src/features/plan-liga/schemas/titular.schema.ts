@@ -17,7 +17,7 @@ export const titularSchema = z.object({
   departamento: z.string().trim().min(1, 'El departamento es obligatorio'),
   empresa: nombreEntidad({ opcional: true }),
   planContratado: z.string().trim().min(1, 'Selecciona un plan contratado'),
-  servicioId: z.number().nullable(),
+  tipoPlanId: z.number().nullable(),
   tipoPlan: z.string().trim().min(1, 'El tipo de plan es obligatorio'),
   tipoAfiliado: z.string().trim(),
   eps: z.string().trim().min(1, 'La EPS es obligatoria'),

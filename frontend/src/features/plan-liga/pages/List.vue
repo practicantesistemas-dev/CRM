@@ -14,7 +14,7 @@ import ImportacionPlanLigaDialog from '../dialogs/ImportacionPlanLigaDialog.vue'
 
 const {
   buscar, filtroEstado, filtroPlan, filtroSexo, filtroEdad,
-  titulares, planes, planesServicio,
+  titulares, planesServicio,
   totalActivos, totalBeneficiarios,
   totalTitulares, paginaActual, totalPaginas, hayPaginaAnterior, hayPaginaSiguiente,
   paginaSiguiente, paginaAnterior,
@@ -215,7 +215,7 @@ const modalImportVisible = ref(false)
           </select>
           <select v-model="filtroPlan" class="h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer">
             <option value="todos">Plan: Todos</option>
-            <option v-for="p in planes" :key="p" :value="p">{{ p }}</option>
+            <option v-for="p in planesServicio" :key="p.id" :value="p.id">{{ p.nombre }}</option>
           </select>
           <select v-model="filtroSexo" class="h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer">
             <option value="todos">Sexo biológico: Todos</option>

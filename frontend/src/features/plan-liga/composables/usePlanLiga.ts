@@ -4,7 +4,7 @@ import { CUPO_MAXIMO } from '../constants/plan-liga.constants'
 import {
   createTitular, updateTitular, activarTitular, desactivarTitular,
   createBeneficiario, updateBeneficiario, getResumenTitulares,
-  getListadoTitulares, getNombresPlanes, getPlanesServicio, getTitular, getBeneficiariosTitular,
+  getListadoTitulares, getPlanesServicio, getTitular, getBeneficiariosTitular,
   activarBeneficiario as activarBeneficiarioApi, desactivarBeneficiario as desactivarBeneficiarioApi,
 } from '../services/plan-liga.api'
 
@@ -29,18 +29,9 @@ export function usePlanLiga() {
 
   const buscar       = ref('')
   const filtroEstado = ref('todos')
-  const filtroPlan   = ref('todos')
+  const filtroPlan   = ref<number | 'todos'>('todos')
   const filtroSexo   = ref('todos')
   const filtroEdad   = ref('todos')
-
-  const planes = ref<string[]>([])
-  const cargarPlanes = async () => {
-    try {
-      planes.value = await getNombresPlanes()
-    } catch {
-      planes.value = []
-    }
-  }
 
   const planesServicio = ref<PlanServicio[]>([])
   const cargarPlanesServicio = async () => {
@@ -59,7 +50,7 @@ export function usePlanLiga() {
         limit: TITULARES_POR_PAGINA,
         offset: offsetTitulares.value,
         estado: filtroEstado.value === 'todos' ? undefined : (filtroEstado.value as 'Activo' | 'Inactivo'),
-        plan: filtroPlan.value === 'todos' ? undefined : filtroPlan.value,
+        tipoPlanId: filtroPlan.value === 'todos' ? undefined : filtroPlan.value,
         // 'Otro' no tiene código en el backend (solo M/F), así que no se envía y no filtra.
         sexo: filtroSexo.value === 'Masculino' || filtroSexo.value === 'Femenino' ? filtroSexo.value : undefined,
         edad: filtroEdad.value === 'todos' ? undefined : (filtroEdad.value as '0-17' | '18-35' | '36-50' | '51+'),
@@ -118,7 +109,6 @@ export function usePlanLiga() {
   onMounted(() => {
     cargarResumen()
     cargarTitulares()
-    cargarPlanes()
     cargarPlanesServicio()
   })
 
@@ -290,7 +280,7 @@ export function usePlanLiga() {
   return {
     titulares, beneficiarios,
     buscar, filtroEstado, filtroPlan, filtroSexo, filtroEdad,
-    planes, planesServicio, cargandoTitulares, errorTitulares,
+    planesServicio, cargandoTitulares, errorTitulares,
     totalActivos, totalBeneficiarios, titularesTope, errorResumen,
     totalTitulares, paginaActual, totalPaginas, hayPaginaAnterior, hayPaginaSiguiente,
     paginaSiguiente, paginaAnterior,

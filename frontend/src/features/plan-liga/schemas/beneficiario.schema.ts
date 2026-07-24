@@ -5,7 +5,7 @@ export const beneficiarioSchema = z.object({
   tipoDocumento: z.string().trim().min(1, 'Selecciona un tipo de documento'),
   documento: documentoIdentidad(),
   nombre: nombrePersona(),
-  fechaNacimiento: z.string().trim(),
+  fechaNacimiento: z.string().trim().min(1, 'La fecha de nacimiento es obligatoria'),
   sexo: z.union([z.enum(['Masculino', 'Femenino']), z.literal('')]),
   correo: optionalEmail(),
   telefono: telefonoCO(),

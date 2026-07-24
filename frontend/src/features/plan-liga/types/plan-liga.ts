@@ -12,8 +12,8 @@ export interface Titular {
   departamento: string
   empresa: string
   planContratado: string
-  /** Id del plan/servicio (tabla de planes) al que queda asociado el titular. */
-  servicioId: number | null
+  /** Id del plan (tabla intranet_planliga_tipo_plan) al que queda asociado el titular. */
+  tipoPlanId: number | null
   tipoPlan: string
   tipoAfiliado: string
   eps: string

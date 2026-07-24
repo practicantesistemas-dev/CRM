@@ -6,7 +6,7 @@ import type {
   Kpi, TableroResumenResponse,
   ActividadReciente, ActividadRecienteResponse,
   DistribucionItem, DistribucionContactosResponse,
-  ServicioTop, TopServicioResponse,
+  PlanTop, TopPlanResponse,
   EmbudoEtapa, EmbudoComercialItem,
 } from '../types/dashboard'
 
@@ -80,16 +80,17 @@ export async function getDistribucionContactos(periodo: string): Promise<Distrib
   }))
 }
 
-export async function getTopServicios(limit: number): Promise<ServicioTop[]> {
-  const data = await obtenerJson<TopServicioResponse[]>(
-    `/api/tablero/top-servicios?limit=${limit}`,
-    'No se pudo cargar el top de servicios.',
+export async function getTopPlanes(limit: number): Promise<PlanTop[]> {
+  const data = await obtenerJson<TopPlanResponse[]>(
+    `/api/tablero/top-planes?limit=${limit}`,
+    'No se pudo cargar el top de planes.',
   )
 
-  return data.map((s) => ({
-    nombre: s.nombre,
-    solicitudes: s.solicitudes,
-    conversion: `${s.porcentaje}%`,
+  return data.map((p) => ({
+    planId: p.plan_id,
+    nombre: p.nombre,
+    solicitudes: p.solicitudes,
+    conversion: `${p.porcentaje}%`,
   }))
 }
 

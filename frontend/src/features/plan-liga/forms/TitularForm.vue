@@ -17,8 +17,8 @@ const nombre = useNombreCompuesto(draft, 'nombre')
 const apellidoFaltante = computed(() => faltaApellido(nombre))
 
 // El nombre del plan se guarda aparte (solo para mostrarlo en la tabla); el que
-// realmente se envía al crear el titular es el id (servicioId → SERVICIO_ID).
-watch(() => draft.value.servicioId, (id) => {
+// realmente se envía al crear el titular es el id (tipoPlanId → TIPO_PLAN_ID).
+watch(() => draft.value.tipoPlanId, (id) => {
   draft.value.planContratado = props.planesServicio?.find(p => p.id === id)?.nombre ?? ''
 })
 
@@ -103,7 +103,7 @@ const hoy = new Date().toISOString().split('T')[0]
     </div>
     <div>
       <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Plan contratado *</label>
-      <select v-model="draft.servicioId" @change="tocar('planContratado')" class="w-full h-10 px-3 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all cursor-pointer" :class="fieldStateClass(esVisible('planContratado') && !!errors.planContratado, esVisible('planContratado') && !errors.planContratado && !!draft.planContratado, 'border-slate-200 focus:border-[#EC4899]')">
+      <select v-model="draft.tipoPlanId" @change="tocar('planContratado')" class="w-full h-10 px-3 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all cursor-pointer" :class="fieldStateClass(esVisible('planContratado') && !!errors.planContratado, esVisible('planContratado') && !errors.planContratado && !!draft.planContratado, 'border-slate-200 focus:border-[#EC4899]')">
         <option :value="null">Selecciona un plan</option>
         <option v-for="p in props.planesServicio" :key="p.id" :value="p.id">{{ p.nombre }}</option>
       </select>
