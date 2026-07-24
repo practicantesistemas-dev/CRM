@@ -1,10 +1,10 @@
 import { ref, computed, onMounted, watch } from 'vue'
-import type { Beneficiario, BeneficiarioDraft, Titular, TitularDraft } from '../types/plan-liga'
+import type { Beneficiario, BeneficiarioDraft, PlanServicio, Titular, TitularDraft } from '../types/plan-liga'
 import { CUPO_MAXIMO } from '../constants/plan-liga.constants'
 import {
   createTitular, updateTitular, activarTitular, desactivarTitular,
-  getBeneficiarios, createBeneficiario, updateBeneficiario, getResumenTitulares,
-  getListadoTitulares, getNombresPlanes, getTitular, getBeneficiariosTitular,
+  createBeneficiario, updateBeneficiario, getResumenTitulares,
+  getListadoTitulares, getPlanesServicio, getTitular, getBeneficiariosTitular,
   activarBeneficiario as activarBeneficiarioApi, desactivarBeneficiario as desactivarBeneficiarioApi,
 } from '../services/plan-liga.api'
 
@@ -14,7 +14,7 @@ export function usePlanLiga() {
   const titulares = ref<Titular[]>([])
   const cargandoTitulares = ref(false)
   const errorTitulares = ref<string | null>(null)
-  const beneficiarios = ref<Beneficiario[]>(getBeneficiarios())
+  const beneficiarios = ref<Beneficiario[]>([])
 
   const offsetTitulares = ref(0)
   const totalTitulares = ref(0)
@@ -29,16 +29,16 @@ export function usePlanLiga() {
 
   const buscar       = ref('')
   const filtroEstado = ref('todos')
-  const filtroPlan   = ref('todos')
+  const filtroPlan   = ref<number | 'todos'>('todos')
   const filtroSexo   = ref('todos')
   const filtroEdad   = ref('todos')
 
-  const planes = ref<string[]>([])
-  const cargarPlanes = async () => {
+  const planesServicio = ref<PlanServicio[]>([])
+  const cargarPlanesServicio = async () => {
     try {
-      planes.value = await getNombresPlanes()
+      planesServicio.value = await getPlanesServicio()
     } catch {
-      planes.value = []
+      planesServicio.value = []
     }
   }
 
@@ -50,7 +50,7 @@ export function usePlanLiga() {
         limit: TITULARES_POR_PAGINA,
         offset: offsetTitulares.value,
         estado: filtroEstado.value === 'todos' ? undefined : (filtroEstado.value as 'Activo' | 'Inactivo'),
-        plan: filtroPlan.value === 'todos' ? undefined : filtroPlan.value,
+        tipoPlanId: filtroPlan.value === 'todos' ? undefined : filtroPlan.value,
         // 'Otro' no tiene código en el backend (solo M/F), así que no se envía y no filtra.
         sexo: filtroSexo.value === 'Masculino' || filtroSexo.value === 'Femenino' ? filtroSexo.value : undefined,
         edad: filtroEdad.value === 'todos' ? undefined : (filtroEdad.value as '0-17' | '18-35' | '36-50' | '51+'),
@@ -109,7 +109,7 @@ export function usePlanLiga() {
   onMounted(() => {
     cargarResumen()
     cargarTitulares()
-    cargarPlanes()
+    cargarPlanesServicio()
   })
 
   const titularesTope      = computed(() => titulares.value.filter(t => activosPorTitular(t.id) >= CUPO_MAXIMO).length)
@@ -204,12 +204,24 @@ export function usePlanLiga() {
     }
   }
 
-  const crearBeneficiario = (titularId: number, data: BeneficiarioDraft) => {
-    beneficiarios.value = [...beneficiarios.value, createBeneficiario(titularId, data)]
-  }
-
   const guardandoBeneficiario = ref(false)
   const errorGuardarBeneficiario = ref<string | null>(null)
+
+  const crearBeneficiario = async (titularId: number, data: BeneficiarioDraft): Promise<boolean> => {
+    guardandoBeneficiario.value = true
+    errorGuardarBeneficiario.value = null
+    try {
+      await createBeneficiario(titularId, data)
+      await cargarBeneficiariosTitular(titularId)
+      cargarResumen()
+      return true
+    } catch (e) {
+      errorGuardarBeneficiario.value = e instanceof Error ? e.message : 'No se pudo crear el beneficiario.'
+      return false
+    } finally {
+      guardandoBeneficiario.value = false
+    }
+  }
 
   const actualizarBeneficiario = async (titularId: number, id: number, data: BeneficiarioDraft): Promise<boolean> => {
     guardandoBeneficiario.value = true
@@ -268,7 +280,7 @@ export function usePlanLiga() {
   return {
     titulares, beneficiarios,
     buscar, filtroEstado, filtroPlan, filtroSexo, filtroEdad,
-    planes, cargandoTitulares, errorTitulares,
+    planesServicio, cargandoTitulares, errorTitulares,
     totalActivos, totalBeneficiarios, titularesTope, errorResumen,
     totalTitulares, paginaActual, totalPaginas, hayPaginaAnterior, hayPaginaSiguiente,
     paginaSiguiente, paginaAnterior,

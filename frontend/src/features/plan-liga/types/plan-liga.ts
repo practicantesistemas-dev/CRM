@@ -12,6 +12,8 @@ export interface Titular {
   departamento: string
   empresa: string
   planContratado: string
+  /** Id del plan (tabla intranet_planliga_tipo_plan) al que queda asociado el titular. */
+  tipoPlanId: number | null
   tipoPlan: string
   tipoAfiliado: string
   eps: string
@@ -40,6 +42,11 @@ export interface Beneficiario {
   ciudad: string
   departamento: string
   empresa: string
+  tipoPlan: string
+  eps: string
+  otraEps: string
+  planSalud: string
+  planNombre: string
   estado: 'Activo' | 'Inactivo' | 'Reemplazado' | 'Retirado'
   fechaInscripcion: string
 }
@@ -84,6 +91,12 @@ export interface PlanTitular {
   cupo: number
 }
 
+/** Plan/servicio del catálogo (GET /api/titulares-beneficiarios/planes/nombres). */
+export interface PlanServicio {
+  id: number
+  nombre: string
+}
+
 export interface TitularListadoResponse {
   ID_TITULAR: number
   TITULAR: string
@@ -122,6 +135,11 @@ export interface BeneficiarioListadoResponse {
   TELEFONO: string | null
   FECHA_INGRESO: string | null
   EMPRESA: string | null
+  TIPO_PLAN: string | null
+  EPS: string | null
+  OTRAEPS: string | null
+  PLAN_SALUD: string | null
+  PLAN_NOMBRE: string | null
   ESTADO: string
 }
 

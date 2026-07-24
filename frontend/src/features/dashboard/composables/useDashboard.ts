@@ -1,10 +1,10 @@
 import { onMounted, ref, watch } from 'vue'
 import {
-  getDashboardResumen, getKpis, getActividadReciente, getDistribucionContactos, getTopServicios,
+  getDashboardResumen, getKpis, getActividadReciente, getDistribucionContactos, getTopPlanes,
   getEmbudoComercial,
 } from '../services/dashboard.api'
 import { PERIODO_OPTIONS } from '../constants/dashboard.constants'
-import type { Kpi, ActividadReciente, DistribucionItem, ServicioTop, EmbudoEtapa } from '../types/dashboard'
+import type { Kpi, ActividadReciente, DistribucionItem, PlanTop, EmbudoEtapa } from '../types/dashboard'
 
 export function useDashboard() {
   const periodo = ref('30d')
@@ -19,8 +19,8 @@ export function useDashboard() {
   const actividades = ref<ActividadReciente[]>([])
   const errorActividades = ref<string | null>(null)
 
-  const topServicios = ref<ServicioTop[]>([])
-  const errorTopServicios = ref<string | null>(null)
+  const topPlanes = ref<PlanTop[]>([])
+  const errorTopPlanes = ref<string | null>(null)
 
   const embudoResumen = ref<EmbudoEtapa[]>([])
   const errorEmbudo = ref<string | null>(null)
@@ -57,12 +57,12 @@ export function useDashboard() {
     }
   }
 
-  const cargarTopServicios = async () => {
-    errorTopServicios.value = null
+  const cargarTopPlanes = async () => {
+    errorTopPlanes.value = null
     try {
-      topServicios.value = await getTopServicios(3)
+      topPlanes.value = await getTopPlanes(3)
     } catch (e) {
-      errorTopServicios.value = e instanceof Error ? e.message : 'No se pudo cargar el top de servicios.'
+      errorTopPlanes.value = e instanceof Error ? e.message : 'No se pudo cargar el top de planes.'
     }
   }
 
@@ -85,7 +85,7 @@ export function useDashboard() {
     cargarKpis()
     cargarDistribucion()
     cargarActividades()
-    cargarTopServicios()
+    cargarTopPlanes()
     cargarEmbudo()
   })
 
@@ -94,7 +94,7 @@ export function useDashboard() {
     kpis, cargandoKpis, errorKpis,
     distribucion, errorDistribucion,
     actividades, errorActividades,
-    topServicios, errorTopServicios,
+    topPlanes, errorTopPlanes,
     embudoResumen, errorEmbudo,
     ...resumen,
   }

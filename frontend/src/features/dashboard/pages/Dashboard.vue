@@ -3,7 +3,7 @@ import { useDashboard } from '../composables/useDashboard'
 import KpiCards from '../components/KpiCards.vue'
 import ActividadReciente from '../components/ActividadReciente.vue'
 import DistribucionContactos from '../components/DistribucionContactos.vue'
-import TopServicios from '../components/TopServicios.vue'
+import TopPlanes from '../components/TopPlanes.vue'
 import EmbudoResumen from '../components/EmbudoResumen.vue'
 import AccesosRapidos from '../components/AccesosRapidos.vue'
 import TableauEmbed from '../components/TableauEmbed.vue'
@@ -12,7 +12,7 @@ const {
   periodo, periodoOptions, kpis, cargandoKpis, errorKpis,
   actividades, errorActividades,
   distribucion, errorDistribucion,
-  topServicios, errorTopServicios,
+  topPlanes, errorTopPlanes,
   embudoResumen, errorEmbudo, accesosRapidos,
 } = useDashboard()
 </script>
@@ -42,7 +42,7 @@ const {
       <ActividadReciente :actividades="actividades" :error="errorActividades" />
       <div class="flex flex-col gap-4">
         <DistribucionContactos :distribucion="distribucion" :error="errorDistribucion" />
-        <TopServicios :servicios="topServicios" :error="errorTopServicios" />
+        <TopPlanes :planes="topPlanes" :error="errorTopPlanes" />
       </div>
     </div>
 

@@ -27,7 +27,9 @@ export interface DistribucionItem {
   color: string
 }
 
-export interface ServicioTop {
+export interface PlanTop {
+  /** null representa el grupo "Plan Estándar" (titulares sin tipo_plan_id asignado). */
+  planId: number | null
   nombre: string
   solicitudes: number
   conversion: string
@@ -82,8 +84,8 @@ export interface DistribucionContactosResponse {
   inactivos: { cantidad: number; porcentaje: number }
 }
 
-export interface TopServicioResponse {
-  servicio_id: number
+export interface TopPlanResponse {
+  plan_id: number | null
   nombre: string
   solicitudes: number
   porcentaje: number

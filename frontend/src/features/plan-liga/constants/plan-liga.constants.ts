@@ -5,15 +5,19 @@ import type {
 
 const TITULAR_EXTRA_VACIO = {
   tipoDocumento: 'CC', direccion: '', ciudad: '', departamento: '',
-  tipoPlan: '', tipoAfiliado: '', eps: '', otraEps: '', planSalud: '', planNombre: '',
+  // El titular siempre se crea como tipo de afiliado 1 (cotizante); el campo no es editable en el formulario.
+  tipoPlan: '', tipoAfiliado: '1', eps: '', otraEps: '', planSalud: '', planNombre: '',
 }
 
-const BENEFICIARIO_EXTRA_VACIO = { tipoDocumento: 'CC', sexo: '' as const, correo: '', telefono: '', direccion: '', ciudad: '', departamento: '', empresa: '' }
+const BENEFICIARIO_EXTRA_VACIO = {
+  tipoDocumento: 'CC', sexo: '' as const, correo: '', telefono: '', direccion: '', ciudad: '', departamento: '', empresa: '',
+  tipoPlan: '', eps: '', otraEps: '', planSalud: '', planNombre: '',
+}
 
 export const TITULAR_DRAFT_VACIO: TitularDraft = {
   ...TITULAR_EXTRA_VACIO,
   documento: '', nombre: '', fechaNacimiento: '', sexo: '', correo: '', telefono: '',
-  empresa: '', planContratado: '', fechaInscripcion: new Date().toISOString().split('T')[0], estado: 'Activo',
+  empresa: '', planContratado: '', tipoPlanId: null, fechaInscripcion: new Date().toISOString().split('T')[0], estado: 'Activo',
 }
 
 export const BENEFICIARIO_DRAFT_VACIO: BeneficiarioDraft = {

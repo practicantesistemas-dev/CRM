@@ -1,7 +1,7 @@
 import type {
   Beneficiario, BeneficiarioDraft, Titular, TitularDraft,
   ResumenTitularesResponse, TitularListadoResponse, ListadoTitularesResponse,
-  BeneficiarioListadoResponse, TitularDetalleResponse, PlanTitular,
+  BeneficiarioListadoResponse, TitularDetalleResponse, PlanTitular, PlanServicio,
 } from '../types/plan-liga'
 import { joinNombreCompleto, splitNombreCompleto } from '@/shared/utils/nombreCompuesto'
 
@@ -21,9 +21,14 @@ async function lanzarErrorConDetalle(response: Response, mensajeError: string): 
   throw new Error(detail ?? mensajeError)
 }
 
-// Beneficiarios creados en esta sesión que aún no tienen contraparte en el backend
-// (no existe endpoint de creación todavía).
-let beneficiarios: Beneficiario[] = []
+// Quita comas, puntos, guiones, numerales y demás caracteres raros de la dirección
+// antes de mandarla al backend (deja solo letras, números y espacios).
+function limpiarDireccion(direccion: string): string {
+  return direccion
+    .replace(/[^\p{L}\p{N}\s]/gu, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
 
 const ESTADO_TITULAR_API: Record<Titular['estado'], string> = { Activo: 'A', Inactivo: 'I' }
 const SEXO_TITULAR_API: Record<Titular['sexo'], string | null> = { Masculino: 'M', Femenino: 'F', '': null }
@@ -46,7 +51,7 @@ export async function createTitular(data: TitularDraft): Promise<void> {
     APELLIDO2: apellido2,
     FECHA_NACIMIENTO: data.fechaNacimiento,
     SEXO: SEXO_TITULAR_API[data.sexo],
-    DIRECCION: data.direccion,
+    DIRECCION: limpiarDireccion(data.direccion),
     CIUDAD: data.ciudad,
     DEPARTAMENTO: data.departamento,
     CORREO: data.correo,
@@ -58,7 +63,7 @@ export async function createTitular(data: TitularDraft): Promise<void> {
     OTRAEPS: data.otraEps,
     PLAN_SALUD: data.planSalud,
     PLAN_NOMBRE: data.planNombre,
-    SERVICIO_ID: 0,
+    TIPO_PLAN_ID: data.tipoPlanId ?? 0,
   }
   const response = await fetch(`${API_URL}/api/titulares-beneficiarios`, {
     method: 'POST',
@@ -81,7 +86,7 @@ export async function updateTitular(id: number, data: TitularDraft): Promise<Tit
     SEXO: SEXO_TITULAR_API[data.sexo],
     CORREO: data.correo,
     TELEFONO: data.telefono,
-    DIRECCION: data.direccion,
+    DIRECCION: limpiarDireccion(data.direccion),
     CIUDAD: data.ciudad,
     DEPARTAMENTO: data.departamento,
     EMPRESA: data.empresa,
@@ -112,20 +117,41 @@ export async function desactivarTitular(idTitular: number): Promise<void> {
   if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo desactivar el titular.')
 }
 
-export function getBeneficiarios(): Beneficiario[] {
-  return beneficiarios
-}
-
-export function createBeneficiario(titularId: number, data: BeneficiarioDraft): Beneficiario {
-  const nuevo: Beneficiario = { ...data, id: Date.now(), titularId }
-  beneficiarios = [...beneficiarios, nuevo]
-  return nuevo
-}
-
 const ESTADO_BENEFICIARIO_API: Record<Beneficiario['estado'], string> = {
   Activo: 'A', Inactivo: 'I', Reemplazado: 'R', Retirado: 'X',
 }
 const SEXO_BENEFICIARIO_API: Record<Beneficiario['sexo'], string | null> = { Masculino: 'M', Femenino: 'F', '': null }
+
+export async function createBeneficiario(idTitular: number, data: BeneficiarioDraft): Promise<void> {
+  const { nombre1, nombre2, apellido1, apellido2 } = splitNombreCompleto(data.nombre)
+  const body = {
+    TIPO_DOCUMENTO: data.tipoDocumento,
+    DOCUMENTO: data.documento,
+    NOMBRE1: nombre1,
+    NOMBRE2: nombre2,
+    APELLIDO1: apellido1,
+    APELLIDO2: apellido2,
+    FECHA_NACIMIENTO: data.fechaNacimiento,
+    SEXO: SEXO_BENEFICIARIO_API[data.sexo],
+    DIRECCION: limpiarDireccion(data.direccion),
+    CIUDAD: data.ciudad,
+    DEPARTAMENTO: data.departamento,
+    CORREO: data.correo,
+    TELEFONO: data.telefono,
+    EMPRESA: data.empresa,
+    EPS: data.eps,
+    OTRAEPS: data.otraEps,
+    PLAN_SALUD: data.planSalud,
+    PLAN_NOMBRE: data.planNombre,
+    // FECHA_INGRESO no se manda: el backend la hereda automáticamente de la del titular.
+  }
+  const response = await fetch(`${API_URL}/api/titulares-beneficiarios/${idTitular}/beneficiarios`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo crear el beneficiario.')
+}
 
 export async function updateBeneficiario(idTitular: number, idBeneficiario: number, data: BeneficiarioDraft): Promise<Beneficiario> {
   const { nombre1, nombre2, apellido1, apellido2 } = splitNombreCompleto(data.nombre)
@@ -138,12 +164,17 @@ export async function updateBeneficiario(idTitular: number, idBeneficiario: numb
     APELLIDO2: apellido2,
     FECHA_NACIMIENTO: data.fechaNacimiento,
     SEXO: SEXO_BENEFICIARIO_API[data.sexo],
-    DIRECCION: data.direccion,
+    DIRECCION: limpiarDireccion(data.direccion),
     CIUDAD: data.ciudad,
     DEPARTAMENTO: data.departamento,
     CORREO: data.correo,
     TELEFONO: data.telefono,
     EMPRESA: data.empresa,
+    TIPO_PLAN: data.tipoPlan,
+    EPS: data.eps,
+    OTRAEPS: data.otraEps,
+    PLAN_SALUD: data.planSalud,
+    PLAN_NOMBRE: data.planNombre,
     ESTADO: ESTADO_BENEFICIARIO_API[data.estado],
   }
   const response = await fetch(`${API_URL}/api/titulares-beneficiarios/${idTitular}/beneficiarios/${idBeneficiario}`, {
@@ -169,7 +200,7 @@ export interface ListadoTitularesParams {
   limit?: number
   offset?: number
   estado?: 'Activo' | 'Inactivo'
-  plan?: string
+  tipoPlanId?: number
   sexo?: 'Masculino' | 'Femenino'
   edad?: '0-17' | '18-35' | '36-50' | '51+'
   busqueda?: string
@@ -211,6 +242,7 @@ function mapTitularListado(r: TitularListadoResponse): Titular {
     departamento: '',
     empresa: r.EMPRESA ?? '',
     planContratado: planesDetalle.map(p => p.nombre).join(' | '),
+    tipoPlanId: null,
     tipoPlan: '',
     tipoAfiliado: '',
     eps: '',
@@ -245,6 +277,7 @@ function mapTitularDetalle(r: TitularDetalleResponse): Titular {
     departamento: r.DEPARTAMENTO ?? '',
     empresa: r.EMPRESA ?? '',
     planContratado: '',
+    tipoPlanId: null,
     tipoPlan: r.TIPO_PLAN ?? '',
     tipoAfiliado: r.TIPO_AFILIADO ?? '',
     eps: r.EPS ?? '',
@@ -276,6 +309,11 @@ function mapBeneficiarioListado(r: BeneficiarioListadoResponse, titularId: numbe
     ciudad: r.CIUDAD ?? '',
     departamento: r.DEPARTAMENTO ?? '',
     empresa: r.EMPRESA ?? '',
+    tipoPlan: r.TIPO_PLAN ?? '',
+    eps: r.EPS ?? '',
+    otraEps: r.OTRAEPS ?? '',
+    planSalud: r.PLAN_SALUD ?? '',
+    planNombre: r.PLAN_NOMBRE ?? '',
     estado: r.ESTADO === 'A' ? 'Activo' : 'Inactivo',
     fechaInscripcion: r.FECHA_INGRESO ?? '',
   }
@@ -323,7 +361,7 @@ export async function getListadoTitulares(params: ListadoTitularesParams = {}): 
   if (params.limit) query.set('limit', String(params.limit))
   if (params.offset) query.set('offset', String(params.offset))
   if (params.estado) query.set('estado', ESTADO_API[params.estado])
-  if (params.plan) query.set('plan', params.plan)
+  if (params.tipoPlanId) query.set('tipo_plan_id', String(params.tipoPlanId))
   if (params.sexo) query.set('sexo', SEXO_API[params.sexo])
   if (params.edad) query.set('edad', params.edad)
   if (params.busqueda) query.set('busqueda', params.busqueda)
@@ -346,11 +384,16 @@ interface PlanNombreResponse {
   NOMBRE: string
 }
 
-// El endpoint no devuelve strings planos: cada elemento es un objeto { ID, NOMBRE }.
-export async function getNombresPlanes(): Promise<string[]> {
-  const data = await obtenerJson<PlanNombreResponse[]>(
+async function fetchPlanesNombres(): Promise<PlanNombreResponse[]> {
+  return obtenerJson<PlanNombreResponse[]>(
     '/api/titulares-beneficiarios/planes/nombres',
     'No se pudo cargar la lista de planes.',
   )
-  return data.map(p => p.NOMBRE)
+}
+
+// Catálogo de planes { ID, NOMBRE }: alimenta tanto el selector "Plan contratado"
+// al crear un titular (TIPO_PLAN_ID) como el filtro de plan del listado (tipo_plan_id).
+export async function getPlanesServicio(): Promise<PlanServicio[]> {
+  const data = await fetchPlanesNombres()
+  return data.map(p => ({ id: p.ID, nombre: p.NOMBRE }))
 }
