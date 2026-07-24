@@ -64,7 +64,8 @@ export interface SeguimientoDraft {
   oportunidadId: number | null
 }
 
-export type TipoImportacion = 'activar_titular' | 'activar_beneficiario' | 'reemplazar' | 'desactivar'
+export type TipoImportacion = 'agregar_grupos' | 'titular' | 'beneficiario'
+export type AccionMasiva = 'activar' | 'desactivar'
 
 export interface OpcionImportacion {
   key: TipoImportacion
@@ -78,6 +79,7 @@ export interface ResultadoImportacion {
   total: number
   exitosos: number
   errores: number
+  detalleErrores: string[]
 }
 
 export interface ResumenTitularesResponse {
@@ -91,10 +93,27 @@ export interface PlanTitular {
   cupo: number
 }
 
-/** Plan/servicio del catálogo (GET /api/titulares-beneficiarios/planes/nombres). */
+/** Plan del catálogo (GET /api/titulares-beneficiarios/planes). */
 export interface PlanServicio {
   id: number
   nombre: string
+  /**
+   * Cupo de beneficiarios ya resuelto:
+   * - Si BENEFICIARIOS_ADICIONALES tiene valor (>0): 4 (cupo del Plan Estándar) + BENEFICIARIOS_ADICIONALES,
+   *   sin importar lo que diga MAX_BENEFICIARIOS (ese campo, en ese caso, no es el cupo real).
+   * - Si no: MAX_BENEFICIARIOS tal cual (0 = el plan es solo para el titular, sin beneficiarios).
+   */
+  cupoBeneficiarios: number
+}
+
+export interface PlanCatalogoResponse {
+  ID: number
+  NOMBRE: string
+  TIPO: string | null
+  MAX_BENEFICIARIOS: number | null
+  BENEFICIARIOS_ADICIONALES: number | null
+  DESCRIPCION: string | null
+  ESTADO: string | null
 }
 
 export interface TitularListadoResponse {

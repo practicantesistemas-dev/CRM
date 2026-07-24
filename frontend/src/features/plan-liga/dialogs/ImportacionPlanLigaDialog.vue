@@ -8,7 +8,8 @@ const emit = defineEmits<{ cerrar: [] }>()
 const visible = defineModel<boolean>('visible', { required: true })
 
 const {
-  tipoImport, archivoNombre, procesandoImport, resultadoImport, dragOverImport,
+  tipoImport, accionMasiva, archivoNombre, procesandoImport, resultadoImport, dragOverImport, progresoImport,
+  planesServicio, planSeleccionado, cupoBeneficiarios,
   seleccionarTipo, onDragOverImport, onDragLeaveImport, onDropImport, onFileInput,
   procesarImport, resetImport, descargarPlantilla,
 } = useImportacionPlanLiga()
@@ -63,8 +64,35 @@ const cerrar = () => {
           </button>
         </div>
 
+        <div v-if="tipoImport === 'agregar_grupos'">
+          <p class="text-[11px] font-bold text-slate-600 uppercase tracking-wide mb-3">2. Plan del archivo</p>
+          <select v-model="planSeleccionado" class="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer">
+            <option value="estandar">Estándar</option>
+            <option v-for="p in planesServicio" :key="p.id" :value="p.id">{{ p.nombre }}</option>
+          </select>
+          <p class="text-[10px] text-slate-400 mt-1.5">
+            Cada titular ocupa 1 fila + hasta {{ cupoBeneficiarios }} filas de beneficiarios justo debajo (aunque estén vacías). El siguiente titular empieza en la fila que sigue a ese bloque.
+          </p>
+        </div>
+
+        <div v-else>
+          <p class="text-[11px] font-bold text-slate-600 uppercase tracking-wide mb-3">2. Acción</p>
+          <div class="flex gap-2">
+            <button type="button" @click="accionMasiva = 'activar'"
+              class="flex-1 h-9 rounded-lg border text-[11px] font-semibold transition-all"
+              :class="accionMasiva === 'activar' ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300'">
+              Activar
+            </button>
+            <button type="button" @click="accionMasiva = 'desactivar'"
+              class="flex-1 h-9 rounded-lg border text-[11px] font-semibold transition-all"
+              :class="accionMasiva === 'desactivar' ? 'border-red-500 bg-red-50 text-red-600' : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300'">
+              Desactivar
+            </button>
+          </div>
+        </div>
+
         <div>
-          <p class="text-[11px] font-bold text-slate-600 uppercase tracking-wide mb-3">2. Subir archivo</p>
+          <p class="text-[11px] font-bold text-slate-600 uppercase tracking-wide mb-3">3. Subir archivo</p>
           <div class="border-2 border-dashed rounded-xl p-8 text-center transition-all cursor-pointer"
             :class="dragOverImport ? 'border-[#EC4899] bg-[#FCE7F3]' : 'border-slate-300 hover:border-slate-400 bg-slate-50'"
             @dragover="onDragOverImport" @dragleave="onDragLeaveImport" @drop="onDropImport"
@@ -77,18 +105,33 @@ const cerrar = () => {
           </div>
         </div>
 
-        <div v-if="resultadoImport" class="grid grid-cols-3 gap-3">
-          <div class="bg-slate-50 rounded-xl p-4 text-center border border-slate-200">
-            <div class="text-[24px] font-bold text-[#0F172A]">{{ resultadoImport.total }}</div>
-            <div class="text-[10px] font-semibold text-slate-500 uppercase tracking-wide mt-1">Total filas</div>
+        <div v-if="procesandoImport && progresoImport.total > 0">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-[11px] font-semibold text-slate-500">Procesando afiliados...</span>
+            <span class="text-[11px] font-bold text-slate-600">{{ progresoImport.hechos }} / {{ progresoImport.total }}</span>
           </div>
-          <div class="bg-emerald-50 rounded-xl p-4 text-center border border-emerald-200">
-            <div class="text-[24px] font-bold text-emerald-700">{{ resultadoImport.exitosos }}</div>
-            <div class="text-[10px] font-semibold text-emerald-600 uppercase tracking-wide mt-1">Procesados</div>
+          <div class="h-1.5 rounded-full bg-slate-100 overflow-hidden">
+            <div class="h-full bg-[#EC4899] transition-all" :style="{ width: `${(progresoImport.hechos / progresoImport.total) * 100}%` }" />
           </div>
-          <div class="bg-red-50 rounded-xl p-4 text-center border border-red-200">
-            <div class="text-[24px] font-bold text-red-600">{{ resultadoImport.errores }}</div>
-            <div class="text-[10px] font-semibold text-red-500 uppercase tracking-wide mt-1">Con errores</div>
+        </div>
+
+        <div v-if="resultadoImport" class="space-y-3">
+          <div class="grid grid-cols-3 gap-3">
+            <div class="bg-slate-50 rounded-xl p-4 text-center border border-slate-200">
+              <div class="text-[24px] font-bold text-[#0F172A]">{{ resultadoImport.total }}</div>
+              <div class="text-[10px] font-semibold text-slate-500 uppercase tracking-wide mt-1">Total afiliados</div>
+            </div>
+            <div class="bg-emerald-50 rounded-xl p-4 text-center border border-emerald-200">
+              <div class="text-[24px] font-bold text-emerald-700">{{ resultadoImport.exitosos }}</div>
+              <div class="text-[10px] font-semibold text-emerald-600 uppercase tracking-wide mt-1">Procesados</div>
+            </div>
+            <div class="bg-red-50 rounded-xl p-4 text-center border border-red-200">
+              <div class="text-[24px] font-bold text-red-600">{{ resultadoImport.errores }}</div>
+              <div class="text-[10px] font-semibold text-red-500 uppercase tracking-wide mt-1">Con errores</div>
+            </div>
+          </div>
+          <div v-if="resultadoImport.detalleErrores.length > 0" class="bg-red-50 border border-red-200 rounded-xl p-3 max-h-40 overflow-y-auto">
+            <p v-for="(msg, i) in resultadoImport.detalleErrores" :key="i" class="text-[10px] text-red-600 leading-relaxed">{{ msg }}</p>
           </div>
         </div>
       </div>
