@@ -29,7 +29,7 @@ export function usePlanLiga() {
 
   const buscar       = ref('')
   const filtroEstado = ref('todos')
-  const filtroPlan   = ref<number | 'todos'>('todos')
+  const filtroPlan   = ref<number | 'todos' | 'estandar'>('todos')
   const filtroSexo   = ref('todos')
   const filtroEdad   = ref('todos')
 
@@ -46,11 +46,12 @@ export function usePlanLiga() {
     cargandoTitulares.value = true
     errorTitulares.value = null
     try {
+      const plan = filtroPlan.value
       const resultado = await getListadoTitulares({
         limit: TITULARES_POR_PAGINA,
         offset: offsetTitulares.value,
         estado: filtroEstado.value === 'todos' ? undefined : (filtroEstado.value as 'Activo' | 'Inactivo'),
-        tipoPlanId: filtroPlan.value === 'todos' ? undefined : filtroPlan.value,
+        tipoPlanId: plan === 'todos' ? undefined : (plan === 'estandar' ? null : plan),
         // 'Otro' no tiene código en el backend (solo M/F), así que no se envía y no filtra.
         sexo: filtroSexo.value === 'Masculino' || filtroSexo.value === 'Femenino' ? filtroSexo.value : undefined,
         edad: filtroEdad.value === 'todos' ? undefined : (filtroEdad.value as '0-17' | '18-35' | '36-50' | '51+'),

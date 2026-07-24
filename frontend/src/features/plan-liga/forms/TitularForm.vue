@@ -18,9 +18,11 @@ const apellidoFaltante = computed(() => faltaApellido(nombre))
 
 // El nombre del plan se guarda aparte (solo para mostrarlo en la tabla); el que
 // realmente se envía al crear el titular es el id (tipoPlanId → TIPO_PLAN_ID).
+// tipoPlanId null es una opción válida en sí misma ("Estándar"), no un estado sin elegir:
+// el backend interpreta null/0 como el Plan Estándar (cupo 4), así que se manda tal cual.
 watch(() => draft.value.tipoPlanId, (id) => {
-  draft.value.planContratado = props.planesServicio?.find(p => p.id === id)?.nombre ?? ''
-})
+  draft.value.planContratado = id === null ? 'Estándar' : (props.planesServicio?.find(p => p.id === id)?.nombre ?? '')
+}, { immediate: true })
 
 defineExpose({ submit: onValidSubmit(() => { if (!apellidoFaltante.value) emit('validSubmit') }) })
 
@@ -98,13 +100,14 @@ const hoy = new Date().toISOString().split('T')[0]
       <FieldError :message="esVisible('departamento') ? errors.departamento : undefined" />
     </div>
     <div>
-      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Empresa</label>
-      <input v-model="draft.empresa" placeholder="Nombre empresa" class="w-full h-10 px-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white transition-all" />
+      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Empresa *</label>
+      <input v-model="draft.empresa" @blur="tocar('empresa')" placeholder="Nombre empresa" class="w-full h-10 px-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all" :class="fieldStateClass(esVisible('empresa') && !!errors.empresa, esVisible('empresa') && !errors.empresa && !!draft.empresa, 'border-slate-200 focus:border-[#EC4899]')" />
+      <FieldError :message="esVisible('empresa') ? errors.empresa : undefined" />
     </div>
     <div>
       <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Plan contratado *</label>
       <select v-model="draft.tipoPlanId" @change="tocar('planContratado')" class="w-full h-10 px-3 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all cursor-pointer" :class="fieldStateClass(esVisible('planContratado') && !!errors.planContratado, esVisible('planContratado') && !errors.planContratado && !!draft.planContratado, 'border-slate-200 focus:border-[#EC4899]')">
-        <option :value="null">Selecciona un plan</option>
+        <option :value="null">Estándar</option>
         <option v-for="p in props.planesServicio" :key="p.id" :value="p.id">{{ p.nombre }}</option>
       </select>
       <FieldError :message="esVisible('planContratado') ? errors.planContratado : undefined" />
@@ -132,9 +135,8 @@ const hoy = new Date().toISOString().split('T')[0]
       <input v-model="draft.planSalud" placeholder="Plan de salud" class="w-full h-10 px-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white transition-all" />
     </div>
     <div>
-      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Nombre del plan *</label>
-      <input v-model="draft.planNombre" @blur="tocar('planNombre')" placeholder="Nombre comercial del plan" class="w-full h-10 px-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all" :class="fieldStateClass(esVisible('planNombre') && !!errors.planNombre, esVisible('planNombre') && !errors.planNombre && !!draft.planNombre, 'border-slate-200 focus:border-[#EC4899]')" />
-      <FieldError :message="esVisible('planNombre') ? errors.planNombre : undefined" />
+      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Nombre del plan</label>
+      <input v-model="draft.planNombre" placeholder="Nombre comercial del plan" class="w-full h-10 px-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white transition-all" />
     </div>
     <div>
       <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Fecha de inscripción *</label>

@@ -15,7 +15,7 @@ export const titularSchema = z.object({
   direccion: z.string().trim(),
   ciudad: z.string().trim().min(1, 'La ciudad es obligatoria'),
   departamento: z.string().trim().min(1, 'El departamento es obligatorio'),
-  empresa: nombreEntidad({ opcional: true }),
+  empresa: nombreEntidad(),
   planContratado: z.string().trim().min(1, 'Selecciona un plan contratado'),
   tipoPlanId: z.number().nullable(),
   tipoPlan: z.string().trim().min(1, 'El tipo de plan es obligatorio'),
@@ -23,7 +23,7 @@ export const titularSchema = z.object({
   eps: z.string().trim().min(1, 'La EPS es obligatoria'),
   otraEps: z.string().trim(),
   planSalud: z.string().trim(),
-  planNombre: z.string().trim().min(1, 'El nombre del plan es obligatorio'),
+  planNombre: z.string().trim(),
   fechaInscripcion: z.string().trim().min(1, 'La fecha de inscripción es obligatoria'),
   estado: z.enum(['Activo', 'Inactivo']),
 })

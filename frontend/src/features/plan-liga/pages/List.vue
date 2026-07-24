@@ -215,6 +215,7 @@ const modalImportVisible = ref(false)
           </select>
           <select v-model="filtroPlan" class="h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer">
             <option value="todos">Plan: Todos</option>
+            <option value="estandar">Estándar</option>
             <option v-for="p in planesServicio" :key="p.id" :value="p.id">{{ p.nombre }}</option>
           </select>
           <select v-model="filtroSexo" class="h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer">

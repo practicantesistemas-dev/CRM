@@ -63,7 +63,8 @@ export async function createTitular(data: TitularDraft): Promise<void> {
     OTRAEPS: data.otraEps,
     PLAN_SALUD: data.planSalud,
     PLAN_NOMBRE: data.planNombre,
-    TIPO_PLAN_ID: data.tipoPlanId ?? 0,
+    // null es el Plan Estándar (cupo 4): se manda tal cual, no se convierte a 0.
+    TIPO_PLAN_ID: data.tipoPlanId,
   }
   const response = await fetch(`${API_URL}/api/titulares-beneficiarios`, {
     method: 'POST',
@@ -200,7 +201,8 @@ export interface ListadoTitularesParams {
   limit?: number
   offset?: number
   estado?: 'Activo' | 'Inactivo'
-  tipoPlanId?: number
+  /** null filtra el bucket "Plan Estándar" (tipo_plan_id IS NULL en el backend). */
+  tipoPlanId?: number | null
   sexo?: 'Masculino' | 'Femenino'
   edad?: '0-17' | '18-35' | '36-50' | '51+'
   busqueda?: string
@@ -361,7 +363,7 @@ export async function getListadoTitulares(params: ListadoTitularesParams = {}): 
   if (params.limit) query.set('limit', String(params.limit))
   if (params.offset) query.set('offset', String(params.offset))
   if (params.estado) query.set('estado', ESTADO_API[params.estado])
-  if (params.tipoPlanId) query.set('tipo_plan_id', String(params.tipoPlanId))
+  if (params.tipoPlanId !== undefined) query.set('tipo_plan_id', params.tipoPlanId === null ? 'null' : String(params.tipoPlanId))
   if (params.sexo) query.set('sexo', SEXO_API[params.sexo])
   if (params.edad) query.set('edad', params.edad)
   if (params.busqueda) query.set('busqueda', params.busqueda)
