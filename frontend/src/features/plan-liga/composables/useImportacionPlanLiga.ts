@@ -3,6 +3,8 @@ import type { AccionMasiva, PlanServicio, ResultadoImportacion, TipoImportacion 
 import { CUPO_MAXIMO } from '../constants/plan-liga.constants'
 import { getPlanesServicio } from '../services/plan-liga.api'
 import { parsearArchivoCargaMasiva, procesarCargaMasiva } from '../utils/cargaMasiva'
+import { parsearArchivoAccionTitulares, procesarAccionMasivaTitulares } from '../utils/accionMasivaTitulares'
+import { parsearArchivoAccionBeneficiarios, procesarAccionMasivaBeneficiarios } from '../utils/accionMasivaBeneficiarios'
 
 export function useImportacionPlanLiga() {
   const tipoImport       = ref<TipoImportacion>('agregar_grupos')
@@ -14,8 +16,8 @@ export function useImportacionPlanLiga() {
   const dragOverImport   = ref(false)
   const progresoImport   = ref({ hechos: 0, total: 0 })
 
-  // Solo "agregar_grupos" (crear titulares + sus beneficiarios) está conectado al backend
-  // por ahora; necesita saber el cupo de beneficiarios del plan elegido para agrupar filas.
+  // Los 3 tipos de importación ya están conectados al backend. "agregar_grupos" necesita saber
+  // el cupo de beneficiarios del plan elegido para agrupar filas.
   const planesServicio = ref<PlanServicio[]>([])
   const planSeleccionado = ref<number | 'estandar'>('estandar')
   const cupoBeneficiarios = computed(() => {
@@ -56,25 +58,33 @@ export function useImportacionPlanLiga() {
   const procesarImport = async () => {
     if (!archivo.value) return
 
-    if (tipoImport.value !== 'agregar_grupos') {
-      resultadoImport.value = {
-        total: 0, exitosos: 0, errores: 1,
-        detalleErrores: ['Esta opción todavía no está conectada al backend; por ahora solo "Agregar grupos" procesa el archivo de verdad.'],
-      }
-      return
-    }
-
     procesandoImport.value = true
     resultadoImport.value = null
     progresoImport.value = { hechos: 0, total: 0 }
     try {
-      const filas = await parsearArchivoCargaMasiva(archivo.value)
-      const tipoPlanId = planSeleccionado.value === 'estandar' ? null : planSeleccionado.value
-      resultadoImport.value = await procesarCargaMasiva(
-        filas,
-        { tipoPlanId, cupoBeneficiarios: cupoBeneficiarios.value },
-        (hechos, total) => { progresoImport.value = { hechos, total } },
-      )
+      if (tipoImport.value === 'titular') {
+        const filas = await parsearArchivoAccionTitulares(archivo.value)
+        resultadoImport.value = await procesarAccionMasivaTitulares(
+          filas,
+          accionMasiva.value,
+          (hechos, total) => { progresoImport.value = { hechos, total } },
+        )
+      } else if (tipoImport.value === 'beneficiario') {
+        const filas = await parsearArchivoAccionBeneficiarios(archivo.value)
+        resultadoImport.value = await procesarAccionMasivaBeneficiarios(
+          filas,
+          accionMasiva.value,
+          (hechos, total) => { progresoImport.value = { hechos, total } },
+        )
+      } else {
+        const filas = await parsearArchivoCargaMasiva(archivo.value)
+        const tipoPlanId = planSeleccionado.value === 'estandar' ? null : planSeleccionado.value
+        resultadoImport.value = await procesarCargaMasiva(
+          filas,
+          { tipoPlanId, cupoBeneficiarios: cupoBeneficiarios.value },
+          (hechos, total) => { progresoImport.value = { hechos, total } },
+        )
+      }
     } catch (e) {
       resultadoImport.value = {
         total: 0, exitosos: 0, errores: 1,
@@ -92,13 +102,17 @@ export function useImportacionPlanLiga() {
     progresoImport.value = { hechos: 0, total: 0 }
   }
 
-  // La plantilla de titulares+beneficiarios vive en frontend/public/Plantilla_Carga_PlanLiga.xlsx.
-  // "titular" y "beneficiario" todavía no tienen plantilla real.
+  // Las 3 plantillas viven en frontend/public/plantillas/.
+  const NOMBRES_PLANTILLA: Record<TipoImportacion, string> = {
+    agregar_grupos: 'Plantilla_Carga_PlanLiga.xlsx',
+    titular: 'titular.xlsx',
+    beneficiario: 'beneficiario.xlsx',
+  }
   const descargarPlantilla = () => {
-    const esGrupos = tipoImport.value === 'agregar_grupos'
+    const nombre = NOMBRES_PLANTILLA[tipoImport.value]
     const enlace = document.createElement('a')
-    enlace.href = esGrupos ? '/Plantilla_Carga_PlanLiga.xlsx' : `/plantillas/${tipoImport.value}.xlsx`
-    enlace.download = esGrupos ? 'Plantilla_Carga_PlanLiga.xlsx' : `plan-liga-${tipoImport.value}.xlsx`
+    enlace.href = `/plantillas/${nombre}`
+    enlace.download = nombre
     enlace.click()
   }
 

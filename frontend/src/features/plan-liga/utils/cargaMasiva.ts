@@ -62,7 +62,7 @@ export interface FilaCargaMasiva extends Record<Columna, string> {
   erroresFormato: string[]
 }
 
-function normalizarFecha(valor: unknown): { valor: string; invalida: boolean } {
+export function normalizarFecha(valor: unknown): { valor: string; invalida: boolean } {
   if (valor instanceof Date) {
     const y = valor.getFullYear()
     const m = String(valor.getMonth() + 1).padStart(2, '0')
@@ -260,7 +260,7 @@ export interface ResultadoCargaMasiva {
   detalleErrores: string[]
 }
 
-async function buscarIdTitularPorDocumento(documento: string): Promise<number | null> {
+export async function buscarIdTitularPorDocumento(documento: string): Promise<number | null> {
   const { items } = await getListadoTitulares({ busqueda: documento, limit: 5 })
   return items.find(t => t.documento === documento)?.id ?? null
 }
