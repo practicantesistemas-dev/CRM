@@ -3,8 +3,11 @@ import { joinNombreCompleto } from '@/shared/utils/nombreCompuesto'
 import type { BeneficiarioDraft, TitularDraft } from '../types/plan-liga'
 import { createBeneficiario, createTitular, getListadoTitulares } from '../services/plan-liga.api'
 
-// La plantilla (Plantilla_Carga_PlanLiga.xlsx) define encabezados en la fila 4, una fila
-// de ejemplo en la 5, y los datos reales a partir de la fila 6 — columnas A-T en este orden.
+// La plantilla (Plantilla_Carga_PlanLiga.xlsx) trae encabezados, una fila de ejemplo que el
+// usuario debe borrar antes de entregar el archivo, y luego los datos reales — columnas A-T
+// en este orden. No asumimos números de fila fijos: si el usuario borra la fila de ejemplo
+// (como indican las instrucciones) o edita el archivo, todo se corre. En su lugar buscamos la
+// fila de encabezados por su contenido y calculamos la primera fila de datos a partir de ahí.
 const COLUMNAS = [
   'tipoPlanTexto', 'tipoDocumento', 'documento', 'nombre1', 'nombre2', 'apellido1', 'apellido2',
   'fechaNacimiento', 'sexo', 'direccion', 'ciudad', 'departamento', 'correo', 'telefono',
@@ -12,7 +15,45 @@ const COLUMNAS = [
 ] as const
 type Columna = (typeof COLUMNAS)[number]
 
-const PRIMERA_FILA_DATOS = 6
+const ENCABEZADOS_ESPERADOS = [
+  'TIPO_PLAN', 'TIPO', 'DOCUMENTO', 'NOMBRE1', 'NOMBRE2', 'APELLIDO1', 'APELLIDO2',
+  'FECHA_NACIMIENTO', 'SEXO', 'DIRECCION', 'CIUDAD', 'DEPARTAMENTO', 'CORREO', 'TELEFONO',
+  'FECHA_INGRESO', 'EMPRESA', 'EPS', 'OTRAEPS', 'PLAN_SALUD', 'PLAN_NOMBRE',
+]
+const MAX_FILAS_BUSQUEDA_ENCABEZADO = 20
+const MIN_COINCIDENCIAS_ENCABEZADO = 15 // tolera pequeñas variaciones de nombre en algunas columnas
+
+/** Busca, entre las primeras filas de la hoja, la que contiene los encabezados de la plantilla. */
+function encontrarIndiceEncabezado(filasCrudas: unknown[][]): number {
+  const limite = Math.min(filasCrudas.length, MAX_FILAS_BUSQUEDA_ENCABEZADO)
+  for (let i = 0; i < limite; i++) {
+    const celdas = (filasCrudas[i] ?? []).map(v => String(v ?? '').trim().toUpperCase())
+    const coincidencias = ENCABEZADOS_ESPERADOS.filter(h => celdas.includes(h)).length
+    if (coincidencias >= MIN_COINCIDENCIAS_ENCABEZADO) return i
+  }
+  throw new Error(
+    'No se encontraron los encabezados esperados (TIPO_PLAN, TIPO, DOCUMENTO, NOMBRE1...). ' +
+    'Verifique que el archivo use la plantilla Plantilla_Carga_PlanLiga.xlsx.',
+  )
+}
+
+// Datos ficticios de la fila de ejemplo tal como vienen en Plantilla_Carga_PlanLiga.xlsx. Si el
+// usuario la deja intacta (sin borrarla ni editarla, aunque las instrucciones piden borrarla),
+// la reconocemos por este contenido exacto y la excluimos: ya sabemos que no es un dato real.
+const FILA_EJEMPLO_PLANTILLA: Record<Columna, string> = {
+  tipoPlanTexto: 'PLAN FAMILIAR', tipoDocumento: 'CC', documento: '1088123456', nombre1: 'JUAN', nombre2: 'CARLOS',
+  apellido1: 'GOMEZ', apellido2: 'RESTREPO', fechaNacimiento: '14/05/1990', sexo: 'M',
+  direccion: 'CR 15 # 20-40 APTO 301', ciudad: 'DOSQUEBRADAS', departamento: 'RISARALDA',
+  correo: 'juan.gomez@correo.com', telefono: '3101234567', fechaIngreso: '15/01/2026',
+  empresa: 'COMERCIALIZADORA XYZ SAS', eps: 'NUEVA EPS', otraEps: '', planSalud: 'MEDICINA PREPAGADA', planNombre: 'PLAN LIGA',
+}
+
+/** Solo detecta la fila de ejemplo sin modificar: si el usuario le cambió aunque sea un campo
+ * (por ejemplo para reutilizarla como su primer registro real), deja de coincidir y se procesa
+ * como dato real, tal como corresponde. */
+function esFilaEjemploPlantillaSinModificar(base: Record<Columna, string>): boolean {
+  return COLUMNAS.every(c => base[c].trim().toUpperCase() === FILA_EJEMPLO_PLANTILLA[c].toUpperCase())
+}
 
 export interface FilaCargaMasiva extends Record<Columna, string> {
   filaExcel: number
@@ -41,28 +82,38 @@ function normalizarFecha(valor: unknown): { valor: string; invalida: boolean } {
 }
 
 /**
- * Lee el archivo y devuelve una fila por posición física de la hoja (a partir de la fila 6),
- * SIN descartar las filas vacías intermedias: son cupos de beneficiario sin usar, y hace falta
- * conservar su posición para que el agrupamiento en bloques fijos (agruparFilas) no se desalinee.
- * Solo se recortan las filas vacías que quedan después del último dato real del archivo.
+ * Lee el archivo y devuelve una fila por posición física de la hoja (a partir de la primera fila
+ * de datos real, detectada dinámicamente tras la fila de encabezados), SIN descartar las filas
+ * vacías intermedias: son cupos de beneficiario sin usar, y hace falta conservar su posición para
+ * que el agrupamiento en bloques fijos (agruparFilas) no se desalinee. Solo se recortan las filas
+ * vacías que quedan después del último dato real del archivo.
  */
 export async function parsearArchivoCargaMasiva(file: File): Promise<FilaCargaMasiva[]> {
   const buffer = await file.arrayBuffer()
   const libro = XLSX.read(buffer, { type: 'array', cellDates: true })
   const hoja = libro.Sheets[libro.SheetNames[0]]
-  const filasCrudas = XLSX.utils.sheet_to_json<unknown[]>(hoja, {
+  const todasLasFilas = XLSX.utils.sheet_to_json<unknown[]>(hoja, {
     header: 1,
-    range: PRIMERA_FILA_DATOS - 1,
     raw: false,
     dateNF: 'yyyy-mm-dd',
     defval: '',
   })
 
-  const basesPorFila = filasCrudas.map((cruda) => {
+  const indiceEncabezado = encontrarIndiceEncabezado(todasLasFilas)
+  let primeraFilaDatos = indiceEncabezado + 2 // fila 1-based del encabezado (indiceEncabezado + 1) + 1
+  let filasCrudas = todasLasFilas.slice(indiceEncabezado + 1)
+
+  let basesPorFila = filasCrudas.map((cruda) => {
     const base = {} as Record<Columna, string>
     COLUMNAS.forEach((campo, i) => { base[campo] = String(cruda[i] ?? '').trim() })
     return base
   })
+
+  if (basesPorFila.length > 0 && esFilaEjemploPlantillaSinModificar(basesPorFila[0])) {
+    filasCrudas = filasCrudas.slice(1)
+    basesPorFila = basesPorFila.slice(1)
+    primeraFilaDatos += 1
+  }
 
   let ultimoIndiceConDatos = -1
   basesPorFila.forEach((base, idx) => {
@@ -72,7 +123,7 @@ export async function parsearArchivoCargaMasiva(file: File): Promise<FilaCargaMa
   const filas: FilaCargaMasiva[] = []
   for (let idx = 0; idx <= ultimoIndiceConDatos; idx++) {
     const base = basesPorFila[idx] ?? ({} as Record<Columna, string>)
-    const filaExcel = PRIMERA_FILA_DATOS + idx
+    const filaExcel = primeraFilaDatos + idx
     const vacia = COLUMNAS.every(c => (base[c] ?? '') === '')
 
     if (vacia) {
