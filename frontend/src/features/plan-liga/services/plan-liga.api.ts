@@ -350,6 +350,24 @@ export async function desactivarBeneficiario(idTitular: number, idBeneficiario: 
   return mapBeneficiarioListado(data.beneficiario, idTitular)
 }
 
+// Variante usada por la acción masiva (Excel): identifica al beneficiario por su propio
+// documento, sin necesidad de conocer ni buscar a su titular.
+export async function activarBeneficiarioPorDocumento(documento: string, fechaIngreso: string): Promise<void> {
+  const response = await fetch(`${API_URL}/api/titulares-beneficiarios/beneficiarios/${documento}/activar`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ FECHA_INGRESO: fechaIngreso }),
+  })
+  if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo activar el beneficiario.')
+}
+
+export async function desactivarBeneficiarioPorDocumento(documento: string): Promise<void> {
+  const response = await fetch(`${API_URL}/api/titulares-beneficiarios/beneficiarios/${documento}/desactivar`, {
+    method: 'POST',
+  })
+  if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo desactivar el beneficiario.')
+}
+
 export async function getTitular(idTitular: number): Promise<Titular> {
   const data = await obtenerJson<TitularDetalleResponse>(
     `/api/titulares-beneficiarios/${idTitular}`,

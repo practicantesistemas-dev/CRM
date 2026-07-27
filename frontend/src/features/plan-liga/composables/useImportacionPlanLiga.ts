@@ -2,9 +2,9 @@ import { ref, computed, onMounted } from 'vue'
 import type { AccionMasiva, PlanServicio, ResultadoImportacion, TipoImportacion } from '../types/plan-liga'
 import { CUPO_MAXIMO } from '../constants/plan-liga.constants'
 import { getPlanesServicio } from '../services/plan-liga.api'
-import { parsearArchivoCargaMasiva, procesarCargaMasiva } from '../utils/cargaMasiva'
-import { parsearArchivoAccionTitulares, procesarAccionMasivaTitulares } from '../utils/accionMasivaTitulares'
-import { parsearArchivoAccionBeneficiarios, procesarAccionMasivaBeneficiarios } from '../utils/accionMasivaBeneficiarios'
+import { agruparFilas, parsearArchivoCargaMasiva, procesarCargaMasiva, validarGruposCargaMasiva } from '../utils/cargaMasiva'
+import { parsearArchivoAccionTitulares, procesarAccionMasivaTitulares, validarFilasAccionTitulares } from '../utils/accionMasivaTitulares'
+import { parsearArchivoAccionBeneficiarios, procesarAccionMasivaBeneficiarios, validarFilasAccionBeneficiarios } from '../utils/accionMasivaBeneficiarios'
 
 export function useImportacionPlanLiga() {
   const tipoImport       = ref<TipoImportacion>('agregar_grupos')
@@ -64,6 +64,11 @@ export function useImportacionPlanLiga() {
     try {
       if (tipoImport.value === 'titular') {
         const filas = await parsearArchivoAccionTitulares(archivo.value)
+        const erroresFormato = validarFilasAccionTitulares(filas, accionMasiva.value)
+        if (erroresFormato.length > 0) {
+          resultadoImport.value = { total: filas.length, exitosos: 0, errores: erroresFormato.length, detalleErrores: erroresFormato, bloqueado: true }
+          return
+        }
         resultadoImport.value = await procesarAccionMasivaTitulares(
           filas,
           accionMasiva.value,
@@ -71,6 +76,11 @@ export function useImportacionPlanLiga() {
         )
       } else if (tipoImport.value === 'beneficiario') {
         const filas = await parsearArchivoAccionBeneficiarios(archivo.value)
+        const erroresFormato = validarFilasAccionBeneficiarios(filas, accionMasiva.value)
+        if (erroresFormato.length > 0) {
+          resultadoImport.value = { total: filas.length, exitosos: 0, errores: erroresFormato.length, detalleErrores: erroresFormato, bloqueado: true }
+          return
+        }
         resultadoImport.value = await procesarAccionMasivaBeneficiarios(
           filas,
           accionMasiva.value,
@@ -79,6 +89,13 @@ export function useImportacionPlanLiga() {
       } else {
         const filas = await parsearArchivoCargaMasiva(archivo.value)
         const tipoPlanId = planSeleccionado.value === 'estandar' ? null : planSeleccionado.value
+        const grupos = agruparFilas(filas, cupoBeneficiarios.value).filter(g => !g.titular.vacia)
+        const erroresFormato = validarGruposCargaMasiva(grupos)
+        if (erroresFormato.length > 0) {
+          const totalReal = grupos.reduce((sum, g) => sum + 1 + g.beneficiarios.filter(b => !b.vacia).length, 0)
+          resultadoImport.value = { total: totalReal, exitosos: 0, errores: erroresFormato.length, detalleErrores: erroresFormato, bloqueado: true }
+          return
+        }
         resultadoImport.value = await procesarCargaMasiva(
           filas,
           { tipoPlanId, cupoBeneficiarios: cupoBeneficiarios.value },

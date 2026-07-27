@@ -80,6 +80,8 @@ export interface ResultadoImportacion {
   exitosos: number
   errores: number
   detalleErrores: string[]
+  /** true cuando la validación de formato encontró errores y no se ejecutó ninguna acción. */
+  bloqueado?: boolean
 }
 
 export interface ResumenTitularesResponse {

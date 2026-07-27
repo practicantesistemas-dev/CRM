@@ -116,6 +116,10 @@ const cerrar = () => {
         </div>
 
         <div v-if="resultadoImport" class="space-y-3">
+          <div v-if="resultadoImport.bloqueado" class="bg-amber-50 border border-amber-200 rounded-xl p-3">
+            <p class="text-[11px] font-bold text-amber-700">No se ejecutó ninguna acción</p>
+            <p class="text-[10px] text-amber-600 mt-0.5">El archivo tiene errores de formato. Corríjalos y vuelva a subirlo.</p>
+          </div>
           <div class="grid grid-cols-3 gap-3">
             <div class="bg-slate-50 rounded-xl p-4 text-center border border-slate-200">
               <div class="text-[24px] font-bold text-[#0F172A]">{{ resultadoImport.total }}</div>

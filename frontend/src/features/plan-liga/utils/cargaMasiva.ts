@@ -260,6 +260,26 @@ export interface ResultadoCargaMasiva {
   detalleErrores: string[]
 }
 
+/** Validación de formato sin tocar el backend: recorre los mismos grupos que procesarCargaMasiva
+ * pero sin crear nada, para bloquear la importación completa antes de ejecutar ninguna acción
+ * si el archivo trae datos inválidos u obligatorios faltantes. */
+export function validarGruposCargaMasiva(grupos: GrupoCarga[]): string[] {
+  const errores: string[] = []
+  for (const grupo of grupos) {
+    const beneficiariosReales = grupo.beneficiarios.filter(b => !b.vacia)
+    const erroresTitular = [...grupo.titular.erroresFormato, ...validarCamposObligatorios(grupo.titular, REQUERIDOS_TITULAR)]
+    if (erroresTitular.length > 0) {
+      errores.push(...erroresTitular)
+      if (beneficiariosReales.length > 0) errores.push(`Fila ${grupo.titular.filaExcel}: no se creará el titular, así que tampoco sus beneficiarios`)
+      continue
+    }
+    for (const filaBene of beneficiariosReales) {
+      errores.push(...filaBene.erroresFormato, ...validarCamposObligatorios(filaBene, REQUERIDOS_BENEFICIARIO))
+    }
+  }
+  return errores
+}
+
 export async function buscarIdTitularPorDocumento(documento: string): Promise<number | null> {
   const { items } = await getListadoTitulares({ busqueda: documento, limit: 5 })
   return items.find(t => t.documento === documento)?.id ?? null

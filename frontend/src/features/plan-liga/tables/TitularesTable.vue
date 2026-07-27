@@ -58,11 +58,11 @@ const cuposTitular = (t: Titular, activosLocal: number) => ({
             <td class="px-4 py-3.5 text-[11px] text-slate-600 truncate max-w-[140px]">{{ t.empresa }}</td>
             <td class="px-4 py-3.5">
               <div v-if="t.planesDetalle?.length" class="flex flex-col gap-0.5">
-                <span v-for="p in t.planesDetalle" :key="p.nombre" class="text-[11px] font-semibold" :class="planStyle(p.nombre)">
-                  {{ p.nombre }}
+                <span v-for="(p, i) in t.planesDetalle" :key="p.nombre || i" class="text-[11px] font-semibold" :class="planStyle(p.nombre || 'Estándar')">
+                  {{ p.nombre || 'Estándar' }}
                 </span>
               </div>
-              <span v-else class="text-[11px] font-semibold" :class="planStyle(t.planContratado)">{{ t.planContratado }}</span>
+              <span v-else class="text-[11px] font-semibold" :class="planStyle(t.planContratado || 'Estándar')">{{ t.planContratado || 'Estándar' }}</span>
             </td>
             <td class="px-4 py-3.5">
               <div class="flex items-center gap-2">

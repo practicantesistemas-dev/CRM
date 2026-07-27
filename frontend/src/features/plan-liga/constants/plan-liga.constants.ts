@@ -28,16 +28,7 @@ export const BENEFICIARIO_DRAFT_VACIO: BeneficiarioDraft = {
 
 export const CUPO_MAXIMO = 4
 
-// Ventana permitida al elegir la fecha de ingreso en los diálogos de activación:
-// no se permite una fecha futura ni una muy antigua (más de 3 meses atrás).
-const FECHA_INGRESO_MESES_ATRAS = 3
-
-export const fechaIngresoMinima = (): string => {
-  const d = new Date()
-  d.setMonth(d.getMonth() - FECHA_INGRESO_MESES_ATRAS)
-  return d.toISOString().split('T')[0]
-}
-
+// La activación uno por uno ya no le pide la fecha al usuario: se activa con la fecha de hoy.
 export const fechaIngresoMaxima = (): string => new Date().toISOString().split('T')[0]
 
 /**

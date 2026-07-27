@@ -56,6 +56,19 @@ export async function parsearArchivoAccionTitulares(file: File): Promise<FilaAcc
   return filas
 }
 
+function validarFormatoFila(fila: FilaAccionTitular, accion: AccionMasiva): string | null {
+  if (accion === 'activar' && (!fila.fechaIngreso || fila.fechaInvalida)) {
+    return `Fila ${fila.filaExcel}: FECHA_INGRESO es obligatoria y debe tener un formato válido (DD/MM/AAAA) para activar.`
+  }
+  return null
+}
+
+/** Validación de formato sin tocar el backend: se usa para bloquear la importación
+ * completa antes de ejecutar ninguna acción si el archivo trae datos inválidos. */
+export function validarFilasAccionTitulares(filas: FilaAccionTitular[], accion: AccionMasiva): string[] {
+  return filas.map(f => validarFormatoFila(f, accion)).filter((e): e is string => e !== null)
+}
+
 export async function procesarAccionMasivaTitulares(
   filas: FilaAccionTitular[],
   accion: AccionMasiva,
@@ -67,8 +80,9 @@ export async function procesarAccionMasivaTitulares(
   let hechos = 0
 
   for (const fila of filas) {
-    if (accion === 'activar' && (!fila.fechaIngreso || fila.fechaInvalida)) {
-      detalleErrores.push(`Fila ${fila.filaExcel}: FECHA_INGRESO es obligatoria y debe tener un formato válido (DD/MM/AAAA) para activar.`)
+    const errorFormato = validarFormatoFila(fila, accion)
+    if (errorFormato) {
+      detalleErrores.push(errorFormato)
       hechos += 1
       onProgreso?.(hechos, total)
       continue
