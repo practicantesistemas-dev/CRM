@@ -41,6 +41,13 @@ const session = ref<Session | null>(readSession())
 const isAuthenticated = ref(session.value !== null)
 const me = ref<MeResponse | null>(session.value ? toMe(session.value) : null)
 
+// Endpoints como POST /api/bitacora/ ya no reciben el usuario en el body: lo resuelven
+// ellos mismos a partir del Bearer token (username → usuario_id en su propia tabla).
+// Este header es lo único que hay que mandar para que quede identificado.
+export function authHeader(): Record<string, string> {
+  return session.value ? { Authorization: `Bearer ${session.value.token}` } : {}
+}
+
 export function useAuth() {
   const login = async (credentials: LoginRequest) => {
     const result = await loginRequest(credentials)

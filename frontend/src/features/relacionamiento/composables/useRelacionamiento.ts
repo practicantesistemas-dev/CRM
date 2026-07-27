@@ -1,9 +1,25 @@
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import type { Actividad, ActividadDraft, TipoActividad } from '../types/actividad'
 import { getActividades, createActividad } from '../services/relacionamiento.api'
 
 export function useRelacionamiento() {
-  const actividades = ref<Actividad[]>(getActividades())
+  const actividades = ref<Actividad[]>([])
+  const cargando = ref(false)
+  const error = ref<string | null>(null)
+
+  const cargarActividades = async () => {
+    cargando.value = true
+    error.value = null
+    try {
+      actividades.value = await getActividades()
+    } catch (e) {
+      error.value = e instanceof Error ? e.message : 'No se pudo cargar la bitácora.'
+    } finally {
+      cargando.value = false
+    }
+  }
+
+  onMounted(cargarActividades)
 
   const filtroTipo = ref<TipoActividad | 'todos'>('todos')
   const filtroUsuario = ref('todos')
@@ -19,15 +35,30 @@ export function useRelacionamiento() {
     })
   )
 
-  const usuarios = computed(() => [...new Set(actividades.value.map(a => a.usuario))].sort())
+  const usuarios = computed(() => [...new Set(actividades.value.map(a => a.usuario).filter(Boolean))].sort())
 
-  const crearActividad = (data: ActividadDraft) => {
-    actividades.value = [createActividad(data), ...actividades.value]
+  const guardandoActividad = ref(false)
+  const errorGuardarActividad = ref<string | null>(null)
+
+  const crearActividad = async (data: ActividadDraft): Promise<boolean> => {
+    guardandoActividad.value = true
+    errorGuardarActividad.value = null
+    try {
+      await createActividad(data)
+      await cargarActividades()
+      return true
+    } catch (e) {
+      errorGuardarActividad.value = e instanceof Error ? e.message : 'No se pudo registrar la actividad.'
+      return false
+    } finally {
+      guardandoActividad.value = false
+    }
   }
 
   return {
-    actividades, filtroTipo, filtroUsuario, buscar,
+    actividades, cargando, error,
+    filtroTipo, filtroUsuario, buscar,
     actividadesFiltradas, usuarios,
-    crearActividad,
+    crearActividad, guardandoActividad, errorGuardarActividad,
   }
 }

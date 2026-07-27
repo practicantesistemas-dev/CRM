@@ -7,6 +7,7 @@ import type {
   SeguimientoDraft, TipoSeguimiento,
 } from '../types/plan-liga'
 import { joinNombreCompleto, splitNombreCompleto } from '@/shared/utils/nombreCompuesto'
+import { authHeader } from '@/features/auth/composables/useAuth'
 
 const API_URL = import.meta.env.VITE_CRM_API_URL
 
@@ -525,7 +526,7 @@ export async function registrarSeguimiento(titularId: number, data: SeguimientoD
   }
   const response = await fetch(`${API_URL}/api/bitacora/`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...authHeader() },
     body: JSON.stringify(body),
   })
   if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo registrar el seguimiento.')

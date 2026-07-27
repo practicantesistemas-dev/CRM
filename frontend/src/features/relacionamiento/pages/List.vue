@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { Plus, Filter } from 'lucide-vue-next'
+import { Plus, Filter, Loader2, AlertCircle } from 'lucide-vue-next'
 import type { ActividadDraft } from '../types/actividad'
 import { ACTIVIDAD_DRAFT_VACIO } from '../constants/relacionamiento.constants'
 import { useRelacionamiento } from '../composables/useRelacionamiento'
@@ -9,9 +9,9 @@ import TimelineItem from '../components/TimelineItem.vue'
 import ActividadFormDialog from '../dialogs/ActividadFormDialog.vue'
 
 const {
-  actividades, filtroTipo, filtroUsuario, buscar,
+  actividades, cargando, error, filtroTipo, filtroUsuario, buscar,
   actividadesFiltradas, usuarios,
-  crearActividad,
+  crearActividad, guardandoActividad, errorGuardarActividad,
 } = useRelacionamiento()
 
 const modalVisible = ref(false)
@@ -19,12 +19,13 @@ const draft = ref<ActividadDraft>({ ...ACTIVIDAD_DRAFT_VACIO })
 
 const abrirNuevo = () => {
   draft.value = { ...ACTIVIDAD_DRAFT_VACIO, fecha: new Date().toISOString().split('T')[0] }
+  errorGuardarActividad.value = null
   modalVisible.value = true
 }
 
-const guardar = () => {
-  crearActividad(draft.value)
-  modalVisible.value = false
+const guardar = async () => {
+  const ok = await crearActividad(draft.value)
+  if (ok) modalVisible.value = false
 }
 </script>
 
@@ -61,7 +62,15 @@ const guardar = () => {
       </div>
     </div>
 
-    <div class="space-y-3">
+    <div v-if="error" class="flex items-center gap-2.5 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+      <AlertCircle :size="16" class="text-red-500 shrink-0" />
+      <p class="text-[12px] font-semibold text-red-600">{{ error }}</p>
+    </div>
+
+    <div v-if="cargando" class="flex items-center justify-center gap-2 bg-white rounded-2xl border border-slate-200 p-16 text-slate-400 text-[12px]">
+      <Loader2 :size="16" class="animate-spin" />Cargando bitácora...
+    </div>
+    <div v-else class="space-y-3">
       <TimelineItem v-for="a in actividadesFiltradas" :key="a.id" :actividad="a" />
 
       <div v-if="actividadesFiltradas.length === 0" class="bg-white rounded-2xl border border-slate-200 p-16 text-center text-slate-400 text-[12px]">
@@ -69,6 +78,6 @@ const guardar = () => {
       </div>
     </div>
 
-    <ActividadFormDialog v-model:visible="modalVisible" v-model:draft="draft" @submit="guardar" />
+    <ActividadFormDialog v-model:visible="modalVisible" v-model:draft="draft" :guardando="guardandoActividad" :error="errorGuardarActividad" @submit="guardar" />
   </div>
 </template>
