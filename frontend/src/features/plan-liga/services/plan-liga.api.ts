@@ -197,15 +197,29 @@ export async function getResumenTitulares(): Promise<ResumenTitularesResponse> {
 const ESTADO_API: Record<'Activo' | 'Inactivo', string> = { Activo: 'activo', Inactivo: 'inactivo' }
 const SEXO_API: Record<'Masculino' | 'Femenino', string> = { Masculino: 'M', Femenino: 'F' }
 
-export interface ListadoTitularesParams {
-  limit?: number
-  offset?: number
+export interface FiltrosTitulares {
   estado?: 'Activo' | 'Inactivo'
   /** null filtra el bucket "Plan Estándar" (tipo_plan_id IS NULL en el backend). */
   tipoPlanId?: number | null
   sexo?: 'Masculino' | 'Femenino'
   edad?: '0-17' | '18-35' | '36-50' | '51+'
   busqueda?: string
+}
+
+export interface ListadoTitularesParams extends FiltrosTitulares {
+  limit?: number
+  offset?: number
+}
+
+// Compartido entre /listado y /exportar: arman los mismos query params de filtro.
+function construirQueryFiltrosTitulares(params: FiltrosTitulares): URLSearchParams {
+  const query = new URLSearchParams()
+  if (params.estado) query.set('estado', ESTADO_API[params.estado])
+  if (params.tipoPlanId !== undefined) query.set('tipo_plan_id', params.tipoPlanId === null ? 'null' : String(params.tipoPlanId))
+  if (params.sexo) query.set('sexo', SEXO_API[params.sexo])
+  if (params.edad) query.set('edad', params.edad)
+  if (params.busqueda) query.set('busqueda', params.busqueda)
+  return query
 }
 
 export interface ListadoTitulares {
@@ -377,14 +391,9 @@ export async function getTitular(idTitular: number): Promise<Titular> {
 }
 
 export async function getListadoTitulares(params: ListadoTitularesParams = {}): Promise<ListadoTitulares> {
-  const query = new URLSearchParams()
+  const query = construirQueryFiltrosTitulares(params)
   if (params.limit) query.set('limit', String(params.limit))
   if (params.offset) query.set('offset', String(params.offset))
-  if (params.estado) query.set('estado', ESTADO_API[params.estado])
-  if (params.tipoPlanId !== undefined) query.set('tipo_plan_id', params.tipoPlanId === null ? 'null' : String(params.tipoPlanId))
-  if (params.sexo) query.set('sexo', SEXO_API[params.sexo])
-  if (params.edad) query.set('edad', params.edad)
-  if (params.busqueda) query.set('busqueda', params.busqueda)
   const qs = query.toString()
 
   const data = await obtenerJson<ListadoTitularesResponse>(
@@ -397,6 +406,15 @@ export async function getListadoTitulares(params: ListadoTitularesParams = {}): 
     limit: data.limit,
     offset: data.offset,
   }
+}
+
+// Exporta a Excel los titulares y sus beneficiarios que cumplan los filtros activos
+// (los mismos de /listado); el backend arma el .xlsx completo, acá solo se dispara la descarga.
+export async function exportarTitulares(params: FiltrosTitulares = {}): Promise<Blob> {
+  const qs = construirQueryFiltrosTitulares(params).toString()
+  const response = await fetch(`${API_URL}/api/titulares-beneficiarios/exportar${qs ? `?${qs}` : ''}`)
+  if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo exportar el listado.')
+  return response.blob()
 }
 
 // 4 = cupo de beneficiarios del Plan Estándar (mismo valor que CUPO_MAXIMO en
