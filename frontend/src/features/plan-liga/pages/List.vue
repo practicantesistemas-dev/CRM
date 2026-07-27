@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { Heart, Users, Plus, Search, Download, Upload, ChevronLeft, ChevronRight } from 'lucide-vue-next'
+import { Heart, Users, Plus, Search, Download, Upload, ChevronLeft, ChevronRight, Loader2 } from 'lucide-vue-next'
 import type { Beneficiario, BeneficiarioDraft, Titular, TitularDraft } from '../types/plan-liga'
 import { BENEFICIARIO_DRAFT_VACIO, TITULAR_DRAFT_VACIO, cupoMaximoTitular } from '../constants/plan-liga.constants'
 import { usePlanLiga } from '../composables/usePlanLiga'
@@ -18,6 +18,7 @@ const {
   totalActivos, totalBeneficiarios,
   totalTitulares, paginaActual, totalPaginas, hayPaginaAnterior, hayPaginaSiguiente,
   paginaSiguiente, paginaAnterior,
+  exportarListado, exportando, errorExportar,
   activosPorTitular,
   obtenerTitular,
   crearTitular, actualizarTitular, toggleEstadoTitular,
@@ -171,20 +172,29 @@ const modalImportVisible = ref(false)
           Plan Liga · Afiliaciones
         </h2>
         <p class="text-[12px] text-slate-500 mt-0.5">Gestión de titulares y beneficiarios del programa Plan Liga Ama Salvar Vidas</p>
+        <p v-if="errorExportar" class="text-[11px] text-red-600 mt-1">{{ errorExportar }}</p>
       </div>
       <div class="flex items-center gap-2 flex-wrap">
         <button @click="modalImportVisible = true"
           class="flex items-center gap-1.5 h-9 px-4 rounded-lg border border-slate-200 bg-white text-[11px] font-semibold text-slate-600 hover:bg-slate-50 transition-all">
           <Upload :size="13" /> Importar Excel
         </button>
-        <button class="flex items-center gap-1.5 h-9 px-4 rounded-lg border border-slate-200 bg-white text-[11px] font-semibold text-slate-600 hover:bg-slate-50 transition-all">
-          <Download :size="13" /> Exportar
+        <button @click="exportarListado" :disabled="exportando"
+          class="flex items-center gap-1.5 h-9 px-4 rounded-lg border border-slate-200 bg-white text-[11px] font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-60 disabled:cursor-not-allowed transition-all">
+          <Loader2 v-if="exportando" :size="13" class="animate-spin" />
+          <Download v-else :size="13" />
+          {{ exportando ? 'Exportando...' : 'Exportar' }}
         </button>
         <button @click="abrirNuevoTitular"
           class="flex items-center gap-1.5 h-9 px-4 rounded-lg bg-[#EC4899] text-white text-[11px] font-bold shadow hover:bg-[#D61F69] transition-all">
           <Plus :size="14" /> Nuevo titular
         </button>
       </div>
+    </div>
+
+    <div v-if="exportando" class="flex items-center gap-2.5 bg-[#EEF2FF] border border-[#C7D2FE] rounded-xl px-4 py-3">
+      <Loader2 :size="16" class="animate-spin text-[#2447F9] shrink-0" />
+      <p class="text-[12px] font-semibold text-[#2447F9]">Generando el archivo, esto puede tardar unos segundos...</p>
     </div>
 
     <div class="grid grid-cols-2 gap-4">

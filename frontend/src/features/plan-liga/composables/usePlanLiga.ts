@@ -4,9 +4,10 @@ import { CUPO_MAXIMO } from '../constants/plan-liga.constants'
 import {
   createTitular, updateTitular, activarTitular, desactivarTitular,
   createBeneficiario, updateBeneficiario, getResumenTitulares,
-  getListadoTitulares, getPlanesServicio, getTitular, getBeneficiariosTitular,
+  getListadoTitulares, getPlanesServicio, getTitular, getBeneficiariosTitular, exportarTitulares,
   activarBeneficiario as activarBeneficiarioApi, desactivarBeneficiario as desactivarBeneficiarioApi,
 } from '../services/plan-liga.api'
+import type { FiltrosTitulares } from '../services/plan-liga.api'
 
 const TITULARES_POR_PAGINA = 6
 
@@ -42,20 +43,27 @@ export function usePlanLiga() {
     }
   }
 
+  // Mismos filtros para /listado (paginado) y /exportar (todo lo que los cumpla).
+  const filtrosActivos = computed((): FiltrosTitulares => {
+    const plan = filtroPlan.value
+    return {
+      estado: filtroEstado.value === 'todos' ? undefined : (filtroEstado.value as 'Activo' | 'Inactivo'),
+      tipoPlanId: plan === 'todos' ? undefined : (plan === 'estandar' ? null : plan),
+      // 'Otro' no tiene código en el backend (solo M/F), así que no se envía y no filtra.
+      sexo: filtroSexo.value === 'Masculino' || filtroSexo.value === 'Femenino' ? filtroSexo.value : undefined,
+      edad: filtroEdad.value === 'todos' ? undefined : (filtroEdad.value as '0-17' | '18-35' | '36-50' | '51+'),
+      busqueda: buscar.value.trim() || undefined,
+    }
+  })
+
   const cargarTitulares = async () => {
     cargandoTitulares.value = true
     errorTitulares.value = null
     try {
-      const plan = filtroPlan.value
       const resultado = await getListadoTitulares({
         limit: TITULARES_POR_PAGINA,
         offset: offsetTitulares.value,
-        estado: filtroEstado.value === 'todos' ? undefined : (filtroEstado.value as 'Activo' | 'Inactivo'),
-        tipoPlanId: plan === 'todos' ? undefined : (plan === 'estandar' ? null : plan),
-        // 'Otro' no tiene código en el backend (solo M/F), así que no se envía y no filtra.
-        sexo: filtroSexo.value === 'Masculino' || filtroSexo.value === 'Femenino' ? filtroSexo.value : undefined,
-        edad: filtroEdad.value === 'todos' ? undefined : (filtroEdad.value as '0-17' | '18-35' | '36-50' | '51+'),
-        busqueda: buscar.value.trim() || undefined,
+        ...filtrosActivos.value,
       })
       titulares.value = resultado.items
       totalTitulares.value = resultado.total
@@ -63,6 +71,27 @@ export function usePlanLiga() {
       errorTitulares.value = e instanceof Error ? e.message : 'No se pudo cargar el listado de titulares.'
     } finally {
       cargandoTitulares.value = false
+    }
+  }
+
+  const exportando = ref(false)
+  const errorExportar = ref<string | null>(null)
+
+  const exportarListado = async () => {
+    exportando.value = true
+    errorExportar.value = null
+    try {
+      const blob = await exportarTitulares(filtrosActivos.value)
+      const url = URL.createObjectURL(blob)
+      const enlace = document.createElement('a')
+      enlace.href = url
+      enlace.download = `titulares_beneficiarios_${new Date().toISOString().split('T')[0]}.xlsx`
+      enlace.click()
+      URL.revokeObjectURL(url)
+    } catch (e) {
+      errorExportar.value = e instanceof Error ? e.message : 'No se pudo exportar el listado.'
+    } finally {
+      exportando.value = false
     }
   }
 
@@ -285,6 +314,7 @@ export function usePlanLiga() {
     totalActivos, totalBeneficiarios, titularesTope, errorResumen,
     totalTitulares, paginaActual, totalPaginas, hayPaginaAnterior, hayPaginaSiguiente,
     paginaSiguiente, paginaAnterior,
+    exportarListado, exportando, errorExportar,
     activosPorTitular, puedeAgregar,
     cargandoDetalleTitular, obtenerTitular,
     crearTitular, actualizarTitular, toggleEstadoTitular,
