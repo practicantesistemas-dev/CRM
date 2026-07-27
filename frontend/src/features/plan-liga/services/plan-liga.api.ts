@@ -1,7 +1,7 @@
 import type {
   Beneficiario, BeneficiarioDraft, Titular, TitularDraft,
   ResumenTitularesResponse, TitularListadoResponse, ListadoTitularesResponse,
-  BeneficiarioListadoResponse, TitularDetalleResponse, PlanTitular, PlanServicio,
+  BeneficiarioListadoResponse, TitularDetalleResponse, PlanTitular, PlanServicio, PlanCatalogoResponse,
 } from '../types/plan-liga'
 import { joinNombreCompleto, splitNombreCompleto } from '@/shared/utils/nombreCompuesto'
 
@@ -350,6 +350,24 @@ export async function desactivarBeneficiario(idTitular: number, idBeneficiario: 
   return mapBeneficiarioListado(data.beneficiario, idTitular)
 }
 
+// Variante usada por la acción masiva (Excel): identifica al beneficiario por su propio
+// documento, sin necesidad de conocer ni buscar a su titular.
+export async function activarBeneficiarioPorDocumento(documento: string, fechaIngreso: string): Promise<void> {
+  const response = await fetch(`${API_URL}/api/titulares-beneficiarios/beneficiarios/${documento}/activar`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ FECHA_INGRESO: fechaIngreso }),
+  })
+  if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo activar el beneficiario.')
+}
+
+export async function desactivarBeneficiarioPorDocumento(documento: string): Promise<void> {
+  const response = await fetch(`${API_URL}/api/titulares-beneficiarios/beneficiarios/${documento}/desactivar`, {
+    method: 'POST',
+  })
+  if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo desactivar el beneficiario.')
+}
+
 export async function getTitular(idTitular: number): Promise<Titular> {
   const data = await obtenerJson<TitularDetalleResponse>(
     `/api/titulares-beneficiarios/${idTitular}`,
@@ -381,21 +399,23 @@ export async function getListadoTitulares(params: ListadoTitularesParams = {}): 
   }
 }
 
-interface PlanNombreResponse {
-  ID: number
-  NOMBRE: string
+// 4 = cupo de beneficiarios del Plan Estándar (mismo valor que CUPO_MAXIMO en
+// plan-liga.constants.ts; se repite acá para no crear una dependencia circular).
+const CUPO_ESTANDAR = 4
+
+function cupoDePlan(p: PlanCatalogoResponse): number {
+  const adicionales = p.BENEFICIARIOS_ADICIONALES
+  if (adicionales != null && adicionales > 0) return CUPO_ESTANDAR + adicionales
+  return p.MAX_BENEFICIARIOS ?? 0
 }
 
-async function fetchPlanesNombres(): Promise<PlanNombreResponse[]> {
-  return obtenerJson<PlanNombreResponse[]>(
-    '/api/titulares-beneficiarios/planes/nombres',
+// Catálogo de planes activos, con su cupo de beneficiarios ya resuelto: alimenta el
+// selector "Plan contratado" al crear un titular (TIPO_PLAN_ID), el filtro de plan del
+// listado (tipo_plan_id) y el agrupamiento titular+beneficiarios de la carga masiva.
+export async function getPlanesServicio(): Promise<PlanServicio[]> {
+  const data = await obtenerJson<PlanCatalogoResponse[]>(
+    '/api/titulares-beneficiarios/planes',
     'No se pudo cargar la lista de planes.',
   )
-}
-
-// Catálogo de planes { ID, NOMBRE }: alimenta tanto el selector "Plan contratado"
-// al crear un titular (TIPO_PLAN_ID) como el filtro de plan del listado (tipo_plan_id).
-export async function getPlanesServicio(): Promise<PlanServicio[]> {
-  const data = await fetchPlanesNombres()
-  return data.map(p => ({ id: p.ID, nombre: p.NOMBRE }))
+  return data.map(p => ({ id: p.ID, nombre: p.NOMBRE, cupoBeneficiarios: cupoDePlan(p) }))
 }

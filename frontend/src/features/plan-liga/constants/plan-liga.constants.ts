@@ -28,16 +28,7 @@ export const BENEFICIARIO_DRAFT_VACIO: BeneficiarioDraft = {
 
 export const CUPO_MAXIMO = 4
 
-// Ventana permitida al elegir la fecha de ingreso en los diálogos de activación:
-// no se permite una fecha futura ni una muy antigua (más de 3 meses atrás).
-const FECHA_INGRESO_MESES_ATRAS = 3
-
-export const fechaIngresoMinima = (): string => {
-  const d = new Date()
-  d.setMonth(d.getMonth() - FECHA_INGRESO_MESES_ATRAS)
-  return d.toISOString().split('T')[0]
-}
-
+// La activación uno por uno ya no le pide la fecha al usuario: se activa con la fecha de hoy.
 export const fechaIngresoMaxima = (): string => new Date().toISOString().split('T')[0]
 
 /**
@@ -59,10 +50,9 @@ export const TIPO_SEG_META: Record<TipoSeguimiento, { icono: unknown; color: str
 }
 
 export const OPCIONES_IMPORT: OpcionImportacion[] = [
-  { key: 'activar_titular',      label: 'Activar / Registrar titulares',     desc: 'Nuevos titulares o activa existentes. Requiere: Documento, Nombre, Correo, Plan.',           color: '#EC4899', bg: '#FCE7F3' },
-  { key: 'activar_beneficiario', label: 'Activar / Registrar beneficiarios', desc: 'Agrega beneficiarios a titulares existentes. Respeta límite de 4 activos por titular.',      color: '#2447F9', bg: '#EEF2FF' },
-  { key: 'reemplazar',           label: 'Reemplazar beneficiario',            desc: 'Reemplaza un beneficiario activo. Requiere: Doc. titular, Doc. a reemplazar, nuevo bene.',  color: '#C9A227', bg: '#FEF9C3' },
-  { key: 'desactivar',           label: 'Desactivar titular o beneficiario',  desc: 'Desactiva por documento. Columna Tipo: T (titular) o B (beneficiario).',                    color: '#059669', bg: '#D1FAE5' },
+  { key: 'agregar_grupos', label: 'Agregar grupos',                desc: 'Crea titulares y sus beneficiarios en bloque a partir de la plantilla de carga.', color: '#EC4899', bg: '#FCE7F3' },
+  { key: 'titular',        label: 'Activar / Desactivar titular',     desc: 'Cambia el estado de titulares existentes por documento.',                        color: '#2447F9', bg: '#EEF2FF' },
+  { key: 'beneficiario',   label: 'Activar / Desactivar beneficiario', desc: 'Cambia el estado de beneficiarios existentes por documento.',                    color: '#059669', bg: '#D1FAE5' },
 ]
 
 export const estadoTitularStyle = (e: Titular['estado']) => e === 'Activo' ? 'text-emerald-600' : 'text-slate-400'

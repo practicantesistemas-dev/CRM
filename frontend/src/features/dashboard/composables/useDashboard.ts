@@ -7,7 +7,7 @@ import { PERIODO_OPTIONS } from '../constants/dashboard.constants'
 import type { Kpi, ActividadReciente, DistribucionItem, PlanTop, EmbudoEtapa } from '../types/dashboard'
 
 export function useDashboard() {
-  const periodo = ref('30d')
+  const periodo = ref('todo')
 
   const kpis = ref<Kpi[]>([])
   const cargandoKpis = ref(false)
