@@ -2,6 +2,8 @@ import type {
   Beneficiario, BeneficiarioDraft, Titular, TitularDraft,
   ResumenTitularesResponse, TitularListadoResponse, ListadoTitularesResponse,
   BeneficiarioListadoResponse, TitularDetalleResponse, PlanTitular, PlanServicio, PlanCatalogoResponse,
+  ReemplazoPersonaDraft, ReemplazoTitularResultado, ReemplazoBeneficiarioResultado,
+  ReemplazoTitularResultadoResponse, ReemplazoBeneficiarioResultadoResponse,
 } from '../types/plan-liga'
 import { joinNombreCompleto, splitNombreCompleto } from '@/shared/utils/nombreCompuesto'
 
@@ -116,6 +118,51 @@ export async function desactivarTitular(idTitular: number): Promise<void> {
     method: 'POST',
   })
   if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo desactivar el titular.')
+}
+
+// Cuerpo del POST .../reemplazar: datos de la PERSONA NUEVA (sin plan/EPS/cupo, se heredan
+// del titular/beneficiario anterior). Compartido entre reemplazarTitular y reemplazarBeneficiario.
+const SEXO_REEMPLAZO_API: Record<ReemplazoPersonaDraft['sexo'], string | null> = { Masculino: 'M', Femenino: 'F', '': null }
+
+function construirBodyReemplazoPersona(data: ReemplazoPersonaDraft) {
+  const { nombre1, nombre2, apellido1, apellido2 } = splitNombreCompleto(data.nombre)
+  return {
+    TIPO_DOCUMENTO: data.tipoDocumento,
+    DOCUMENTO: data.documento,
+    NOMBRE1: nombre1,
+    NOMBRE2: nombre2,
+    APELLIDO1: apellido1,
+    APELLIDO2: apellido2,
+    FECHA_NACIMIENTO: data.fechaNacimiento || null,
+    SEXO: SEXO_REEMPLAZO_API[data.sexo],
+    DIRECCION: limpiarDireccion(data.direccion),
+    CIUDAD: data.ciudad,
+    DEPARTAMENTO: data.departamento,
+    CORREO: data.correo,
+    TELEFONO: data.telefono,
+    EMPRESA: data.empresa,
+  }
+}
+
+// Da de baja al titular actual y da de alta a una PERSONA NUEVA en su lugar, heredando
+// plan/cupo/orden e incluyendo altas/bajas en Servinte (ABPAC/INCLE). Distinto de updateTitular:
+// no es una corrección de datos in-place, es un reemplazo de persona con más consecuencias.
+export async function reemplazarTitular(idTitular: number, data: ReemplazoPersonaDraft): Promise<ReemplazoTitularResultado> {
+  const response = await fetch(`${API_URL}/api/titulares-beneficiarios/${idTitular}/reemplazar`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(construirBodyReemplazoPersona(data)),
+  })
+  if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo reemplazar el titular.')
+  const r: ReemplazoTitularResultadoResponse = await response.json()
+  return {
+    titularAnteriorId: r.titular_anterior_id,
+    titularNuevo: mapTitularDetalle(r.titular_nuevo),
+    beneficiariosReasignados: r.beneficiarios_reasignados,
+    usuarioServinteCreado: r.usuario_servinte_creado,
+    marcadoEnIncle: r.marcado_en_incle,
+    registrosIncleMarcadosAnterior: r.registros_incle_marcados_anterior,
+  }
 }
 
 const ESTADO_BENEFICIARIO_API: Record<Beneficiario['estado'], string> = {
@@ -380,6 +427,26 @@ export async function desactivarBeneficiarioPorDocumento(documento: string): Pro
     method: 'POST',
   })
   if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo desactivar el beneficiario.')
+}
+
+// Da de baja al beneficiario actual y da de alta a una PERSONA NUEVA en su lugar, heredando
+// plan/cupo/orden e incluyendo altas/bajas en Servinte (ABPAC/INCLE). Distinto de updateBeneficiario:
+// no es una corrección de datos in-place, es un reemplazo de persona con más consecuencias.
+export async function reemplazarBeneficiario(idTitular: number, idBeneficiario: number, data: ReemplazoPersonaDraft): Promise<ReemplazoBeneficiarioResultado> {
+  const response = await fetch(`${API_URL}/api/titulares-beneficiarios/${idTitular}/beneficiarios/${idBeneficiario}/reemplazar`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(construirBodyReemplazoPersona(data)),
+  })
+  if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo reemplazar el beneficiario.')
+  const r: ReemplazoBeneficiarioResultadoResponse = await response.json()
+  return {
+    beneficiarioAnteriorId: r.beneficiario_anterior_id,
+    beneficiarioNuevo: mapBeneficiarioListado(r.beneficiario_nuevo, idTitular),
+    usuarioServinteCreado: r.usuario_servinte_creado,
+    marcadoEnIncle: r.marcado_en_incle,
+    registrosIncleMarcadosAnterior: r.registros_incle_marcados_anterior,
+  }
 }
 
 export async function getTitular(idTitular: number): Promise<Titular> {

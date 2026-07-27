@@ -53,6 +53,42 @@ export interface Beneficiario {
 
 export type BeneficiarioDraft = Omit<Beneficiario, 'id' | 'titularId'>
 
+/**
+ * Datos de la PERSONA NUEVA para un "reemplazo" (POST .../reemplazar): da de baja al
+ * titular/beneficiario actual y da de alta a otra persona en su lugar, heredando
+ * plan/cupo/orden. No incluye plan/EPS/cupo/estado porque esos se heredan del anterior.
+ */
+export type ReemplazoPersonaDraft = {
+  tipoDocumento: string
+  documento: string
+  nombre: string
+  fechaNacimiento: string
+  sexo: 'Masculino' | 'Femenino' | ''
+  correo: string
+  telefono: string
+  direccion: string
+  ciudad: string
+  departamento: string
+  empresa: string
+}
+
+export interface ReemplazoTitularResultado {
+  titularAnteriorId: number
+  titularNuevo: Titular
+  beneficiariosReasignados: number
+  usuarioServinteCreado: boolean
+  marcadoEnIncle: boolean
+  registrosIncleMarcadosAnterior: number
+}
+
+export interface ReemplazoBeneficiarioResultado {
+  beneficiarioAnteriorId: number
+  beneficiarioNuevo: Beneficiario
+  usuarioServinteCreado: boolean
+  marcadoEnIncle: boolean
+  registrosIncleMarcadosAnterior: number
+}
+
 export type TipoSeguimiento = 'Llamada' | 'Correo' | 'Reunión' | 'WhatsApp' | 'Nota'
 
 export interface SeguimientoDraft {
@@ -188,5 +224,22 @@ export interface TitularDetalleResponse {
   PLAN_NOMBRE: string | null
   ESTADO: string
   FECHA_INGRESO: string | null
+}
+
+export interface ReemplazoTitularResultadoResponse {
+  titular_anterior_id: number
+  titular_nuevo: TitularDetalleResponse
+  beneficiarios_reasignados: number
+  usuario_servinte_creado: boolean
+  marcado_en_incle: boolean
+  registros_incle_marcados_anterior: number
+}
+
+export interface ReemplazoBeneficiarioResultadoResponse {
+  beneficiario_anterior_id: number
+  beneficiario_nuevo: BeneficiarioListadoResponse
+  usuario_servinte_creado: boolean
+  marcado_en_incle: boolean
+  registros_incle_marcados_anterior: number
 }
 

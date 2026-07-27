@@ -1,11 +1,15 @@
 import { ref, computed, onMounted, watch } from 'vue'
-import type { Beneficiario, BeneficiarioDraft, PlanServicio, Titular, TitularDraft } from '../types/plan-liga'
+import type {
+  Beneficiario, BeneficiarioDraft, PlanServicio, Titular, TitularDraft,
+  ReemplazoPersonaDraft, ReemplazoTitularResultado, ReemplazoBeneficiarioResultado,
+} from '../types/plan-liga'
 import { CUPO_MAXIMO } from '../constants/plan-liga.constants'
 import {
   createTitular, updateTitular, activarTitular, desactivarTitular,
   createBeneficiario, updateBeneficiario, getResumenTitulares,
   getListadoTitulares, getPlanesServicio, getTitular, getBeneficiariosTitular, exportarTitulares,
   activarBeneficiario as activarBeneficiarioApi, desactivarBeneficiario as desactivarBeneficiarioApi,
+  reemplazarTitular as reemplazarTitularApi, reemplazarBeneficiario as reemplazarBeneficiarioApi,
 } from '../services/plan-liga.api'
 import type { FiltrosTitulares } from '../services/plan-liga.api'
 
@@ -214,6 +218,30 @@ export function usePlanLiga() {
     }
   }
 
+  const reemplazandoTitular = ref(false)
+  const errorReemplazarTitular = ref<string | null>(null)
+  const resultadoReemplazoTitular = ref<ReemplazoTitularResultado | null>(null)
+
+  // Reemplazo != edición: da de baja al titular actual y da de alta a una persona nueva en
+  // su lugar (más Servinte). Por eso, a diferencia de actualizarTitular, se refresca el
+  // listado completo en vez de parchar en memoria: cambian estado del anterior, aparece
+  // un titular nuevo con otro id, y puede no seguir cayendo en la página actual.
+  const reemplazarTitularAccion = async (t: Titular, data: ReemplazoPersonaDraft): Promise<boolean> => {
+    reemplazandoTitular.value = true
+    errorReemplazarTitular.value = null
+    try {
+      resultadoReemplazoTitular.value = await reemplazarTitularApi(t.id, data)
+      await cargarTitulares()
+      cargarResumen()
+      return true
+    } catch (e) {
+      errorReemplazarTitular.value = e instanceof Error ? e.message : 'No se pudo reemplazar el titular.'
+      return false
+    } finally {
+      reemplazandoTitular.value = false
+    }
+  }
+
   const beneficiariosDeTitular = (titularId: number) =>
     beneficiarios.value.filter(b => b.titularId === titularId)
 
@@ -269,9 +297,26 @@ export function usePlanLiga() {
     }
   }
 
-  const cambiarEstadoBeneficiario = (b: Beneficiario, estado: Beneficiario['estado']) => {
-    const idx = beneficiariosTitular.value.findIndex(x => x.id === b.id)
-    if (idx !== -1) beneficiariosTitular.value[idx] = { ...b, estado }
+  const reemplazandoBeneficiario = ref(false)
+  const errorReemplazarBeneficiario = ref<string | null>(null)
+  const resultadoReemplazoBeneficiario = ref<ReemplazoBeneficiarioResultado | null>(null)
+
+  // Igual que reemplazarTitularAccion: se refresca la lista de beneficiarios del titular en
+  // vez de parchar en memoria, porque el anterior cambia de estado y aparece uno nuevo con otro id.
+  const reemplazarBeneficiarioAccion = async (titularId: number, b: Beneficiario, data: ReemplazoPersonaDraft): Promise<boolean> => {
+    reemplazandoBeneficiario.value = true
+    errorReemplazarBeneficiario.value = null
+    try {
+      resultadoReemplazoBeneficiario.value = await reemplazarBeneficiarioApi(titularId, b.id, data)
+      await cargarBeneficiariosTitular(titularId)
+      cargarResumen()
+      return true
+    } catch (e) {
+      errorReemplazarBeneficiario.value = e instanceof Error ? e.message : 'No se pudo reemplazar el beneficiario.'
+      return false
+    } finally {
+      reemplazandoBeneficiario.value = false
+    }
   }
 
   const guardandoEstadoBeneficiario = ref(false)
@@ -319,10 +364,12 @@ export function usePlanLiga() {
     cargandoDetalleTitular, obtenerTitular,
     crearTitular, actualizarTitular, toggleEstadoTitular,
     guardandoTitular, errorGuardarTitular,
-    beneficiariosDeTitular, crearBeneficiario, actualizarBeneficiario, cambiarEstadoBeneficiario,
+    reemplazarTitularAccion, reemplazandoTitular, errorReemplazarTitular, resultadoReemplazoTitular,
+    beneficiariosDeTitular, crearBeneficiario, actualizarBeneficiario,
     guardandoBeneficiario, errorGuardarBeneficiario,
     activarEstadoBeneficiario, desactivarEstadoBeneficiario,
     guardandoEstadoBeneficiario, errorEstadoBeneficiario,
+    reemplazarBeneficiarioAccion, reemplazandoBeneficiario, errorReemplazarBeneficiario, resultadoReemplazoBeneficiario,
     beneficiariosTitular, cargandoBeneficiariosTitular, errorBeneficiariosTitular, cargarBeneficiariosTitular,
   }
 }

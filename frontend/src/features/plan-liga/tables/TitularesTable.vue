@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Edit2, Loader2, ToggleLeft, ToggleRight, Users, ClipboardList } from 'lucide-vue-next'
+import { Edit2, Loader2, ToggleLeft, ToggleRight, Users, ClipboardList, RefreshCw } from 'lucide-vue-next'
 import type { Titular } from '../types/plan-liga'
 import { estadoTitularStyle, planStyle, cupoMaximoTitular } from '../constants/plan-liga.constants'
 import PersonaAvatar from '../components/PersonaAvatar.vue'
@@ -16,6 +16,7 @@ const emit = defineEmits<{
   editar: [t: Titular]
   'toggle-estado': [t: Titular]
   beneficiarios: [t: Titular]
+  reemplazar: [t: Titular]
 }>()
 
 // El backend trae el conteo real de beneficiarios por plan (planesDetalle); si no viene
@@ -97,6 +98,9 @@ const cuposTitular = (t: Titular, activosLocal: number) => ({
                 <button @click="emit('beneficiarios', t)"
                   class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-[#FCE7F3] hover:text-[#EC4899] text-slate-500 flex items-center justify-center transition-all"
                   title="Beneficiarios"><Users :size="12" /></button>
+                <button v-if="t.estado === 'Activo'" @click="emit('reemplazar', t)"
+                  class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-amber-50 hover:text-amber-600 text-slate-500 flex items-center justify-center transition-all"
+                  title="Reemplazar"><RefreshCw :size="12" /></button>
               </div>
             </td>
           </tr>

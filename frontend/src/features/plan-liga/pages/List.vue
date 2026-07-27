@@ -1,14 +1,15 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { Heart, Users, Plus, Search, Download, Upload, ChevronLeft, ChevronRight, Loader2 } from 'lucide-vue-next'
-import type { Beneficiario, BeneficiarioDraft, Titular, TitularDraft } from '../types/plan-liga'
-import { BENEFICIARIO_DRAFT_VACIO, TITULAR_DRAFT_VACIO, cupoMaximoTitular } from '../constants/plan-liga.constants'
+import { Heart, Users, Plus, Search, Download, Upload, ChevronLeft, ChevronRight, Loader2, CheckCircle2, X } from 'lucide-vue-next'
+import type { Beneficiario, BeneficiarioDraft, Titular, TitularDraft, ReemplazoPersonaDraft } from '../types/plan-liga'
+import { BENEFICIARIO_DRAFT_VACIO, TITULAR_DRAFT_VACIO, REEMPLAZO_PERSONA_DRAFT_VACIO, cupoMaximoTitular } from '../constants/plan-liga.constants'
 import { usePlanLiga } from '../composables/usePlanLiga'
 import TitularesTable from '../tables/TitularesTable.vue'
 import TitularFormDialog from '../dialogs/TitularFormDialog.vue'
 import BeneficiarioFormDialog from '../dialogs/BeneficiarioFormDialog.vue'
 import BeneficiariosDrawer from '../dialogs/BeneficiariosDrawer.vue'
 import ActivarFechaDialog from '../dialogs/ActivarFechaDialog.vue'
+import ReemplazarPersonaDialog from '../dialogs/ReemplazarPersonaDialog.vue'
 import SeguimientoDialog from '../dialogs/SeguimientoDialog.vue'
 import ImportacionPlanLigaDialog from '../dialogs/ImportacionPlanLigaDialog.vue'
 
@@ -23,11 +24,19 @@ const {
   obtenerTitular,
   crearTitular, actualizarTitular, toggleEstadoTitular,
   guardandoTitular, errorGuardarTitular,
-  crearBeneficiario, actualizarBeneficiario, cambiarEstadoBeneficiario,
+  reemplazarTitularAccion, reemplazandoTitular, errorReemplazarTitular, resultadoReemplazoTitular,
+  crearBeneficiario, actualizarBeneficiario,
   guardandoBeneficiario, errorGuardarBeneficiario,
   activarEstadoBeneficiario, desactivarEstadoBeneficiario, errorEstadoBeneficiario, guardandoEstadoBeneficiario,
+  reemplazarBeneficiarioAccion, reemplazandoBeneficiario, errorReemplazarBeneficiario, resultadoReemplazoBeneficiario,
   beneficiariosTitular, cargandoBeneficiariosTitular, cargarBeneficiariosTitular,
 } = usePlanLiga()
+
+// ─── Aviso de éxito tras un reemplazo (no hay sistema de toasts en la app) ────────
+const avisoReemplazo = ref<string | null>(null)
+const mensajeServinteIncle = (usuarioServinteCreado: boolean, marcadoEnIncle: boolean, registrosIncleMarcadosAnterior: number) =>
+  `Usuario Servinte: ${usuarioServinteCreado ? 'creado' : 'no creado'}. `
+  + `INCLE: ${marcadoEnIncle ? `marcado (${registrosIncleMarcadosAnterior} registro(s) del anterior)` : 'no marcado'}.`
 
 // ─── Modal Titular ───────────────────────────────────────────────
 const modalTitularVisible = ref(false)
@@ -79,6 +88,27 @@ const confirmarActivarTitular = async (fechaIngreso: string) => {
   if (!titularActivando.value) return
   await toggleEstadoTitular(titularActivando.value, fechaIngreso)
   if (!errorGuardarTitular.value) modalActivarTitularVisible.value = false
+}
+
+const modalReemplazarTitularVisible = ref(false)
+const titularReemplazando = ref<Titular | null>(null)
+const draftReemplazoTitular = ref<ReemplazoPersonaDraft>({ ...REEMPLAZO_PERSONA_DRAFT_VACIO })
+
+const abrirReemplazarTitular = (t: Titular) => {
+  errorReemplazarTitular.value = null
+  titularReemplazando.value = t
+  draftReemplazoTitular.value = { ...REEMPLAZO_PERSONA_DRAFT_VACIO }
+  modalReemplazarTitularVisible.value = true
+}
+const confirmarReemplazarTitular = async () => {
+  if (!titularReemplazando.value) return
+  const ok = await reemplazarTitularAccion(titularReemplazando.value, draftReemplazoTitular.value)
+  const r = resultadoReemplazoTitular.value
+  if (ok && r) {
+    modalReemplazarTitularVisible.value = false
+    avisoReemplazo.value = `Titular reemplazado correctamente. Beneficiarios reasignados: ${r.beneficiariosReasignados}. `
+      + mensajeServinteIncle(r.usuarioServinteCreado, r.marcadoEnIncle, r.registrosIncleMarcadosAnterior)
+  }
 }
 
 // ─── Drawer Beneficiarios ────────────────────────────────────────
@@ -148,9 +178,24 @@ const desactivarBeneficiario = (b: Beneficiario) => {
   if (!titularSeleccionado.value) return
   desactivarEstadoBeneficiario(titularSeleccionado.value.id, b)
 }
-const reemplazarBeneficiario = (b: Beneficiario) => {
-  cambiarEstadoBeneficiario(b, 'Reemplazado')
-  abrirNuevoBeneficiario()
+const modalReemplazarBeneVisible = ref(false)
+const beneficiarioReemplazando = ref<Beneficiario | null>(null)
+const draftReemplazoBene = ref<ReemplazoPersonaDraft>({ ...REEMPLAZO_PERSONA_DRAFT_VACIO })
+
+const abrirReemplazarBeneficiario = (b: Beneficiario) => {
+  errorReemplazarBeneficiario.value = null
+  beneficiarioReemplazando.value = b
+  draftReemplazoBene.value = { ...REEMPLAZO_PERSONA_DRAFT_VACIO }
+  modalReemplazarBeneVisible.value = true
+}
+const confirmarReemplazarBeneficiario = async () => {
+  if (!titularSeleccionado.value || !beneficiarioReemplazando.value) return
+  const ok = await reemplazarBeneficiarioAccion(titularSeleccionado.value.id, beneficiarioReemplazando.value, draftReemplazoBene.value)
+  const r = resultadoReemplazoBeneficiario.value
+  if (ok && r) {
+    modalReemplazarBeneVisible.value = false
+    avisoReemplazo.value = `Beneficiario reemplazado correctamente. ${mensajeServinteIncle(r.usuarioServinteCreado, r.marcadoEnIncle, r.registrosIncleMarcadosAnterior)}`
+  }
 }
 
 // ─── Seguimiento rápido ──────────────────────────────────────────
@@ -195,6 +240,12 @@ const modalImportVisible = ref(false)
     <div v-if="exportando" class="flex items-center gap-2.5 bg-[#EEF2FF] border border-[#C7D2FE] rounded-xl px-4 py-3">
       <Loader2 :size="16" class="animate-spin text-[#2447F9] shrink-0" />
       <p class="text-[12px] font-semibold text-[#2447F9]">Generando el archivo, esto puede tardar unos segundos...</p>
+    </div>
+
+    <div v-if="avisoReemplazo" class="flex items-center gap-2.5 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3">
+      <CheckCircle2 :size="16" class="text-emerald-600 shrink-0" />
+      <p class="text-[12px] font-semibold text-emerald-700">{{ avisoReemplazo }}</p>
+      <button @click="avisoReemplazo = null" class="ml-auto text-emerald-400 hover:text-emerald-600 shrink-0"><X :size="13" /></button>
     </div>
 
     <div class="grid grid-cols-2 gap-4">
@@ -255,6 +306,7 @@ const modalImportVisible = ref(false)
       @editar="abrirEditarTitular"
       @toggle-estado="toggleEstadoTitularConFecha"
       @beneficiarios="abrirBeneficiarios"
+      @reemplazar="abrirReemplazarTitular"
     />
 
     <div v-if="totalTitulares > 0" class="flex items-center justify-center gap-3 px-1">
@@ -287,7 +339,7 @@ const modalImportVisible = ref(false)
       @editar="abrirEditarBeneficiario"
       @activar="activarBeneficiario"
       @desactivar="desactivarBeneficiario"
-      @reemplazar="reemplazarBeneficiario"
+      @reemplazar="abrirReemplazarBeneficiario"
       @agregar-nuevo="abrirNuevoBeneficiario"
     />
 
@@ -309,6 +361,29 @@ const modalImportVisible = ref(false)
       :error="errorGuardarTitular"
       @confirmar="confirmarActivarTitular"
       @cancelar="errorGuardarTitular = null"
+    />
+
+    <ReemplazarPersonaDialog
+      v-model:visible="modalReemplazarTitularVisible"
+      v-model:draft="draftReemplazoTitular"
+      tipo="titular"
+      :nombre-actual="titularReemplazando?.nombre"
+      :documento-actual="titularReemplazando?.documento"
+      :guardando="reemplazandoTitular"
+      :error="errorReemplazarTitular"
+      @submit="confirmarReemplazarTitular"
+    />
+
+    <ReemplazarPersonaDialog
+      v-model:visible="modalReemplazarBeneVisible"
+      v-model:draft="draftReemplazoBene"
+      tipo="beneficiario"
+      :nombre-actual="beneficiarioReemplazando?.nombre"
+      :documento-actual="beneficiarioReemplazando?.documento"
+      :titular-nombre="titularSeleccionado?.nombre"
+      :guardando="reemplazandoBeneficiario"
+      :error="errorReemplazarBeneficiario"
+      @submit="confirmarReemplazarBeneficiario"
     />
 
     <BeneficiarioFormDialog

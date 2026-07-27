@@ -1,6 +1,6 @@
 import { Phone, Mail, Calendar, MessageCircle, FileText } from 'lucide-vue-next'
 import type {
-  Beneficiario, BeneficiarioDraft, OpcionImportacion, Titular, TitularDraft, TipoSeguimiento,
+  Beneficiario, BeneficiarioDraft, OpcionImportacion, Titular, TitularDraft, TipoSeguimiento, ReemplazoPersonaDraft,
 } from '../types/plan-liga'
 
 const TITULAR_EXTRA_VACIO = {
@@ -24,6 +24,11 @@ export const BENEFICIARIO_DRAFT_VACIO: BeneficiarioDraft = {
   ...BENEFICIARIO_EXTRA_VACIO,
   documento: '', nombre: '', fechaNacimiento: '', estado: 'Activo',
   fechaInscripcion: new Date().toISOString().split('T')[0],
+}
+
+export const REEMPLAZO_PERSONA_DRAFT_VACIO: ReemplazoPersonaDraft = {
+  tipoDocumento: 'CC', documento: '', nombre: '', fechaNacimiento: '', sexo: '',
+  correo: '', telefono: '', direccion: '', ciudad: '', departamento: '', empresa: '',
 }
 
 export const CUPO_MAXIMO = 4
