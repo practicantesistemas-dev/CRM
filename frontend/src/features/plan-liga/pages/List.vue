@@ -201,7 +201,14 @@ const confirmarReemplazarBeneficiario = async () => {
 // ─── Seguimiento rápido ──────────────────────────────────────────
 const modalSegVisible = ref(false)
 const titularSegActual = ref<Titular | null>(null)
-const abrirSeguimiento = (t: Titular) => { titularSegActual.value = t; modalSegVisible.value = true }
+const beneficiarioSegActual = ref<Beneficiario | null>(null)
+const abrirSeguimiento = (t: Titular) => { titularSegActual.value = t; beneficiarioSegActual.value = null; modalSegVisible.value = true }
+const abrirSeguimientoBeneficiario = (b: Beneficiario) => {
+  if (!titularSeleccionado.value) return
+  titularSegActual.value = titularSeleccionado.value
+  beneficiarioSegActual.value = b
+  modalSegVisible.value = true
+}
 
 // ─── Importación masiva ──────────────────────────────────────────
 const modalImportVisible = ref(false)
@@ -340,6 +347,7 @@ const modalImportVisible = ref(false)
       @activar="activarBeneficiario"
       @desactivar="desactivarBeneficiario"
       @reemplazar="abrirReemplazarBeneficiario"
+      @seguimiento="abrirSeguimientoBeneficiario"
       @agregar-nuevo="abrirNuevoBeneficiario"
     />
 
@@ -359,6 +367,7 @@ const modalImportVisible = ref(false)
       :nombre="titularActivando?.nombre"
       :guardando="guardandoTitular"
       :error="errorGuardarTitular"
+      pedir-fecha
       @confirmar="confirmarActivarTitular"
       @cancelar="errorGuardarTitular = null"
     />
@@ -397,7 +406,7 @@ const modalImportVisible = ref(false)
       @submit="guardarBeneficiario"
     />
 
-    <SeguimientoDialog v-model:visible="modalSegVisible" :titular="titularSegActual" />
+    <SeguimientoDialog v-model:visible="modalSegVisible" :titular="titularSegActual" :beneficiario="beneficiarioSegActual" />
 
     <ImportacionPlanLigaDialog v-model:visible="modalImportVisible" />
   </div>

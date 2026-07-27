@@ -58,3 +58,9 @@
 @utility tab-nav-sf-activa {
   @apply text-[#2447F9] border-[#2447F9] font-black bg-white;
 }
+
+/* El panel del DatePicker de PrimeVue se teletransporta a <body>; sube su z-index para
+   que quede por encima de los modales de la app (que usan z-[99999]) y no se corte. */
+.p-datepicker-panel {
+  z-index: 100000 !important;
+}

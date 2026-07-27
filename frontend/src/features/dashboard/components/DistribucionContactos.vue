@@ -16,7 +16,7 @@ defineProps<{ distribucion: DistribucionItem[]; error?: string | null }>()
       <div v-for="item in distribucion" :key="item.label">
         <div class="flex justify-between text-[11px] mb-1.5">
           <span class="font-medium text-slate-600">{{ item.label }}</span>
-          <span class="font-bold text-[#0F172A]">{{ item.cantidad }} · {{ item.porcentaje }}%</span>
+          <span class="font-bold text-[#0F172A]">{{ item.porcentaje }}%</span>
         </div>
         <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
           <div
@@ -24,6 +24,7 @@ defineProps<{ distribucion: DistribucionItem[]; error?: string | null }>()
             :style="{ width: item.porcentaje + '%', backgroundColor: item.color }"
           />
         </div>
+        <div class="text-[11px] font-bold text-[#0F172A] mt-1">{{ item.cantidad }}</div>
       </div>
     </div>
   </div>

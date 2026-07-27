@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Edit2, ToggleLeft, ToggleRight, RefreshCw, History } from 'lucide-vue-next'
+import { Edit2, ToggleLeft, ToggleRight, RefreshCw, History, ClipboardList } from 'lucide-vue-next'
 import type { Beneficiario } from '../types/plan-liga'
 import { estadoBeneStyle } from '../constants/plan-liga.constants'
 import PersonaAvatar from './PersonaAvatar.vue'
@@ -10,6 +10,7 @@ const emit = defineEmits<{
   activar: []
   desactivar: []
   reemplazar: []
+  seguimiento: []
 }>()
 </script>
 
@@ -53,6 +54,7 @@ const emit = defineEmits<{
       </div>
     </div>
     <div class="flex items-center gap-1 mt-3 pt-3 border-t border-slate-100 opacity-0 group-hover:opacity-100 transition-opacity">
+      <button @click="emit('seguimiento')" class="flex items-center gap-1 h-7 px-2.5 rounded-lg bg-slate-100 hover:bg-[#D1FAE5] hover:text-[#059669] text-slate-500 text-[10px] font-semibold transition-all"><ClipboardList :size="10" /> Seguimiento</button>
       <button @click="emit('editar')" class="flex items-center gap-1 h-7 px-2.5 rounded-lg bg-slate-100 hover:bg-[#EEF2FF] hover:text-[#2447F9] text-slate-500 text-[10px] font-semibold transition-all"><Edit2 :size="10" /> Editar</button>
       <button v-if="beneficiario.estado === 'Activo'" @click="emit('desactivar')" class="flex items-center gap-1 h-7 px-2.5 rounded-lg bg-slate-100 hover:bg-red-50 hover:text-red-500 text-slate-500 text-[10px] font-semibold transition-all"><ToggleLeft :size="10" /> Desactivar</button>
       <button v-else-if="beneficiario.estado === 'Inactivo'" @click="emit('activar')" class="flex items-center gap-1 h-7 px-2.5 rounded-lg bg-slate-100 hover:bg-emerald-50 hover:text-emerald-600 text-slate-500 text-[10px] font-semibold transition-all"><ToggleRight :size="10" /> Activar</button>

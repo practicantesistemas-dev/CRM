@@ -19,6 +19,7 @@ const emit = defineEmits<{
   activar: [b: Beneficiario]
   desactivar: [b: Beneficiario]
   reemplazar: [b: Beneficiario]
+  seguimiento: [b: Beneficiario]
   'agregar-nuevo': []
 }>()
 
@@ -66,6 +67,7 @@ const errLimite = defineModel<boolean>('errLimite', { required: true })
             @activar="emit('activar', b)"
             @desactivar="emit('desactivar', b)"
             @reemplazar="emit('reemplazar', b)"
+            @seguimiento="emit('seguimiento', b)"
           />
           <div v-if="beneficiarios.length === 0" class="text-center py-10 text-slate-400 text-[12px]">
             <Users :size="28" class="text-slate-300 mx-auto mb-2" />No hay beneficiarios registrados.

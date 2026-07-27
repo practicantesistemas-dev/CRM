@@ -4,6 +4,7 @@ import type {
   BeneficiarioListadoResponse, TitularDetalleResponse, PlanTitular, PlanServicio, PlanCatalogoResponse,
   ReemplazoPersonaDraft, ReemplazoTitularResultado, ReemplazoBeneficiarioResultado,
   ReemplazoTitularResultadoResponse, ReemplazoBeneficiarioResultadoResponse,
+  SeguimientoDraft, TipoSeguimiento,
 } from '../types/plan-liga'
 import { joinNombreCompleto, splitNombreCompleto } from '@/shared/utils/nombreCompuesto'
 
@@ -503,4 +504,29 @@ export async function getPlanesServicio(): Promise<PlanServicio[]> {
     'No se pudo cargar la lista de planes.',
   )
   return data.map(p => ({ id: p.ID, nombre: p.NOMBRE, cupoBeneficiarios: cupoDePlan(p) }))
+}
+
+const TIPO_SEG_API: Record<TipoSeguimiento, string> = {
+  Llamada: 'llamada', Correo: 'correo', Reunión: 'reunion', WhatsApp: 'whatsapp', Nota: 'nota',
+}
+
+// El endpoint de bitácora no tiene un campo propio para beneficiario_id (solo titular_id),
+// así que cuando el seguimiento es sobre un beneficiario puntual, su nombre queda como
+// prefijo de la descripción para poder identificarlo dentro de la bitácora del titular.
+export async function registrarSeguimiento(titularId: number, data: SeguimientoDraft, beneficiarioNombre?: string): Promise<void> {
+  const body = {
+    tipo: TIPO_SEG_API[data.tipo],
+    descripcion: beneficiarioNombre ? `[Beneficiario: ${beneficiarioNombre}] ${data.accion}` : data.accion,
+    proximo_paso: data.proximoPaso || null,
+    fecha: data.fecha,
+    titular_id: titularId,
+    oportunidad_id: data.oportunidadId,
+    estado: 'realizado',
+  }
+  const response = await fetch(`${API_URL}/api/bitacora/`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo registrar el seguimiento.')
 }
