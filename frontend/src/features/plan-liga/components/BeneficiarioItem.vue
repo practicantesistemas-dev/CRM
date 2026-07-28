@@ -30,7 +30,7 @@ const emit = defineEmits<{
       </div>
       <span class="text-[10px] font-semibold shrink-0" :class="estadoBeneStyle(beneficiario.estado)">{{ beneficiario.estado }}</span>
     </div>
-    <div v-if="beneficiario.correo || beneficiario.telefono || beneficiario.direccion || beneficiario.empresa"
+    <div v-if="beneficiario.correo || beneficiario.telefono || beneficiario.direccion || beneficiario.empresa || beneficiario.fechaInscripcion"
       class="mt-3 pt-3 border-t border-slate-100 grid grid-cols-2 gap-x-3 gap-y-1.5">
       <div v-if="beneficiario.correo" class="min-w-0">
         <div class="text-[9px] font-semibold text-slate-400 uppercase tracking-wide">Correo</div>
@@ -51,6 +51,10 @@ const emit = defineEmits<{
       <div v-if="beneficiario.empresa" class="min-w-0">
         <div class="text-[9px] font-semibold text-slate-400 uppercase tracking-wide">Empresa</div>
         <div class="text-[11px] text-slate-600 truncate">{{ beneficiario.empresa }}</div>
+      </div>
+      <div v-if="beneficiario.fechaInscripcion" class="min-w-0">
+        <div class="text-[9px] font-semibold text-slate-400 uppercase tracking-wide">Inscripción</div>
+        <div class="text-[11px] text-slate-600 truncate">{{ beneficiario.fechaInscripcion }}</div>
       </div>
     </div>
     <div class="flex items-center gap-1 mt-3 pt-3 border-t border-slate-100 opacity-0 group-hover:opacity-100 transition-opacity">

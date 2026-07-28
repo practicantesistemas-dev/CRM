@@ -71,7 +71,7 @@ const cerrar = () => {
             <option v-for="p in planesServicio" :key="p.id" :value="p.id">{{ p.nombre }}</option>
           </select>
           <p class="text-[10px] text-slate-400 mt-1.5">
-            Cada titular ocupa 1 fila + hasta {{ cupoBeneficiarios }} filas de beneficiarios justo debajo (aunque estén vacías). El siguiente titular empieza en la fila que sigue a ese bloque.
+            Cada titular ocupa 1 fila + hasta {{ cupoBeneficiarios }} filas de beneficiarios justo debajo. Si usa menos, deja al menos 1 fila vacía antes del siguiente titular (el cupo es un tope, no hay que rellenar hasta completarlo).
           </p>
         </div>
 

@@ -159,14 +159,30 @@ export interface GrupoCarga {
   beneficiarios: FilaCargaMasiva[]
 }
 
-/** Agrupa filas consecutivas por posición: la primera de cada grupo es el titular, las
- * siguientes `cupoBeneficiarios` son sus beneficiarios (algunas pueden venir vacías: cupos sin usar). */
+/**
+ * Agrupa filas consecutivas por posición: la primera de cada grupo es el titular; las que
+ * siguen son sus beneficiarios, hasta un máximo de `cupoBeneficiarios`. El cupo es un TOPE, no
+ * una cantidad obligatoria: en cuanto aparece una fila vacía se corta ahí la lista de ese
+ * titular (no hace falta rellenar hasta completar el cupo). Cualquier cantidad de filas vacías
+ * que sigan se ignoran por completo — no ocupan lugar ni cuentan para nada — hasta encontrar la
+ * siguiente fila con datos, que es el próximo titular.
+ * Nota: si un titular usa MENOS beneficiarios que el cupo, el archivo debe dejar al menos 1 fila
+ * vacía después del último beneficiario real antes del siguiente titular (si no, esa fila se
+ * interpretaría como otro beneficiario de este mismo titular en vez del siguiente titular).
+ */
 export function agruparFilas(filas: FilaCargaMasiva[], cupoBeneficiarios: number): GrupoCarga[] {
   const grupos: GrupoCarga[] = []
   let i = 0
   while (i < filas.length) {
-    grupos.push({ titular: filas[i], beneficiarios: filas.slice(i + 1, i + 1 + cupoBeneficiarios) })
-    i += 1 + cupoBeneficiarios
+    const beneficiarios: FilaCargaMasiva[] = []
+    let j = i + 1
+    while (j < filas.length && beneficiarios.length < cupoBeneficiarios && !filas[j].vacia) {
+      beneficiarios.push(filas[j])
+      j++
+    }
+    grupos.push({ titular: filas[i], beneficiarios })
+    while (j < filas.length && filas[j].vacia) j++ // saltar filas vacías sin contarlas
+    i = j
   }
   return grupos
 }
@@ -271,12 +287,23 @@ export function validarGruposCargaMasiva(grupos: GrupoCarga[]): string[] {
     const erroresTitular = [...grupo.titular.erroresFormato, ...validarCamposObligatorios(grupo.titular, REQUERIDOS_TITULAR)]
     if (erroresTitular.length > 0) {
       errores.push(...erroresTitular)
-      if (beneficiariosReales.length > 0) errores.push(`Fila ${grupo.titular.filaExcel}: no se creará el titular, así que tampoco sus beneficiarios`)
+      if (beneficiariosReales.length > 0) {
+        errores.push(
+          `Fila ${grupo.titular.filaExcel}: no se creará el titular, así que tampoco sus ${beneficiariosReales.length} beneficiario(s) `
+          + `(filas ${beneficiariosReales[0].filaExcel}-${beneficiariosReales[beneficiariosReales.length - 1].filaExcel}). `
+          + `El grupo del siguiente titular no se ve afectado.`,
+        )
+      }
       continue
     }
-    for (const filaBene of beneficiariosReales) {
-      errores.push(...filaBene.erroresFormato, ...validarCamposObligatorios(filaBene, REQUERIDOS_BENEFICIARIO))
-    }
+    beneficiariosReales.forEach((filaBene, posicion) => {
+      const erroresBene = [...filaBene.erroresFormato, ...validarCamposObligatorios(filaBene, REQUERIDOS_BENEFICIARIO)]
+      if (erroresBene.length === 0) return
+      errores.push(
+        `Fila ${filaBene.filaExcel} (beneficiario ${posicion + 1} de ${beneficiariosReales.length} del titular `
+        + `${grupo.titular.documento} en fila ${grupo.titular.filaExcel}): ${erroresBene.join('; ')}`,
+      )
+    })
   }
   return errores
 }
@@ -297,12 +324,25 @@ export async function procesarCargaMasiva(
   let exitosos = 0
   let hechos = 0
 
+  // Cada grupo (titular + hasta `cupoBeneficiarios` filas debajo) ya viene delimitado por
+  // posición fija desde `agruparFilas`, calculado ANTES de procesar nada: si algo falla a mitad
+  // de un grupo, el límite de ese grupo no se corre ni se recalcula, así que jamás se toma una
+  // fila de otro titular como si fuera un beneficiario de este. Un titular que falla se salta
+  // por completo (no se crea ninguno de sus beneficiarios); un beneficiario que falla solo se
+  // reporta y se sigue con el siguiente beneficiario DE ESE MISMO grupo, sin tocar otros grupos.
   for (const grupo of grupos) {
     const beneficiariosReales = grupo.beneficiarios.filter(b => !b.vacia)
+    const refGrupo = `titular ${grupo.titular.documento} en fila ${grupo.titular.filaExcel}`
     const erroresTitular = [...grupo.titular.erroresFormato, ...validarCamposObligatorios(grupo.titular, REQUERIDOS_TITULAR)]
     if (erroresTitular.length > 0) {
       detalleErrores.push(...erroresTitular)
-      if (beneficiariosReales.length > 0) detalleErrores.push(`Fila ${grupo.titular.filaExcel}: no se creó el titular, así que tampoco sus beneficiarios`)
+      if (beneficiariosReales.length > 0) {
+        detalleErrores.push(
+          `Fila ${grupo.titular.filaExcel}: no se creó el titular, así que tampoco sus ${beneficiariosReales.length} beneficiario(s) `
+          + `(filas ${beneficiariosReales[0].filaExcel}-${beneficiariosReales[beneficiariosReales.length - 1].filaExcel}). `
+          + `El grupo del siguiente titular se procesa aparte, sin verse afectado.`,
+        )
+      }
       hechos += 1 + beneficiariosReales.length
       onProgreso?.(hechos, totalReal)
       continue
@@ -313,7 +353,13 @@ export async function procesarCargaMasiva(
       exitosos += 1
     } catch (e) {
       detalleErrores.push(`Fila ${grupo.titular.filaExcel}: ${e instanceof Error ? e.message : 'no se pudo crear el titular'}`)
-      if (beneficiariosReales.length > 0) detalleErrores.push(`Fila ${grupo.titular.filaExcel}: no se procesaron sus beneficiarios porque el titular falló`)
+      if (beneficiariosReales.length > 0) {
+        detalleErrores.push(
+          `Fila ${grupo.titular.filaExcel}: no se procesaron sus ${beneficiariosReales.length} beneficiario(s) `
+          + `(filas ${beneficiariosReales[0].filaExcel}-${beneficiariosReales[beneficiariosReales.length - 1].filaExcel}) `
+          + `porque el titular falló; se salta este grupo completo y se sigue con el siguiente titular del archivo.`,
+        )
+      }
       hechos += 1 + beneficiariosReales.length
       onProgreso?.(hechos, totalReal)
       continue
@@ -331,10 +377,11 @@ export async function procesarCargaMasiva(
       continue
     }
 
-    for (const filaBene of beneficiariosReales) {
+    for (const [posicion, filaBene] of beneficiariosReales.entries()) {
+      const refBene = `Fila ${filaBene.filaExcel} (beneficiario ${posicion + 1} de ${beneficiariosReales.length} del ${refGrupo})`
       const erroresBene = [...filaBene.erroresFormato, ...validarCamposObligatorios(filaBene, REQUERIDOS_BENEFICIARIO)]
       if (erroresBene.length > 0) {
-        detalleErrores.push(...erroresBene)
+        detalleErrores.push(`${refBene}: ${erroresBene.join('; ')}`)
         hechos += 1
         onProgreso?.(hechos, totalReal)
         continue
@@ -343,7 +390,8 @@ export async function procesarCargaMasiva(
         await createBeneficiario(idTitular, aBeneficiarioDraft(filaBene))
         exitosos += 1
       } catch (e) {
-        detalleErrores.push(`Fila ${filaBene.filaExcel}: ${e instanceof Error ? e.message : 'no se pudo crear el beneficiario'}`)
+        detalleErrores.push(`${refBene}: ${e instanceof Error ? e.message : 'no se pudo crear el beneficiario'} `
+          + `(no afecta a los demás beneficiarios de este titular ni a otros grupos)`)
       }
       hechos += 1
       onProgreso?.(hechos, totalReal)
