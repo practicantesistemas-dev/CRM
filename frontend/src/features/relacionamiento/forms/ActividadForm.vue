@@ -10,7 +10,6 @@ import BuscadorEntidad, { type OpcionBuscador } from '@/shared/components/Buscad
 import { getOportunidades } from '@/features/oportunidades/services/oportunidades.api'
 import { clienteLabel } from '@/features/oportunidades/constants/oportunidades.constants'
 import { getContactos } from '@/features/contactos/services/contactos.api'
-import { getEmpresas } from '@/features/empresas/services/empresas.api'
 import { getTitulares } from '@/features/plan-liga/services/plan-liga.api'
 import type { Titular } from '@/features/plan-liga/types/plan-liga'
 
@@ -23,9 +22,6 @@ defineExpose({ submit: onValidSubmit(() => emit('validSubmit')) })
 const opcionesContactos = computed<OpcionBuscador[]>(() =>
   getContactos().map(c => ({ id: c.id, label: c.nombre, sublabel: c.empresa })),
 )
-const opcionesEmpresas = computed<OpcionBuscador[]>(() =>
-  getEmpresas().map(e => ({ id: e.id, label: e.razonSocial, sublabel: e.ciudad })),
-)
 const titulares = ref<Titular[]>([])
 onMounted(async () => { titulares.value = await getTitulares() })
 
@@ -36,25 +32,25 @@ const opcionesTitulares = computed<OpcionBuscador[]>(() =>
 function alSeleccionarContacto(item: OpcionBuscador | null) {
   draft.value.contactoNombre = item?.label ?? ''
 }
-function alSeleccionarEmpresa(item: OpcionBuscador | null) {
-  draft.value.empresaNombre = item?.label ?? ''
-}
+// nombre_empresa ya no depende de un catálogo (no es FK): al elegir un titular Plan Liga
+// se toma su empresa tal cual, sin obligar a buscarla/escribirla de nuevo.
 function alSeleccionarTitular(item: OpcionBuscador | null) {
   draft.value.titularNombre = item?.label ?? ''
+  if (item) draft.value.empresaNombre = titulares.value.find(t => t.id === item.id)?.empresa ?? draft.value.empresaNombre
 }
 
 const errorSujeto = computed(() =>
   (esVisible('contactoId') && errors.value.contactoId)
-  || (esVisible('empresaId') && errors.value.empresaId)
+  || (esVisible('empresaNombre') && errors.value.empresaNombre)
   || (esVisible('titularId') && errors.value.titularId)
   || undefined,
 )
 
 const opcionesOportunidades = computed<OpcionBuscador[]>(() => {
-  const { contactoId, empresaId, titularId } = draft.value
+  const { contactoId, titularId } = draft.value
   const todas = getOportunidades()
-  const relevantes = (contactoId || empresaId || titularId)
-    ? todas.filter(o => (contactoId && o.contactoId === contactoId) || (empresaId && o.empresaId === empresaId) || (titularId && o.planLigaTitularId === titularId))
+  const relevantes = (contactoId || titularId)
+    ? todas.filter(o => (contactoId && o.contactoId === contactoId) || (titularId && o.planLigaTitularId === titularId))
     : todas
   return relevantes.map(o => ({ id: o.id, label: o.servicio, sublabel: `${clienteLabel(o)} · ${o.estado}` }))
 })
@@ -88,13 +84,11 @@ const opcionesOportunidades = computed<OpcionBuscador[]>(() => {
           @select="alSeleccionarContacto"
           @blur="tocar('contactoId')"
         />
-        <BuscadorEntidad
-          v-model="draft.empresaId"
-          :opciones="opcionesEmpresas"
-          placeholder="Buscar empresa..."
-          vacio="No se encontraron empresas"
-          @select="alSeleccionarEmpresa"
-          @blur="tocar('empresaId')"
+        <input
+          v-model="draft.empresaNombre"
+          @blur="tocar('empresaNombre')"
+          placeholder="Nombre de la empresa..."
+          class="w-full h-10 px-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#2447F9] focus:bg-white transition-all"
         />
         <BuscadorEntidad
           v-model="draft.titularId"

@@ -514,13 +514,16 @@ const TIPO_SEG_API: Record<TipoSeguimiento, string> = {
 // El endpoint de bitácora no tiene un campo propio para beneficiario_id (solo titular_id),
 // así que cuando el seguimiento es sobre un beneficiario puntual, su nombre queda como
 // prefijo de la descripción para poder identificarlo dentro de la bitácora del titular.
-export async function registrarSeguimiento(titularId: number, data: SeguimientoDraft, beneficiarioNombre?: string): Promise<void> {
+// nombre_empresa ya no es FK (mercadeo_crm_empresas): viaja como texto plano, así que se
+// toma directo del titular en vez de pedirle al usuario que la busque/seleccione de nuevo.
+export async function registrarSeguimiento(titular: Titular, data: SeguimientoDraft, beneficiarioNombre?: string): Promise<void> {
   const body = {
     tipo: TIPO_SEG_API[data.tipo],
     descripcion: beneficiarioNombre ? `[Beneficiario: ${beneficiarioNombre}] ${data.accion}` : data.accion,
     proximo_paso: data.proximoPaso || null,
     fecha: data.fecha,
-    titular_id: titularId,
+    titular_id: titular.id,
+    nombre_empresa: titular.empresa || null,
     oportunidad_id: data.oportunidadId,
     estado: 'realizado',
   }

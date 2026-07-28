@@ -71,8 +71,7 @@ export interface ActividadRecienteResponse {
   fecha: string | null
   contacto_id: number | null
   contacto_nombre: string | null
-  empresa_id: number | null
-  empresa_nombre: string | null
+  nombre_empresa: string | null
   usuario_id: number | null
   usuario_nombre: string | null
 }

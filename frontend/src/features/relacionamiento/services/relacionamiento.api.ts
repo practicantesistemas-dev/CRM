@@ -5,7 +5,8 @@ import { authHeader } from '@/features/auth/composables/useAuth'
 const API_URL = import.meta.env.VITE_CRM_API_URL
 
 // Forma cruda de GET /api/bitacora/: paginada (items/total), snake_case. Trae contacto_nombre/
-// empresa_nombre/usuario_nombre ya resueltos, pero no titular_nombre.
+// usuario_nombre ya resueltos, pero no titular_nombre. nombre_empresa ya no es FK (no hay
+// empresa_id): es texto libre, tal cual se escribió al crear el registro.
 interface BitacoraApiItem {
   id: number
   tipo: string
@@ -17,8 +18,7 @@ interface BitacoraApiItem {
   usuario_nombre: string | null
   contacto_id: number | null
   contacto_nombre: string | null
-  empresa_id: number | null
-  empresa_nombre: string | null
+  nombre_empresa: string | null
   oportunidad_id: number | null
   titular_id: number | null
 }
@@ -65,8 +65,7 @@ function mapItem(r: BitacoraApiItem, titularNombre: string): Actividad {
     tipo: TIPO_DESDE_API[normalizarTipo(r.tipo)] ?? 'Nota',
     contactoId: r.contacto_id,
     contactoNombre: r.contacto_nombre ?? '',
-    empresaId: r.empresa_id,
-    empresaNombre: r.empresa_nombre ?? '',
+    empresaNombre: r.nombre_empresa ?? '',
     titularId: r.titular_id,
     titularNombre,
     accion: r.descripcion,
@@ -98,7 +97,7 @@ export async function createActividad(data: ActividadDraft): Promise<void> {
     proximo_paso: data.proximoPaso || null,
     fecha: data.fecha,
     contacto_id: data.contactoId,
-    empresa_id: data.empresaId,
+    nombre_empresa: data.empresaNombre || null,
     titular_id: data.titularId,
     oportunidad_id: data.oportunidadId,
     estado: 'realizado',

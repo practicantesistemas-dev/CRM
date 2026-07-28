@@ -54,7 +54,7 @@ const guardarSeguimiento = onValidSubmit(async () => {
   guardando.value = true
   error.value = null
   try {
-    await registrarSeguimiento(props.titular.id, formSeg.value, props.beneficiario?.nombre)
+    await registrarSeguimiento(props.titular, formSeg.value, props.beneficiario?.nombre)
     segGuardado.value = true
     setTimeout(() => { visible.value = false; segGuardado.value = false }, 1200)
   } catch (e) {

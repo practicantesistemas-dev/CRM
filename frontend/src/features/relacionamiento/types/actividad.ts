@@ -5,7 +5,7 @@ export interface Actividad {
   tipo: TipoActividad
   contactoId: number | null
   contactoNombre: string
-  empresaId: number | null
+  /** Texto libre (no FK): el backend ya no valida contra un catálogo de empresas. */
   empresaNombre: string
   /** Titular Plan Liga asociado a la actividad; opcional, igual que contacto y empresa. */
   titularId: number | null

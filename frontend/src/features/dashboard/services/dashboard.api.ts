@@ -58,7 +58,7 @@ export async function getActividadReciente(limit: number): Promise<ActividadReci
       tipo: a.tipo ?? 'Actividad',
       icono: meta.icono,
       contacto: a.contacto_nombre ?? 'Contacto sin nombre',
-      empresa: a.empresa_nombre ?? 'Sin empresa',
+      empresa: a.nombre_empresa ?? 'Sin empresa',
       hace: formatearHace(a.fecha),
       usuario: a.usuario_nombre ?? 'Sistema',
       color: meta.color,
