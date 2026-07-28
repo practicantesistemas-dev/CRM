@@ -9,6 +9,7 @@ import TitularFormDialog from '../dialogs/TitularFormDialog.vue'
 import BeneficiarioFormDialog from '../dialogs/BeneficiarioFormDialog.vue'
 import BeneficiariosDrawer from '../dialogs/BeneficiariosDrawer.vue'
 import ActivarFechaDialog from '../dialogs/ActivarFechaDialog.vue'
+import ConfirmarDesactivarDialog from '../dialogs/ConfirmarDesactivarDialog.vue'
 import ReemplazarPersonaDialog from '../dialogs/ReemplazarPersonaDialog.vue'
 import SeguimientoDialog from '../dialogs/SeguimientoDialog.vue'
 import ImportacionPlanLigaDialog from '../dialogs/ImportacionPlanLigaDialog.vue'
@@ -74,13 +75,16 @@ const guardarTitular = async () => {
 
 const modalActivarTitularVisible = ref(false)
 const titularActivando = ref<Titular | null>(null)
+const modalDesactivarTitularVisible = ref(false)
+const titularDesactivando = ref<Titular | null>(null)
 
 const toggleEstadoTitularConFecha = (t: Titular) => {
+  errorGuardarTitular.value = null
   if (t.estado === 'Activo') {
-    toggleEstadoTitular(t)
+    titularDesactivando.value = t
+    modalDesactivarTitularVisible.value = true
     return
   }
-  errorGuardarTitular.value = null
   titularActivando.value = t
   modalActivarTitularVisible.value = true
 }
@@ -88,6 +92,11 @@ const confirmarActivarTitular = async (fechaIngreso: string) => {
   if (!titularActivando.value) return
   await toggleEstadoTitular(titularActivando.value, fechaIngreso)
   if (!errorGuardarTitular.value) modalActivarTitularVisible.value = false
+}
+const confirmarDesactivarTitular = async () => {
+  if (!titularDesactivando.value) return
+  await toggleEstadoTitular(titularDesactivando.value)
+  if (!errorGuardarTitular.value) modalDesactivarTitularVisible.value = false
 }
 
 const modalReemplazarTitularVisible = ref(false)
@@ -174,9 +183,19 @@ const confirmarActivarBeneficiario = async (fechaIngreso: string) => {
   await activarEstadoBeneficiario(titularSeleccionado.value.id, beneficiarioActivando.value, fechaIngreso)
   if (!errorEstadoBeneficiario.value) modalActivarVisible.value = false
 }
+const modalDesactivarBeneVisible = ref(false)
+const beneficiarioDesactivando = ref<Beneficiario | null>(null)
+
 const desactivarBeneficiario = (b: Beneficiario) => {
   if (!titularSeleccionado.value) return
-  desactivarEstadoBeneficiario(titularSeleccionado.value.id, b)
+  errorEstadoBeneficiario.value = null
+  beneficiarioDesactivando.value = b
+  modalDesactivarBeneVisible.value = true
+}
+const confirmarDesactivarBeneficiario = async () => {
+  if (!titularSeleccionado.value || !beneficiarioDesactivando.value) return
+  await desactivarEstadoBeneficiario(titularSeleccionado.value.id, beneficiarioDesactivando.value)
+  if (!errorEstadoBeneficiario.value) modalDesactivarBeneVisible.value = false
 }
 const modalReemplazarBeneVisible = ref(false)
 const beneficiarioReemplazando = ref<Beneficiario | null>(null)
@@ -361,6 +380,16 @@ const modalImportVisible = ref(false)
       @cancelar="errorEstadoBeneficiario = null"
     />
 
+    <ConfirmarDesactivarDialog
+      v-model:visible="modalDesactivarBeneVisible"
+      titulo="Desactivar beneficiario"
+      :nombre="beneficiarioDesactivando?.nombre"
+      :guardando="guardandoEstadoBeneficiario"
+      :error="errorEstadoBeneficiario"
+      @confirmar="confirmarDesactivarBeneficiario"
+      @cancelar="errorEstadoBeneficiario = null"
+    />
+
     <ActivarFechaDialog
       v-model:visible="modalActivarTitularVisible"
       titulo="Activar titular"
@@ -369,6 +398,16 @@ const modalImportVisible = ref(false)
       :error="errorGuardarTitular"
       pedir-fecha
       @confirmar="confirmarActivarTitular"
+      @cancelar="errorGuardarTitular = null"
+    />
+
+    <ConfirmarDesactivarDialog
+      v-model:visible="modalDesactivarTitularVisible"
+      titulo="Desactivar titular"
+      :nombre="titularDesactivando?.nombre"
+      :guardando="guardandoTitular"
+      :error="errorGuardarTitular"
+      @confirmar="confirmarDesactivarTitular"
       @cancelar="errorGuardarTitular = null"
     />
 

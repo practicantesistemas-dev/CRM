@@ -139,6 +139,10 @@ const hoy = new Date().toISOString().split('T')[0]
       <input v-model="draft.planNombre" placeholder="Nombre comercial del plan" class="w-full h-10 px-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white transition-all" />
     </div>
     <div>
+      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Factura</label>
+      <input v-model="draft.factura" placeholder="Número de factura" :disabled="soloLecturaEnEdicion" class="w-full h-10 px-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed" />
+    </div>
+    <div>
       <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Fecha de inscripción *</label>
       <input v-model="draft.fechaInscripcion" @blur="tocar('fechaInscripcion')" type="date" :max="hoy" :disabled="soloLecturaEnEdicion" class="w-full h-10 px-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed" :class="fieldStateClass(esVisible('fechaInscripcion') && !!errors.fechaInscripcion, esVisible('fechaInscripcion') && !errors.fechaInscripcion && !!draft.fechaInscripcion, 'border-slate-200 focus:border-[#EC4899]')" />
       <FieldError :message="esVisible('fechaInscripcion') ? errors.fechaInscripcion : undefined" />

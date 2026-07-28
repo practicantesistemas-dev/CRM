@@ -22,6 +22,8 @@ export interface Titular {
   planNombre: string
   fechaInscripcion: string
   estado: 'Activo' | 'Inactivo'
+  /** Número de factura asociado al alta del titular (solo se registra al crear). */
+  factura: string
   /** Detalle por plan (nombre + cupo) cuando el titular viene del listado del backend. */
   planesDetalle?: PlanTitular[]
 }

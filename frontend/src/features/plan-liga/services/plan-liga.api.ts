@@ -69,10 +69,13 @@ export async function createTitular(data: TitularDraft): Promise<void> {
     PLAN_NOMBRE: data.planNombre,
     // null es el Plan Estándar (cupo 4): se manda tal cual, no se convierte a 0.
     TIPO_PLAN_ID: data.tipoPlanId,
+    FACTURA: data.factura || null,
   }
+  // El backend resuelve el usuario creador (USUARIO_ID en INTRANET_PREPLANLIGA) a partir
+  // del Bearer token, igual que /api/bitacora/: sin este header, get_current_username falla.
   const response = await fetch(`${API_URL}/api/titulares-beneficiarios`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...authHeader() },
     body: JSON.stringify(body),
   })
   if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo crear el titular.')
@@ -316,6 +319,7 @@ function mapTitularListado(r: TitularListadoResponse): Titular {
     planNombre: '',
     fechaInscripcion: r.INSCRIPCION,
     estado: r.ESTADO === 'A' ? 'Activo' : 'Inactivo',
+    factura: '',
     planesDetalle,
   }
 }
@@ -351,6 +355,7 @@ function mapTitularDetalle(r: TitularDetalleResponse): Titular {
     planNombre: r.PLAN_NOMBRE ?? '',
     fechaInscripcion: r.FECHA_INGRESO ?? '',
     estado: r.ESTADO === 'A' ? 'Activo' : 'Inactivo',
+    factura: '',
   }
 }
 

@@ -57,6 +57,10 @@ const alternarCargaMasiva = (event: MouseEvent) => {
   }
 }
 
+// --- CONFIRMACIÓN PARA CARGAS MASIVAS DE DESACTIVACIÓN ---
+const confirmarDesactivarAbierto = ref(false)
+const cargaPendiente = ref<{ seccion: string; accion: string; maxPersonas?: number; archivo: File } | null>(null)
+
 const manejarArchivo = (event: Event, seccion: string) => {
   const target = event.target as HTMLInputElement
   if (target.files && target.files.length > 0) {
@@ -68,18 +72,34 @@ const manejarArchivo = (event: Event, seccion: string) => {
     } else if (seccion === 'beneficiarios') {
       accionFinal = accionDocumento.value
     } else if (seccion === 'inscripcion') {
-      accionFinal = accionTitularInscripcion.value 
-      maxPersonasFinal = maxPersonasInscripcion.value 
+      accionFinal = accionTitularInscripcion.value
+      maxPersonasFinal = maxPersonasInscripcion.value
     }
 
-    emit('procesarCargaMasiva', {
-      seccion,
-      accion: accionFinal,
-      maxPersonas: maxPersonasFinal,
-      archivo: target.files[0]
-    })
-    cargaMasivaAbierta.value = false 
+    const payload = { seccion, accion: accionFinal, maxPersonas: maxPersonasFinal, archivo: target.files[0] }
+    target.value = ''
+
+    if (accionFinal === 'Desactivar') {
+      cargaPendiente.value = payload
+      confirmarDesactivarAbierto.value = true
+      return
+    }
+
+    emit('procesarCargaMasiva', payload)
+    cargaMasivaAbierta.value = false
   }
+}
+
+const confirmarCargaDesactivar = () => {
+  if (cargaPendiente.value) emit('procesarCargaMasiva', cargaPendiente.value)
+  cargaPendiente.value = null
+  confirmarDesactivarAbierto.value = false
+  cargaMasivaAbierta.value = false
+}
+
+const cancelarCargaDesactivar = () => {
+  cargaPendiente.value = null
+  confirmarDesactivarAbierto.value = false
 }
 
 // --- ESTADO DEL MODAL AGREGAR PROSPECTO ---
@@ -545,6 +565,23 @@ const textoEdadActiva = computed(() => {
       <button @click="filtroEdadLocal = 'adultos'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroEdadLocal === 'adultos' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 hover:bg-slate-50']">Adultos (18 - 60)</button>
       <button @click="filtroEdadLocal = 'mayores'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroEdadLocal === 'mayores' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 hover:bg-slate-50']">Adultos Mayores (&gt; 60)</button>
     </template>
+  </div>
+
+  <div v-if="confirmarDesactivarAbierto" class="fixed inset-0 z-[999999] bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4" @click.self="cancelarCargaDesactivar">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-150">
+      <div class="p-5 text-center">
+        <div class="w-11 h-11 rounded-2xl bg-amber-50 flex items-center justify-center mx-auto mb-3 text-lg">⚠️</div>
+        <h3 class="text-xs font-black uppercase tracking-wider text-slate-800 mb-1">Confirmar desactivación masiva</h3>
+        <p class="text-[11px] text-slate-500">
+          Vas a <strong>desactivar</strong> los registros del archivo
+          <strong>"{{ cargaPendiente?.archivo.name }}"</strong> en la sección de {{ cargaPendiente?.seccion === 'titulares' ? 'titulares' : 'beneficiarios' }}. ¿Deseas continuar?
+        </p>
+      </div>
+      <div class="flex gap-2 px-5 pb-5">
+        <button @click="cancelarCargaDesactivar" class="flex-1 py-2 text-xs font-bold text-slate-500 hover:text-slate-700 bg-white border border-slate-200 rounded-lg cursor-pointer">Cancelar</button>
+        <button @click="confirmarCargaDesactivar" class="flex-1 py-2 text-xs font-black text-white bg-amber-600 hover:bg-amber-700 rounded-lg cursor-pointer shadow-sm">Desactivar</button>
+      </div>
+    </div>
   </div>
 
   <div v-if="modalAgregarAbierto" class="fixed inset-0 z-[999999] bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">

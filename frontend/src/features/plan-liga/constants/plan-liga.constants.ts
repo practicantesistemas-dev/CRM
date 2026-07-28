@@ -6,7 +6,7 @@ import type {
 const TITULAR_EXTRA_VACIO = {
   tipoDocumento: 'CC', direccion: '', ciudad: '', departamento: '',
   // El titular siempre se crea como tipo de afiliado 1 (cotizante); el campo no es editable en el formulario.
-  tipoPlan: '', tipoAfiliado: '1', eps: '', otraEps: '', planSalud: '', planNombre: '',
+  tipoPlan: '', tipoAfiliado: '1', eps: '', otraEps: '', planSalud: '', planNombre: '', factura: '',
 }
 
 const BENEFICIARIO_EXTRA_VACIO = {

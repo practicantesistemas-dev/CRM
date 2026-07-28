@@ -227,6 +227,7 @@ function aTitularDraft(fila: FilaCargaMasiva, tipoPlanId: number | null): Titula
     planNombre: fila.planNombre,
     fechaInscripcion: fila.fechaIngreso,
     estado: 'Activo',
+    factura: '',
   }
 }
 
