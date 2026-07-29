@@ -1,6 +1,6 @@
 import { ref, computed, onMounted } from 'vue'
 import type { Actividad, ActividadDraft, TipoActividad } from '../types/actividad'
-import { getActividades, createActividad } from '../services/relacionamiento.api'
+import { getActividades, createActividad, deleteActividad } from '../services/relacionamiento.api'
 
 export function useRelacionamiento() {
   const actividades = ref<Actividad[]>([])
@@ -55,10 +55,29 @@ export function useRelacionamiento() {
     }
   }
 
+  const eliminandoActividad = ref(false)
+  const errorEliminarActividad = ref<string | null>(null)
+
+  const eliminarActividad = async (id: number): Promise<boolean> => {
+    eliminandoActividad.value = true
+    errorEliminarActividad.value = null
+    try {
+      await deleteActividad(id)
+      actividades.value = actividades.value.filter(a => a.id !== id)
+      return true
+    } catch (e) {
+      errorEliminarActividad.value = e instanceof Error ? e.message : 'No se pudo eliminar la actividad.'
+      return false
+    } finally {
+      eliminandoActividad.value = false
+    }
+  }
+
   return {
     actividades, cargando, error,
     filtroTipo, filtroUsuario, buscar,
     actividadesFiltradas, usuarios,
     crearActividad, guardandoActividad, errorGuardarActividad,
+    eliminarActividad, eliminandoActividad, errorEliminarActividad,
   }
 }

@@ -109,3 +109,11 @@ export async function createActividad(data: ActividadDraft): Promise<void> {
   })
   if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo registrar la actividad.')
 }
+
+export async function deleteActividad(id: number): Promise<void> {
+  const response = await fetch(`${API_URL}/api/bitacora/${id}`, {
+    method: 'DELETE',
+    headers: { ...authHeader() },
+  })
+  if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo eliminar la actividad.')
+}
