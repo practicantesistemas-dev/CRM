@@ -7,6 +7,7 @@ import { seguimientoSchema } from '../schemas/seguimiento.schema'
 import { useZodForm } from '@/shared/composables/useZodForm'
 import { fieldStateClass } from '@/shared/utils/fieldStateClass'
 import FieldError from '@/shared/components/FieldError.vue'
+import FechaInput from '@/shared/components/FechaInput.vue'
 import BuscadorEntidad, { type OpcionBuscador } from '@/shared/components/BuscadorEntidad.vue'
 import { getOportunidades } from '@/features/oportunidades/services/oportunidades.api'
 
@@ -109,11 +110,7 @@ const guardarSeguimiento = onValidSubmit(() => {
 
         <div>
           <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Fecha</label>
-          <input
-            v-model="formSeg.fecha"
-            type="date"
-            class="w-full h-10 px-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#059669] focus:bg-white transition-all"
-          />
+          <FechaInput v-model="formSeg.fecha" />
         </div>
 
         <div>

@@ -40,10 +40,11 @@ const sujetos = computed(() => [props.actividad.contactoNombre, props.actividad.
             </div>
             <span class="text-[10px] text-slate-400">{{ actividad.usuario }}</span>
           </div>
+          <span class="w-px h-5 bg-slate-200 shrink-0" />
           <button @click="emit('eliminar')"
-            class="w-6 h-6 rounded-lg bg-slate-100 hover:bg-red-50 hover:text-red-500 text-slate-400 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shrink-0"
-            title="Eliminar">
-            <Trash2 :size="11" />
+            class="w-8 h-8 rounded-lg bg-slate-50 border border-slate-200 hover:bg-red-50 hover:border-red-200 hover:text-red-500 text-slate-500 flex items-center justify-center transition-colors shrink-0"
+            title="Eliminar actividad">
+            <Trash2 :size="15" />
           </button>
         </div>
       </div>

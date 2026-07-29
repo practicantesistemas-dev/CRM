@@ -7,8 +7,8 @@ import {
   LayoutDashboard, Heart, Users, Building2, Truck,
   Target, GitBranch, Layers, SlidersHorizontal, Megaphone,
   BookOpen, Upload, Zap,
-  ChevronLeft, ChevronRight, LogOut,
-  RefreshCw, X
+  ChevronLeft, ChevronRight, LogOut, Settings,
+  RefreshCw, X, Menu
 } from 'lucide-vue-next'
 
 const router = useRouter()
@@ -109,6 +109,7 @@ watch(() => route.path, (path) => {
 
 const navigateTo = (item: Tab) => {
   router.push('/' + item.key)
+  sidebarMobileOpen.value = false
 }
 
 const goToTab = (idx: number) => {
@@ -147,6 +148,9 @@ onUnmounted(() => document.removeEventListener('click', cerrarMenuUsuarioAfuera)
 
 // ── Misc ──────────────────────────────────────────────────────────
 const sidebarCollapsed = ref(false)
+// En móvil el sidebar es un drawer superpuesto (no ocupa espacio del layout);
+// se abre con el botón hamburguesa y se cierra al navegar o tocar el fondo.
+const sidebarMobileOpen = ref(false)
 
 const activeLabel = computed(() => {
   for (const g of menuGroups) {
@@ -161,16 +165,28 @@ const activeGroup = computed(() => {
   }
   return ''
 })
+
+// La página de Configuración se abre desde el avatar, no desde el menú lateral:
+// no forma parte del sistema de tabs, así que se maneja como vista independiente.
+const isConfigRoute = computed(() => route.path === '/configuracion')
 </script>
 
 <template>
   <div class="flex h-screen overflow-hidden bg-[#F8FAFC] font-[Inter,system-ui,sans-serif]">
 
+    <!-- Fondo oscuro tras el sidebar cuando está abierto como drawer en móvil -->
+    <div
+      v-if="sidebarMobileOpen"
+      @click="sidebarMobileOpen = false"
+      class="fixed inset-0 bg-black/40 z-20 md:hidden"
+    />
+
     <!-- ═══════════════════════════════════════════════
          SIDEBAR  —  lighter royal blue
     ═══════════════════════════════════════════════ -->
     <aside
-      class="flex flex-col shrink-0 overflow-hidden transition-all duration-300 z-20"
+      class="flex flex-col shrink-0 overflow-hidden transition-all duration-300 z-30 fixed md:relative inset-y-0 left-0 md:translate-x-0"
+      :class="sidebarMobileOpen ? 'translate-x-0' : '-translate-x-full'"
       style="background-color: #295FD3"
       :style="{ width: sidebarCollapsed ? '64px' : '224px' }"
     >
@@ -221,7 +237,7 @@ const activeGroup = computed(() => {
             @click="navigateTo(item)"
             :title="sidebarCollapsed ? item.label : undefined"
             class="flex items-center gap-3 rounded-lg mx-2 px-2 py-2 transition-all text-left w-[calc(100%-16px)] group/item"
-            :class="vistaActiva === item.key
+            :class="!isConfigRoute && vistaActiva === item.key
           ? 'bg-white/20 text-white'
           : 'text-white hover:text-white hover:bg-white/10'"
           >
@@ -229,7 +245,7 @@ const activeGroup = computed(() => {
               :is="item.icono"
               :size="16"
               class="shrink-0 transition-colors"
-              :class="vistaActiva === item.key ? 'text-white' : 'text-white/80'"
+              :class="!isConfigRoute && vistaActiva === item.key ? 'text-white' : 'text-white/80'"
             />
             <span
               v-if="!sidebarCollapsed"
@@ -239,12 +255,12 @@ const activeGroup = computed(() => {
             </span>
             <!-- Active dot -->
             <span
-              v-if="vistaActiva === item.key && !sidebarCollapsed"
+              v-if="!isConfigRoute && vistaActiva === item.key && !sidebarCollapsed"
               class="w-1.5 h-1.5 rounded-full bg-white shrink-0"
             />
             <!-- Tab indicator: small badge showing it's open in a tab -->
             <span
-              v-else-if="tabs.some(t => t.key === item.key) && !sidebarCollapsed && vistaActiva !== item.key"
+              v-else-if="tabs.some(t => t.key === item.key) && !sidebarCollapsed && (isConfigRoute || vistaActiva !== item.key)"
               class="w-1.5 h-1.5 rounded-full bg-white/40 shrink-0"
             />
           </button>
@@ -270,24 +286,37 @@ const activeGroup = computed(() => {
     <div class="flex-1 flex flex-col overflow-hidden min-w-0">
 
       <!-- ── Top header ────────────────────────────────────────── -->
-      <header class="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-4 shrink-0 gap-3 z-10">
-        <div class="flex items-center gap-3 min-w-0">
-          <!-- Toggle sidebar -->
+      <header class="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-3 md:px-4 shrink-0 gap-2 md:gap-3 z-10">
+        <div class="flex items-center gap-2 md:gap-3 min-w-0">
+          <!-- Hamburguesa: solo móvil, abre el sidebar como drawer -->
+          <button
+            @click="sidebarMobileOpen = true"
+            class="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-50 transition-all shrink-0 md:hidden"
+          >
+            <Menu :size="15" />
+          </button>
+          <!-- Toggle sidebar: solo desktop/tablet, colapsa a modo íconos -->
           <button
             @click="sidebarCollapsed = !sidebarCollapsed"
-            class="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-50 transition-all shrink-0"
+            class="hidden md:flex w-8 h-8 rounded-lg border border-slate-200 items-center justify-center text-slate-500 hover:bg-slate-50 transition-all shrink-0"
           >
             <component :is="sidebarCollapsed ? ChevronRight : ChevronLeft" :size="15" />
           </button>
           <!-- Breadcrumb -->
           <div class="flex items-center gap-1.5 text-[12px] min-w-0 overflow-hidden">
             <span class="text-slate-400 shrink-0">CRM Mercadeo</span>
-            <template v-if="activeGroup && activeGroup !== 'General'">
-              <span class="text-slate-300 shrink-0 hidden sm:inline">/</span>
-              <span class="text-slate-400 shrink-0 hidden sm:inline">{{ activeGroup }}</span>
+            <template v-if="isConfigRoute">
+              <span class="text-slate-300 shrink-0">/</span>
+              <span class="font-bold text-[#0F172A] truncate">Configuración</span>
             </template>
-            <span class="text-slate-300 shrink-0">/</span>
-            <span class="font-bold text-[#0F172A] truncate">{{ activeLabel }}</span>
+            <template v-else>
+              <template v-if="activeGroup && activeGroup !== 'General'">
+                <span class="text-slate-300 shrink-0 hidden sm:inline">/</span>
+                <span class="text-slate-400 shrink-0 hidden sm:inline">{{ activeGroup }}</span>
+              </template>
+              <span class="text-slate-300 shrink-0">/</span>
+              <span class="font-bold text-[#0F172A] truncate">{{ activeLabel }}</span>
+            </template>
           </div>
         </div>
 
@@ -318,6 +347,13 @@ const activeGroup = computed(() => {
               class="menu-usuario-panel absolute right-0 top-full mt-2 w-48 bg-white rounded-xl border border-slate-200 shadow-lg py-1.5 z-30"
             >
               <button
+                @click="menuUsuarioAbierto = false; router.push('/configuracion')"
+                class="flex items-center gap-2 w-full px-3 py-2 text-[12px] font-semibold text-slate-600 hover:bg-slate-50 transition-all"
+              >
+                <Settings :size="14" class="shrink-0" />
+                Configuración
+              </button>
+              <button
                 @click="menuUsuarioAbierto = false; handleLogout()"
                 class="flex items-center gap-2 w-full px-3 py-2 text-[12px] font-semibold text-slate-600 hover:bg-red-50 hover:text-red-600 transition-all"
               >
@@ -330,7 +366,7 @@ const activeGroup = computed(() => {
       </header>
 
       <!-- ── Tab strip ─────────────────────────────────────────── -->
-      <div class="bg-white border-b border-slate-200 px-3 flex items-end gap-0.5 shrink-0 overflow-x-auto">
+      <div v-if="!isConfigRoute" class="bg-white border-b border-slate-200 px-3 flex items-end gap-0.5 shrink-0 overflow-x-auto">
         <button
           v-for="(tab, idx) in tabs"
           :key="tab.key"
@@ -362,7 +398,7 @@ const activeGroup = computed(() => {
 
       <!-- ── Content ───────────────────────────────────────────── -->
       <main
-        class="flex-1 min-h-0 overflow-y-auto p-6"
+        class="flex-1 min-h-0 overflow-y-auto p-3 sm:p-4 md:p-6"
       >
         <router-view />
       </main>

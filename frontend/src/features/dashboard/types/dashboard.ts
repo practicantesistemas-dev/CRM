@@ -18,6 +18,8 @@ export interface ActividadReciente {
   usuario: string
   color: string
   bg: string
+  /** Nota/comentario registrado en la actividad (descripcion de la bitácora). */
+  descripcion: string
 }
 
 export interface DistribucionItem {

@@ -15,11 +15,11 @@ defineProps<{ actividades: ActividadReciente[]; error?: string | null }>()
     <p v-if="error" class="text-[11px] text-red-500 px-5 py-3">{{ error }}</p>
     <div v-else class="divide-y divide-slate-50">
       <div
-        v-for="act in actividades"
+        v-for="(act, i) in actividades"
         :key="act.contacto + act.hace"
-        class="flex items-center gap-3 px-5 py-3 hover:bg-slate-50/70 transition-colors"
+        class="flex items-start gap-3 px-5 py-3 hover:bg-slate-50/70 transition-colors"
       >
-        <div class="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" :style="{ backgroundColor: act.bg }">
+        <div class="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5" :style="{ backgroundColor: act.bg }">
           <component :is="act.icono" :size="14" :style="{ color: act.color }" />
         </div>
         <div class="flex-1 min-w-0">
@@ -28,8 +28,11 @@ defineProps<{ actividades: ActividadReciente[]; error?: string | null }>()
             <span class="font-normal text-slate-400"> · {{ act.empresa }}</span>
           </p>
           <p class="text-[11px] text-slate-400 truncate">{{ act.tipo }} · {{ act.usuario }}</p>
+          <!-- Solo se muestra la nota/comentario de las últimas actividades (no todas, para no
+               saturar el resumen del dashboard): es de solo lectura, igual que este widget. -->
+          <p v-if="i < 4 && act.descripcion" class="text-[11px] text-slate-600 mt-1 line-clamp-2">{{ act.descripcion }}</p>
         </div>
-        <span class="text-[10px] text-slate-400 flex-shrink-0 whitespace-nowrap">{{ act.hace }}</span>
+        <span class="text-[10px] text-slate-400 flex-shrink-0 whitespace-nowrap mt-0.5">{{ act.hace }}</span>
       </div>
     </div>
   </div>

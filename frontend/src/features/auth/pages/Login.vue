@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen bg-slate-50 flex flex-col md:flex-row antialiased text-slate-800 font-sans w-full overflow-hidden">
     
-    <div class="w-full md:w-1/2 bg-gradient-to-br from-blue-800 via-blue-700 to-blue-900 p-8 flex flex-col justify-between relative overflow-hidden text-white min-h-[40vh] md:min-h-screen">
+    <div class="w-full md:w-1/2 bg-gradient-to-br from-blue-800 via-blue-700 to-blue-900 p-5 sm:p-8 flex flex-col justify-between relative overflow-hidden text-white md:min-h-screen">
       <div class="absolute -top-24 -left-24 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl pointer-events-none"></div>
       <div class="absolute -bottom-24 -right-24 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
@@ -15,40 +15,40 @@
         </div>
       </div>
 
-      <div class="my-auto max-w-md space-y-6 relative z-10 pt-8 md:pt-0">
+      <div class="my-auto max-w-md space-y-3 sm:space-y-6 relative z-10 py-4 md:py-0">
         <div class="inline-flex items-center gap-2 bg-blue-600/40 border border-blue-500/30 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider text-pink-300">
           🎗️ 50 Años Salvando Vidas
         </div>
-        <h2 class="text-3xl md:text-4xl font-black tracking-tight leading-tight">
+        <h2 class="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight leading-tight">
           Bienvenido a la <br>
           <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-300 via-white to-amber-300">
             Consola Centralizada
           </span>
         </h2>
-        <p class="text-xs md:text-sm text-blue-100 leading-relaxed font-medium">
+        <p class="hidden sm:block text-xs md:text-sm text-blue-100 leading-relaxed font-medium">
           Accede al ecosistema comercial para maximizar nuestro impacto .
         </p>
       </div>
 
-      <div class="text-[10px] text-blue-300/80 font-medium flex justify-between items-center relative z-10 pt-4 border-t border-blue-600/40">
+      <div class="hidden sm:flex text-[10px] text-blue-300/80 font-medium justify-between items-center relative z-10 pt-4 border-t border-blue-600/40">
         <span>© 2026 Fundación La Liga.</span>
         <span class="font-mono">v3.5.0</span>
       </div>
     </div>
 
     <div class="w-full md:w-1/2 bg-white flex items-center justify-center p-6 sm:p-12 md:p-16 relative">
-      <div class="w-full max-w-sm space-y-8 animate-fadeIn">
+      <div class="w-full max-w-sm space-y-5 sm:space-y-8 animate-fadeIn">
         
-        <div class="text-center md:text-left space-y-4">
+        <div class="text-center md:text-left space-y-2 sm:space-y-4">
           <div class="flex justify-center md:justify-start">
-            <img 
-              src="/logo-liga-50.png" 
-              alt="Fundación La Liga - 50 Años" 
-              class="w-full max-w-[290px] h-auto object-contain select-none pointer-events-none"
+            <img
+              src="/logo-liga-50.png"
+              alt="Fundación La Liga - 50 Años"
+              class="w-full max-w-[200px] sm:max-w-[290px] h-auto object-contain select-none pointer-events-none"
             />
           </div>
-          
-          <div class="pt-2">
+
+          <div class="pt-1 sm:pt-2">
             <h3 class="text-lg font-black text-slate-900 tracking-tight">Iniciar Sesión</h3>
             <p class="text-xs text-slate-400 mt-1">Ingresa tus credenciales autorizadas por TI.</p>
           </div>
@@ -57,7 +57,7 @@
         <form @submit.prevent="handleLogin" class="space-y-4">
           
           <div class="space-y-1.5">
-            <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Usuario o Correo</label>
+            <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Usuario</label>
             <div class="relative">
               <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 text-xs pointer-events-none"></span>
               <input 

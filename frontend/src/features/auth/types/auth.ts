@@ -11,6 +11,7 @@ export interface AuthResponse {
   portal_role: string
   id_area: number | null
   area_name: string
+  email: string
 }
 
 export type MeResponse = Omit<AuthResponse, 'token'>

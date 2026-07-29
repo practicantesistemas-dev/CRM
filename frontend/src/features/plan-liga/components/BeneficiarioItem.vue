@@ -57,7 +57,7 @@ const emit = defineEmits<{
         <div class="text-[11px] text-slate-600 truncate">{{ beneficiario.fechaInscripcion }}</div>
       </div>
     </div>
-    <div class="flex items-center gap-1 mt-3 pt-3 border-t border-slate-100 opacity-0 group-hover:opacity-100 transition-opacity">
+    <div class="flex flex-wrap items-center gap-1 mt-3 pt-3 border-t border-slate-100 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
       <button @click="emit('seguimiento')" class="flex items-center gap-1 h-7 px-2.5 rounded-lg bg-slate-100 hover:bg-[#D1FAE5] hover:text-[#059669] text-slate-500 text-[10px] font-semibold transition-all"><ClipboardList :size="10" /> Seguimiento</button>
       <button @click="emit('editar')" class="flex items-center gap-1 h-7 px-2.5 rounded-lg bg-slate-100 hover:bg-[#EEF2FF] hover:text-[#2447F9] text-slate-500 text-[10px] font-semibold transition-all"><Edit2 :size="10" /> Editar</button>
       <button v-if="beneficiario.estado === 'Activo'" @click="emit('desactivar')" class="flex items-center gap-1 h-7 px-2.5 rounded-lg bg-slate-100 hover:bg-red-50 hover:text-red-500 text-slate-500 text-[10px] font-semibold transition-all"><ToggleLeft :size="10" /> Desactivar</button>

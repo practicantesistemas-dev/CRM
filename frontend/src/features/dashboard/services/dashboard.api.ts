@@ -63,6 +63,7 @@ export async function getActividadReciente(limit: number): Promise<ActividadReci
       usuario: a.usuario_nombre ?? 'Sistema',
       color: meta.color,
       bg: meta.bg,
+      descripcion: a.descripcion ?? '',
     }
   })
 }

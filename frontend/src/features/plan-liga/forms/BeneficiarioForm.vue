@@ -1,12 +1,15 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
+import Select from 'primevue/select'
 import type { BeneficiarioDraft } from '../types/plan-liga'
 import { beneficiarioSchema } from '../schemas/beneficiario.schema'
 import { useZodForm } from '@/shared/composables/useZodForm'
 import { useNombreCompuesto } from '@/shared/composables/useNombreCompuesto'
 import { faltaApellido } from '@/shared/utils/nombreCompuesto'
 import { fieldStateClass } from '@/shared/utils/fieldStateClass'
+import { useUbicaciones } from '@/shared/composables/useUbicaciones'
 import FieldError from '@/shared/components/FieldError.vue'
+import FechaInput from '@/shared/components/FechaInput.vue'
 
 const props = defineProps<{ modo?: 'nuevo' | 'editar' }>()
 const draft = defineModel<BeneficiarioDraft>({ required: true })
@@ -15,6 +18,16 @@ const emit = defineEmits<{ validSubmit: [] }>()
 const { errors, tocar, esVisible, onValidSubmit } = useZodForm(beneficiarioSchema, draft)
 const nombre = useNombreCompuesto(draft, 'nombre')
 const apellidoFaltante = computed(() => faltaApellido(nombre))
+
+const { departamentos, municipios, cargandoUbicaciones, municipiosDeDepartamento } = useUbicaciones()
+const municipiosDisponibles = computed(() => draft.value.departamento ? municipiosDeDepartamento(draft.value.departamento) : [])
+// Ver el comentario equivalente en TitularForm.vue: no tocar la ciudad mientras el catálogo de
+// municipios todavía no ha cargado, para no borrar la ciudad de un beneficiario que se está
+// editando antes de que el catálogo llegue a tiempo.
+watch(() => draft.value.departamento, (nuevo, anterior) => {
+  if (nuevo === anterior || !draft.value.ciudad || municipios.value.length === 0) return
+  if (!municipiosDeDepartamento(nuevo).some(m => m.codigo === draft.value.ciudad)) draft.value.ciudad = ''
+})
 
 defineExpose({ submit: onValidSubmit(() => { if (!apellidoFaltante.value) emit('validSubmit') }) })
 
@@ -57,7 +70,9 @@ const soloLecturaEnEdicion = computed(() => props.modo === 'editar')
         </div>
         <div>
           <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Fecha nacimiento *</label>
-          <input v-model="draft.fechaNacimiento" @blur="tocar('fechaNacimiento')" type="date" class="w-full h-10 px-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all" :class="fieldStateClass(esVisible('fechaNacimiento') && !!errors.fechaNacimiento, esVisible('fechaNacimiento') && !errors.fechaNacimiento && !!draft.fechaNacimiento, 'border-slate-200 focus:border-[#EC4899]')" />
+          <FechaInput v-model="draft.fechaNacimiento" @blur="tocar('fechaNacimiento')"
+            :invalid="esVisible('fechaNacimiento') && !!errors.fechaNacimiento"
+            :valid="esVisible('fechaNacimiento') && !errors.fechaNacimiento && !!draft.fechaNacimiento" />
           <FieldError :message="esVisible('fechaNacimiento') ? errors.fechaNacimiento : undefined" />
         </div>
         <div>
@@ -95,14 +110,21 @@ const soloLecturaEnEdicion = computed(() => props.modo === 'editar')
           <input v-model="draft.direccion" placeholder="Dirección de residencia" class="w-full h-10 px-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white transition-all" />
         </div>
         <div>
-          <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Ciudad *</label>
-          <input v-model="draft.ciudad" @blur="tocar('ciudad')" placeholder="Ej: 001" class="w-full h-10 px-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all" :class="fieldStateClass(esVisible('ciudad') && !!errors.ciudad, esVisible('ciudad') && !errors.ciudad && !!draft.ciudad, 'border-slate-200 focus:border-[#EC4899]')" />
-          <FieldError :message="esVisible('ciudad') ? errors.ciudad : undefined" />
+          <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Departamento *</label>
+          <Select v-model="draft.departamento" @change="tocar('departamento')" :options="departamentos" option-label="nombre" option-value="codigo"
+            filter filter-placeholder="Buscar departamento..." :loading="cargandoUbicaciones" placeholder="Selecciona un departamento"
+            empty-filter-message="Sin resultados" empty-message="Sin departamentos" class="w-full" input-class="h-10 text-[12px] flex items-center"
+            :class="fieldStateClass(esVisible('departamento') && !!errors.departamento, esVisible('departamento') && !errors.departamento && !!draft.departamento, '')" />
+          <FieldError :message="esVisible('departamento') ? errors.departamento : undefined" />
         </div>
         <div>
-          <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Departamento *</label>
-          <input v-model="draft.departamento" @blur="tocar('departamento')" placeholder="Ej: 66" class="w-full h-10 px-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all" :class="fieldStateClass(esVisible('departamento') && !!errors.departamento, esVisible('departamento') && !errors.departamento && !!draft.departamento, 'border-slate-200 focus:border-[#EC4899]')" />
-          <FieldError :message="esVisible('departamento') ? errors.departamento : undefined" />
+          <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Ciudad *</label>
+          <Select v-model="draft.ciudad" @change="tocar('ciudad')" :options="municipiosDisponibles" option-label="nombre" option-value="codigo"
+            filter filter-placeholder="Buscar municipio..." :disabled="!draft.departamento" :loading="cargandoUbicaciones"
+            :placeholder="draft.departamento ? 'Selecciona un municipio' : 'Elige primero un departamento'"
+            empty-filter-message="Sin resultados" empty-message="Sin municipios" class="w-full" input-class="h-10 text-[12px] flex items-center"
+            :class="fieldStateClass(esVisible('ciudad') && !!errors.ciudad, esVisible('ciudad') && !errors.ciudad && !!draft.ciudad, '')" />
+          <FieldError :message="esVisible('ciudad') ? errors.ciudad : undefined" />
         </div>
         <div class="sm:col-span-2">
           <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Empresa</label>
@@ -151,7 +173,7 @@ const soloLecturaEnEdicion = computed(() => props.modo === 'editar')
         </div>
         <div>
           <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Fecha inscripción</label>
-          <input :value="draft.fechaInscripcion" type="date" disabled title="Se hereda automáticamente de la fecha de ingreso del titular" class="w-full h-10 px-4 rounded-lg border border-slate-200 bg-slate-100 text-slate-400 text-[12px] outline-none cursor-not-allowed" />
+          <FechaInput v-model="draft.fechaInscripcion" disabled placeholder="Se hereda del titular" title="Se hereda automáticamente de la fecha de ingreso del titular" />
         </div>
       </div>
     </div>

@@ -294,23 +294,23 @@ const modalImportVisible = ref(false)
           <input v-model="buscar" placeholder="Buscar por nombre, documento, empresa o correo..."
             class="w-full h-9 pl-9 pr-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white transition-all" />
         </div>
-        <div class="flex items-center gap-2">
-          <select v-model="filtroEstado" class="h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer">
+        <div class="flex flex-wrap items-center gap-2">
+          <select v-model="filtroEstado" class="h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer flex-1 sm:flex-none min-w-[120px]">
             <option value="todos">Estado: Todos</option>
             <option value="Activo">Activo</option>
             <option value="Inactivo">Inactivo</option>
           </select>
-          <select v-model="filtroPlan" class="h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer">
+          <select v-model="filtroPlan" class="h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer flex-1 sm:flex-none min-w-[120px]">
             <option value="todos">Plan: Todos</option>
             <option value="estandar">Estándar</option>
             <option v-for="p in planesServicio" :key="p.id" :value="p.id">{{ p.nombre }}</option>
           </select>
-          <select v-model="filtroSexo" class="h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer">
+          <select v-model="filtroSexo" class="h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer flex-1 sm:flex-none min-w-[120px]">
             <option value="todos">Sexo biológico: Todos</option>
             <option value="Masculino">Masculino</option>
             <option value="Femenino">Femenino</option>
           </select>
-          <select v-model="filtroEdad" class="h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer">
+          <select v-model="filtroEdad" class="h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer flex-1 sm:flex-none min-w-[120px]">
             <option value="todos">Edad: Todos</option>
             <option value="0-17">0 – 17 años</option>
             <option value="18-35">18 – 35 años</option>
