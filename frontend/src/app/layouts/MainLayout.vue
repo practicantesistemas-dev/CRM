@@ -74,9 +74,11 @@ const menuGroups: MenuGroup[] = [
 
 // ── Tabs ──────────────────────────────────────────────────────────
 const MAX_TABS = 4
-const tabs         = ref<Tab[]>([])
-const activeTabIdx = ref(0)
-const vistaActiva  = computed<Vista>(() => tabs.value[activeTabIdx.value]?.key ?? 'dashboard')
+const tabs = ref<Tab[]>([])
+// La pestaña activa se deriva siempre de la ruta (no de un índice guardado aparte),
+// así que reordenar las pestañas por drag & drop nunca desincroniza cuál está activa.
+const vistaActiva  = computed<Vista>(() => (route.path.replace(/^\//, '') || 'dashboard') as Vista)
+const activeTabIdx = computed(() => tabs.value.findIndex(t => t.key === vistaActiva.value))
 
 const findMenuItem = (key: string): Tab | undefined => {
   for (const g of menuGroups) {
@@ -87,24 +89,22 @@ const findMenuItem = (key: string): Tab | undefined => {
 }
 
 // Sincroniza las pestañas con la ruta activa (deep-linking / navegación directa por URL).
-watch(() => route.path, (path) => {
+watch(() => route.path, (path, pathAnterior) => {
   const key = (path.replace(/^\//, '') || 'dashboard') as Vista
-  const idx = tabs.value.findIndex(t => t.key === key)
-  if (idx !== -1) { activeTabIdx.value = idx; return }
+  if (tabs.value.some(t => t.key === key)) return
 
   const item = findMenuItem(key)
   if (!item) return
 
   if (tabs.value.length < MAX_TABS) {
     tabs.value.push(item)
-    activeTabIdx.value = tabs.value.length - 1
-  } else {
-    const replaceIdx = tabs.value.findIndex((_, i) => i !== activeTabIdx.value)
-    if (replaceIdx !== -1) {
-      tabs.value.splice(replaceIdx, 1, item)
-      activeTabIdx.value = replaceIdx
-    }
+    return
   }
+
+  // Al tope de pestañas: reemplaza la que estaba activa antes de esta navegación.
+  const keyAnterior = ((pathAnterior ?? '').replace(/^\//, '') || 'dashboard') as Vista
+  const idxAnterior = tabs.value.findIndex(t => t.key === keyAnterior)
+  tabs.value.splice(idxAnterior !== -1 ? idxAnterior : 0, 1, item)
 }, { immediate: true })
 
 const navigateTo = (item: Tab) => {
@@ -124,9 +124,22 @@ const closeTab = (idx: number, e: MouseEvent) => {
   if (wasActive) {
     const nextIdx = Math.min(idx, tabs.value.length - 1)
     router.push('/' + tabs.value[nextIdx].key)
-  } else if (idx < activeTabIdx.value) {
-    activeTabIdx.value -= 1
   }
+}
+
+// Reordenar pestañas por drag & drop.
+const tabArrastrandoIdx = ref<number | null>(null)
+const iniciarArrastreTab = (idx: number, e: DragEvent) => {
+  tabArrastrandoIdx.value = idx
+  e.dataTransfer?.setData('text/plain', String(idx))
+  if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move'
+}
+const soltarTab = (idx: number) => {
+  const origen = tabArrastrandoIdx.value
+  tabArrastrandoIdx.value = null
+  if (origen === null || origen === idx) return
+  const [movida] = tabs.value.splice(origen, 1)
+  tabs.value.splice(idx, 0, movida)
 }
 
 const handleLogout = () => {
@@ -170,10 +183,13 @@ const activeGroup = computed(() => {
 // no forma parte del sistema de tabs, así que se maneja como vista independiente.
 const isConfigRoute = computed(() => route.path === '/configuracion')
 
-// Botón de refrescar del header: fuerza el remount del componente de la ruta activa
-// (vía :key) para que vuelva a ejecutar su carga de datos, sin importar la vista en la que se esté.
-const refreshKey = ref(0)
-const refrescarVistaActual = () => { refreshKey.value += 1 }
+// Botón de refrescar del header: fuerza el remount SOLO de la ruta activa (contador por ruta,
+// no global) para que vuelva a ejecutar su carga de datos sin importar la vista en la que se esté.
+// Las demás pestañas, cacheadas por el <keep-alive>, no se ven afectadas.
+const refreshPorRuta = ref<Record<string, number>>({})
+const refrescarVistaActual = () => {
+  refreshPorRuta.value[route.path] = (refreshPorRuta.value[route.path] ?? 0) + 1
+}
 </script>
 
 <template>
@@ -379,11 +395,19 @@ const refrescarVistaActual = () => { refreshKey.value += 1 }
         <button
           v-for="(tab, idx) in tabs"
           :key="tab.key"
+          draggable="true"
           @click="goToTab(idx)"
-          class="flex items-center gap-1.5 px-3 py-2.5 text-[11px] font-semibold border-b-2 transition-all shrink-0 group/tab rounded-t-lg hover:bg-slate-50"
-          :class="idx === activeTabIdx
-            ? 'border-[#1E3A8A] text-[#1E3A8A] bg-[#EEF2FF]/60'
-            : 'border-transparent text-slate-500 hover:text-slate-700'"
+          @dragstart="iniciarArrastreTab(idx, $event)"
+          @dragover.prevent
+          @drop.prevent="soltarTab(idx)"
+          @dragend="tabArrastrandoIdx = null"
+          class="flex items-center gap-1.5 px-3 py-2.5 text-[11px] font-semibold border-b-2 transition-all shrink-0 group/tab rounded-t-lg hover:bg-slate-50 cursor-grab active:cursor-grabbing"
+          :class="[
+            idx === activeTabIdx
+              ? 'border-[#1E3A8A] text-[#1E3A8A] bg-[#EEF2FF]/60'
+              : 'border-transparent text-slate-500 hover:text-slate-700',
+            tabArrastrandoIdx === idx ? 'opacity-40' : '',
+          ]"
         >
           <component :is="tab.icono" :size="12" class="shrink-0" />
           <span class="max-w-[120px] truncate">{{ tab.label }}</span>
@@ -409,7 +433,11 @@ const refrescarVistaActual = () => { refreshKey.value += 1 }
       <main
         class="flex-1 min-h-0 overflow-y-auto p-3 sm:p-4 md:p-6"
       >
-        <router-view :key="`${route.path}-${refreshKey}`" />
+        <router-view v-slot="{ Component, route: rutaActiva }">
+          <keep-alive :max="8">
+            <component :is="Component" :key="`${rutaActiva.path}::${refreshPorRuta[rutaActiva.path] ?? 0}`" />
+          </keep-alive>
+        </router-view>
       </main>
     </div>
   </div>
