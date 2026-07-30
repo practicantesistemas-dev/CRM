@@ -169,6 +169,11 @@ const activeGroup = computed(() => {
 // La página de Configuración se abre desde el avatar, no desde el menú lateral:
 // no forma parte del sistema de tabs, así que se maneja como vista independiente.
 const isConfigRoute = computed(() => route.path === '/configuracion')
+
+// Botón de refrescar del header: fuerza el remount del componente de la ruta activa
+// (vía :key) para que vuelva a ejecutar su carga de datos, sin importar la vista en la que se esté.
+const refreshKey = ref(0)
+const refrescarVistaActual = () => { refreshKey.value += 1 }
 </script>
 
 <template>
@@ -321,7 +326,11 @@ const isConfigRoute = computed(() => route.path === '/configuracion')
         </div>
 
         <div class="flex items-center gap-2 shrink-0">
-          <button class="h-8 w-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-50 transition-all" title="Actualizar">
+          <button
+            @click="refrescarVistaActual"
+            class="h-8 w-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-50 transition-all"
+            title="Actualizar"
+          >
             <RefreshCw :size="13" />
           </button>
           <div class="relative">
@@ -400,7 +409,7 @@ const isConfigRoute = computed(() => route.path === '/configuracion')
       <main
         class="flex-1 min-h-0 overflow-y-auto p-3 sm:p-4 md:p-6"
       >
-        <router-view />
+        <router-view :key="`${route.path}-${refreshKey}`" />
       </main>
     </div>
   </div>
