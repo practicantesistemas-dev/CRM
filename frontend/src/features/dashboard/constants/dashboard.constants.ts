@@ -1,5 +1,5 @@
 import {
-  Users, Building2, Briefcase, Layers, ClipboardList,
+  Users, Briefcase, Layers, ClipboardList,
   Phone, Mail, Calendar, FileText, Heart, Target, GitBranch, Megaphone, Zap,
 } from 'lucide-vue-next'
 import type {
@@ -9,10 +9,11 @@ import type {
 
 // Metadata visual de cada KPI del tablero. El valor numérico llega de
 // GET /api/tablero/resumen y se combina con esto en dashboard.api.ts.
-export const KPI_META: Record<keyof TableroResumenResponse, Omit<Kpi, 'valor'>> = {
+// No todas las claves de TableroResumenResponse tienen que mostrarse como tarjeta (ej. "empresas"
+// se dejó fuera a pedido): por eso es Partial en vez de Record completo.
+export const KPI_META: Partial<Record<keyof TableroResumenResponse, Omit<Kpi, 'valor'>>> = {
   contactos:     { label: 'Contactos',     delta: '', positivo: true, icono: Users,     color: '#2447F9', bg: '#EEF2FF', subtexto: 'total'              },
   titulares_pl:  { label: 'Titulares PL',  delta: '', positivo: true, icono: Heart,     color: '#EC4899', bg: '#FCE7F3', subtexto: 'Plan Liga activos'  },
-  empresas:      { label: 'Empresas',      delta: '', positivo: true, icono: Building2, color: '#1A2A6C', bg: '#E8EAF6', subtexto: 'vinculadas'         },
   oportunidades: { label: 'Oportunidades', delta: '', positivo: true, icono: Briefcase, color: '#EC4899', bg: '#FCE7F3', subtexto: 'en curso'           },
   servicios:     { label: 'Servicios',     delta: '', positivo: true, icono: Layers,       color: '#C9A227', bg: '#FEF9C3', subtexto: 'Plan Liga activos'  },
   seguimientos:  { label: 'Seguimientos',  delta: '', positivo: true, icono: ClipboardList, color: '#059669', bg: '#D1FAE5', subtexto: 'pendientes'        },

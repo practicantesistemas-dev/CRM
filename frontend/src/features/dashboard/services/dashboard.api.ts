@@ -27,7 +27,7 @@ export async function getKpis(periodo: string): Promise<Kpi[]> {
   )
 
   return (Object.keys(KPI_META) as (keyof TableroResumenResponse)[]).map((key) => ({
-    ...KPI_META[key],
+    ...KPI_META[key]!,
     valor: String(data[key]?.valor ?? 0),
   }))
 }
