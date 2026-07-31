@@ -1,7 +1,7 @@
 import type {
   Beneficiario, BeneficiarioDraft, Titular, TitularDraft,
   ResumenTitularesResponse, TitularListadoResponse, ListadoTitularesResponse,
-  BeneficiarioListadoResponse, TitularDetalleResponse, PlanTitular, PlanServicio, PlanCatalogoResponse,
+  BeneficiarioListadoResponse, BeneficiarioDetalleResponse, TitularDetalleResponse, PlanTitular, PlanServicio, PlanCatalogoResponse,
   ReemplazoPersonaDraft, ReemplazoTitularResultado, ReemplazoBeneficiarioResultado,
   ReemplazoTitularResultadoResponse, ReemplazoBeneficiarioResultadoResponse,
   SeguimientoDraft, TipoSeguimiento,
@@ -32,6 +32,22 @@ function limpiarDireccion(direccion: string): string {
     .replace(/[^\p{L}\p{N}\s]/gu, '')
     .replace(/\s+/g, ' ')
     .trim()
+}
+
+// El backend no es consistente con el formato de fecha que devuelve en lectura: unas veces
+// 'DD/MM/AAAA' (ej. FECHA_INGRESO, y FECHA_NACIMIENTO de titular) y otras 'AAAA-MM-DD' (ej.
+// FECHA_NACIMIENTO de beneficiario). El resto de la app (drafts, FechaInput) siempre trabaja
+// en 'AAAA-MM-DD'; sin esta normalización, el datepicker de edición recibe un string que no
+// puede parsear y muestra "NaN/NaN/NaN".
+function fechaApiAIso(fecha: string | null): string {
+  if (!fecha) return ''
+  const ddmmaaaa = fecha.match(/^(\d{2})\/(\d{2})\/(\d{4})$/)
+  if (ddmmaaaa) {
+    const [, dia, mes, anio] = ddmmaaaa
+    return `${anio}-${mes}-${dia}`
+  }
+  const iso = fecha.match(/^(\d{4}-\d{2}-\d{2})/)
+  return iso ? iso[1] : fecha
 }
 
 const ESTADO_TITULAR_API: Record<Titular['estado'], string> = { Activo: 'A', Inactivo: 'I' }
@@ -337,7 +353,7 @@ function mapTitularDetalle(r: TitularDetalleResponse): Titular {
       apellido1: r.APELLIDO1 ?? '',
       apellido2: r.APELLIDO2 ?? '',
     }),
-    fechaNacimiento: r.FECHA_NACIMIENTO ?? '',
+    fechaNacimiento: fechaApiAIso(r.FECHA_NACIMIENTO),
     sexo: (r.SEXO && SEXO_DESDE_API[r.SEXO]) || '',
     correo: r.CORREO ?? '',
     telefono: r.TELEFONO ?? '',
@@ -353,7 +369,7 @@ function mapTitularDetalle(r: TitularDetalleResponse): Titular {
     otraEps: r.OTRAEPS ?? '',
     planSalud: r.PLAN_SALUD ?? '',
     planNombre: r.PLAN_NOMBRE ?? '',
-    fechaInscripcion: r.FECHA_INGRESO ?? '',
+    fechaInscripcion: fechaApiAIso(r.FECHA_INGRESO),
     estado: r.ESTADO === 'A' ? 'Activo' : 'Inactivo',
     factura: '',
   }
@@ -371,7 +387,7 @@ function mapBeneficiarioListado(r: BeneficiarioListadoResponse, titularId: numbe
       apellido1: r.APELLIDO1 ?? '',
       apellido2: r.APELLIDO2 ?? '',
     }),
-    fechaNacimiento: r.FECHA_NACIMIENTO ?? '',
+    fechaNacimiento: fechaApiAIso(r.FECHA_NACIMIENTO),
     sexo: (r.SEXO && SEXO_DESDE_API[r.SEXO]) || '',
     correo: r.CORREO ?? '',
     telefono: r.TELEFONO ?? '',
@@ -385,7 +401,7 @@ function mapBeneficiarioListado(r: BeneficiarioListadoResponse, titularId: numbe
     planSalud: r.PLAN_SALUD ?? '',
     planNombre: r.PLAN_NOMBRE ?? '',
     estado: r.ESTADO === 'A' ? 'Activo' : 'Inactivo',
-    fechaInscripcion: r.FECHA_INGRESO ?? '',
+    fechaInscripcion: fechaApiAIso(r.FECHA_INGRESO),
   }
 }
 
@@ -454,6 +470,53 @@ export async function reemplazarBeneficiario(idTitular: number, idBeneficiario: 
     marcadoEnIncle: r.marcado_en_incle,
     registrosIncleMarcadosAnterior: r.registros_incle_marcados_anterior,
   }
+}
+
+// La respuesta de /cambiar-titular no trae los campos de plan (EPS, plan de salud, etc.):
+// se dejan vacíos, igual que hace mapBeneficiarioListado cuando el backend no los envía.
+function mapBeneficiarioDetalle(r: BeneficiarioDetalleResponse, titularId: number): Beneficiario {
+  return {
+    id: r.ID,
+    titularId,
+    tipoDocumento: r.TIPO_DOCUMENTO ?? '',
+    documento: r.DOCUMENTO ?? '',
+    nombre: joinNombreCompleto({
+      nombre1: r.NOMBRE1 ?? '',
+      nombre2: r.NOMBRE2 ?? '',
+      apellido1: r.APELLIDO1 ?? '',
+      apellido2: r.APELLIDO2 ?? '',
+    }),
+    fechaNacimiento: fechaApiAIso(r.FECHA_NACIMIENTO),
+    sexo: (r.SEXO && SEXO_DESDE_API[r.SEXO]) || '',
+    correo: r.CORREO ?? '',
+    telefono: r.TELEFONO ?? '',
+    direccion: r.DIRECCION ?? '',
+    ciudad: r.CIUDAD ?? '',
+    departamento: r.DEPARTAMENTO ?? '',
+    empresa: r.EMPRESA ?? '',
+    tipoPlan: '',
+    eps: '',
+    otraEps: '',
+    planSalud: '',
+    planNombre: '',
+    estado: r.ESTADO === 'A' ? 'Activo' : 'Inactivo',
+    fechaInscripcion: fechaApiAIso(r.FECHA_INGRESO),
+  }
+}
+
+// Mueve al beneficiario a otro titular (por documento del titular nuevo), conservando su
+// registro (plan, historial, etc.). La respuesta no trae el id del titular nuevo, así que
+// el Beneficiario devuelto queda con titularId en 0 — solo sirve para leer sus datos (nombre,
+// documento), no para ubicarlo bajo un titular en el estado local.
+export async function cambiarTitularBeneficiario(idBeneficiario: number, documentoTitularNuevo: string): Promise<Beneficiario> {
+  const response = await fetch(`${API_URL}/api/titulares-beneficiarios/beneficiarios/${idBeneficiario}/cambiar-titular`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ DOCUMENTO_TITULAR_NUEVO: documentoTitularNuevo }),
+  })
+  if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo cambiar el titular del beneficiario.')
+  const data: BeneficiarioDetalleResponse = await response.json()
+  return mapBeneficiarioDetalle(data, 0)
 }
 
 export async function getTitular(idTitular: number): Promise<Titular> {

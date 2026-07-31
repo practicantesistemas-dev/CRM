@@ -36,14 +36,16 @@ function normalizarTipo(tipo: string): string {
   return tipo.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase()
 }
 
-function formatearHace(fechaIso: string | null): string {
+// El backend entrega la fecha/hora del seguimiento ya en hora de Colombia (Bogotá/Pereira),
+// sin sufijo de zona (ej. "2026-07-31T15:22:39"). Se formatean los componentes tal cual
+// como llegan, en vez de pasarlos por `new Date(...)`, para que el navegador del usuario
+// no la reinterprete según su propia zona horaria del sistema.
+function formatearFechaHora(fechaIso: string | null): string {
   if (!fechaIso) return ''
-  const diffMinutos = Math.round((Date.now() - new Date(fechaIso).getTime()) / 60000)
-  if (diffMinutos < 1) return 'Hace un momento'
-  if (diffMinutos < 60) return `Hace ${diffMinutos} min`
-  const diffHoras = Math.round(diffMinutos / 60)
-  if (diffHoras < 24) return `Hace ${diffHoras}h`
-  return `Hace ${Math.round(diffHoras / 24)}d`
+  const m = fechaIso.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/)
+  if (!m) return fechaIso
+  const [, anio, mes, dia, hora, min] = m
+  return `${dia}/${mes}/${anio} ${hora}:${min}`
 }
 
 export async function getActividadReciente(limit: number): Promise<ActividadReciente[]> {
@@ -57,9 +59,10 @@ export async function getActividadReciente(limit: number): Promise<ActividadReci
     return {
       tipo: a.tipo ?? 'Actividad',
       icono: meta.icono,
-      contacto: a.contacto_nombre ?? 'Contacto sin nombre',
+      // Prioriza el titular de Plan Liga (si la actividad viene de ahí) sobre el contacto del CRM.
+      contacto: a.titular_nombre ?? a.contacto_nombre ?? 'Contacto sin nombre',
       empresa: a.nombre_empresa ?? 'Sin empresa',
-      hace: formatearHace(a.fecha),
+      fechaHora: formatearFechaHora(a.fecha),
       usuario: a.usuario_nombre ?? 'Sistema',
       color: meta.color,
       bg: meta.bg,

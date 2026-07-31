@@ -202,6 +202,27 @@ export interface BeneficiarioListadoResponse {
   ESTADO: string
 }
 
+/** Respuesta de POST .../beneficiarios/{id}/cambiar-titular: no trae los campos de plan (EPS, etc.). */
+export interface BeneficiarioDetalleResponse {
+  ID: number
+  TIPO_DOCUMENTO: string | null
+  DOCUMENTO: string | null
+  NOMBRE1: string | null
+  NOMBRE2: string | null
+  APELLIDO1: string | null
+  APELLIDO2: string | null
+  FECHA_NACIMIENTO: string | null
+  SEXO: string | null
+  DIRECCION: string | null
+  CIUDAD: string | null
+  DEPARTAMENTO: string | null
+  CORREO: string | null
+  TELEFONO: string | null
+  FECHA_INGRESO: string | null
+  EMPRESA: string | null
+  ESTADO: string | null
+}
+
 export interface TitularDetalleResponse {
   ID_TITULAR: number
   DOCUMENTO: string

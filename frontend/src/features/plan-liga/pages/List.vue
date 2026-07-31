@@ -11,6 +11,7 @@ import BeneficiariosDrawer from '../dialogs/BeneficiariosDrawer.vue'
 import ActivarFechaDialog from '../dialogs/ActivarFechaDialog.vue'
 import ConfirmarDesactivarDialog from '../dialogs/ConfirmarDesactivarDialog.vue'
 import ReemplazarPersonaDialog from '../dialogs/ReemplazarPersonaDialog.vue'
+import CambiarTitularDialog from '../dialogs/CambiarTitularDialog.vue'
 import SeguimientoDialog from '../dialogs/SeguimientoDialog.vue'
 import ImportacionPlanLigaDialog from '../dialogs/ImportacionPlanLigaDialog.vue'
 
@@ -30,6 +31,7 @@ const {
   guardandoBeneficiario, errorGuardarBeneficiario,
   activarEstadoBeneficiario, desactivarEstadoBeneficiario, errorEstadoBeneficiario, guardandoEstadoBeneficiario,
   reemplazarBeneficiarioAccion, reemplazandoBeneficiario, errorReemplazarBeneficiario, resultadoReemplazoBeneficiario,
+  cambiarTitularBeneficiarioAccion, cambiandoTitularBeneficiario, errorCambiarTitularBeneficiario,
   beneficiariosTitular, cargandoBeneficiariosTitular, cargarBeneficiariosTitular,
 } = usePlanLiga()
 
@@ -217,6 +219,23 @@ const confirmarReemplazarBeneficiario = async () => {
   }
 }
 
+const modalCambiarTitularVisible = ref(false)
+const beneficiarioCambiandoTitular = ref<Beneficiario | null>(null)
+
+const abrirCambiarTitular = (b: Beneficiario) => {
+  errorCambiarTitularBeneficiario.value = null
+  beneficiarioCambiandoTitular.value = b
+  modalCambiarTitularVisible.value = true
+}
+const confirmarCambiarTitular = async (documentoTitularNuevo: string) => {
+  if (!titularSeleccionado.value || !beneficiarioCambiandoTitular.value) return
+  const ok = await cambiarTitularBeneficiarioAccion(titularSeleccionado.value.id, beneficiarioCambiandoTitular.value, documentoTitularNuevo)
+  if (ok) {
+    modalCambiarTitularVisible.value = false
+    avisoReemplazo.value = `Beneficiario movido al nuevo titular (documento ${documentoTitularNuevo}) correctamente.`
+  }
+}
+
 // ─── Seguimiento rápido ──────────────────────────────────────────
 const modalSegVisible = ref(false)
 const titularSegActual = ref<Titular | null>(null)
@@ -366,6 +385,7 @@ const modalImportVisible = ref(false)
       @activar="activarBeneficiario"
       @desactivar="desactivarBeneficiario"
       @reemplazar="abrirReemplazarBeneficiario"
+      @cambiar-titular="abrirCambiarTitular"
       @seguimiento="abrirSeguimientoBeneficiario"
       @agregar-nuevo="abrirNuevoBeneficiario"
     />
@@ -432,6 +452,14 @@ const modalImportVisible = ref(false)
       :guardando="reemplazandoBeneficiario"
       :error="errorReemplazarBeneficiario"
       @submit="confirmarReemplazarBeneficiario"
+    />
+
+    <CambiarTitularDialog
+      v-model:visible="modalCambiarTitularVisible"
+      :nombre-actual="beneficiarioCambiandoTitular?.nombre"
+      :guardando="cambiandoTitularBeneficiario"
+      :error="errorCambiarTitularBeneficiario"
+      @confirmar="confirmarCambiarTitular"
     />
 
     <BeneficiarioFormDialog

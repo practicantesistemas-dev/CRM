@@ -19,6 +19,7 @@ const emit = defineEmits<{
   activar: [b: Beneficiario]
   desactivar: [b: Beneficiario]
   reemplazar: [b: Beneficiario]
+  'cambiar-titular': [b: Beneficiario]
   seguimiento: [b: Beneficiario]
   'agregar-nuevo': []
 }>()
@@ -67,6 +68,7 @@ const errLimite = defineModel<boolean>('errLimite', { required: true })
             @activar="emit('activar', b)"
             @desactivar="emit('desactivar', b)"
             @reemplazar="emit('reemplazar', b)"
+            @cambiar-titular="emit('cambiar-titular', b)"
             @seguimiento="emit('seguimiento', b)"
           />
           <div v-if="beneficiarios.length === 0" class="text-center py-10 text-slate-400 text-[12px]">

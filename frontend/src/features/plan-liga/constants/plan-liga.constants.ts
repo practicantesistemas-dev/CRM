@@ -65,6 +65,15 @@ export const OPCIONES_IMPORT: OpcionImportacion[] = [
   { key: 'beneficiario',   label: 'Activar / Desactivar beneficiario', desc: 'Cambia el estado de beneficiarios existentes por documento.',                    color: '#059669', bg: '#D1FAE5' },
 ]
 
+// El servicio normaliza fechaNacimiento/fechaInscripcion a 'AAAA-MM-DD' (ver fechaApiAIso en
+// plan-liga.api.ts); esto las reformatea a DD/MM/AAAA solo para mostrarlas en las tarjetas.
+export const formatearFechaCorta = (fechaIso: string): string => {
+  const m = fechaIso.match(/^(\d{4})-(\d{2})-(\d{2})/)
+  if (!m) return fechaIso
+  const [, anio, mes, dia] = m
+  return `${dia}/${mes}/${anio}`
+}
+
 export const estadoTitularStyle = (e: Titular['estado']) => e === 'Activo' ? 'text-emerald-600' : 'text-slate-400'
 
 export const estadoBeneStyle = (e: Beneficiario['estado']) =>
