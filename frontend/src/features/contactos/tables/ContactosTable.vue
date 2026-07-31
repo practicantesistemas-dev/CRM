@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Briefcase, MapPin, ClipboardList, Edit2, Clock } from 'lucide-vue-next'
 import type { Contacto } from '../types/contacto'
-import { estadoStyle, etiquetaColor } from '../constants/contactos.constants'
+import { estadoStyle } from '../constants/contactos.constants'
 import ContactoAvatar from '../components/ContactoAvatar.vue'
 
 defineProps<{
@@ -62,8 +62,8 @@ const emit = defineEmits<{
             </td>
             <td class="px-4 py-3.5">
               <div class="flex flex-wrap gap-1">
-                <span v-for="tag in c.etiquetas.slice(0, 2)" :key="tag"
-                  class="text-[10px] font-semibold" :class="etiquetaColor(tag)">{{ tag }}</span>
+                <span v-for="tag in c.etiquetas.slice(0, 2)" :key="tag.id"
+                  class="text-[10px] font-semibold" :style="{ color: tag.color }">{{ tag.nombre }}</span>
                 <span v-if="c.etiquetas.length > 2"
                   class="text-[10px] font-semibold text-slate-400">+{{ c.etiquetas.length - 2 }}</span>
                 <span v-if="c.etiquetas.length === 0" class="text-[11px] text-slate-300">—</span>

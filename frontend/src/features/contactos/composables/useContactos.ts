@@ -1,6 +1,9 @@
 import { ref, computed } from 'vue'
-import type { Contacto, ContactoDraft } from '../types/contacto'
-import { getContactos, createContacto, updateContacto } from '../services/contactos.api'
+import type { Contacto, ContactoDraft, Etiqueta, EtiquetaDraft } from '../types/contacto'
+import {
+  getContactos, createContacto, updateContacto,
+  getEtiquetas, createEtiqueta,
+} from '../services/contactos.api'
 
 const PAGE_SIZE = 8
 
@@ -59,8 +62,24 @@ export function useContactos() {
   })
   const totalPaginas = computed(() => Math.ceil(contactosFiltrados.value.length / porPagina))
 
-  const crearContacto = (data: ContactoDraft) => {
-    contactos.value = [createContacto(data), ...contactos.value]
+  const guardandoContacto = ref(false)
+  const errorGuardarContacto = ref<string | null>(null)
+
+  // Único tramo que ya habla con el backend real (POST /api/contactos/); el resto de este
+  // composable sigue sobre el mock local hasta que exista un GET /api/contactos/.
+  const crearContacto = async (data: ContactoDraft): Promise<boolean> => {
+    guardandoContacto.value = true
+    errorGuardarContacto.value = null
+    try {
+      const nuevo = await createContacto(data)
+      contactos.value = [nuevo, ...contactos.value]
+      return true
+    } catch (e) {
+      errorGuardarContacto.value = e instanceof Error ? e.message : 'No se pudo crear el contacto.'
+      return false
+    } finally {
+      guardandoContacto.value = false
+    }
   }
 
   const actualizarContacto = (id: number, data: ContactoDraft) => {
@@ -70,11 +89,48 @@ export function useContactos() {
     if (idx !== -1) contactos.value[idx] = actualizado
   }
 
+  // ─── Etiquetas (catálogo real para el selector del formulario) ──────────────
+  const etiquetas = ref<Etiqueta[]>([])
+  const cargandoEtiquetas = ref(false)
+  const errorEtiquetas = ref<string | null>(null)
+
+  const cargarEtiquetas = async () => {
+    cargandoEtiquetas.value = true
+    errorEtiquetas.value = null
+    try {
+      etiquetas.value = await getEtiquetas()
+    } catch (e) {
+      errorEtiquetas.value = e instanceof Error ? e.message : 'No se pudieron cargar las etiquetas.'
+    } finally {
+      cargandoEtiquetas.value = false
+    }
+  }
+
+  const creandoEtiqueta = ref(false)
+  const errorCrearEtiqueta = ref<string | null>(null)
+
+  const crearEtiqueta = async (data: EtiquetaDraft): Promise<Etiqueta | null> => {
+    creandoEtiqueta.value = true
+    errorCrearEtiqueta.value = null
+    try {
+      const nueva = await createEtiqueta(data)
+      etiquetas.value = [...etiquetas.value, nueva]
+      return nueva
+    } catch (e) {
+      errorCrearEtiqueta.value = e instanceof Error ? e.message : 'No se pudo crear la etiqueta.'
+      return null
+    } finally {
+      creandoEtiqueta.value = false
+    }
+  }
+
   return {
     contactos,
     buscar, filtroEstado, filtroCiudad, filtroResponsable, filtroSexo, filtroEdad,
     contactosFiltrados, ciudades, responsables, filtrosActivos, limpiarFiltros,
     paginaActual, porPagina, paginado, totalPaginas,
-    crearContacto, actualizarContacto,
+    crearContacto, actualizarContacto, guardandoContacto, errorGuardarContacto,
+    etiquetas, cargandoEtiquetas, errorEtiquetas, cargarEtiquetas,
+    crearEtiqueta, creandoEtiqueta, errorCrearEtiqueta,
   }
 }

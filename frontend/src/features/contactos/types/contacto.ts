@@ -1,3 +1,12 @@
+/** Etiqueta real del backend (GET/POST /api/etiquetas/), no un string libre. */
+export interface Etiqueta {
+  id: number
+  nombre: string
+  color: string
+}
+
+export type EtiquetaDraft = Omit<Etiqueta, 'id'>
+
 export interface Contacto {
   id: number
   nombre: string
@@ -8,10 +17,14 @@ export interface Contacto {
   empresa: string
   cargo: string
   ciudad: string
+  /** Solo se usa al crear (POST /api/contactos/ trae "departamento" separado de "municipio"). */
+  departamento: string
   estado: 'Activo' | 'Inactivo' | 'Prospecto' | 'En proceso'
+  /** Clasificación general del contacto en el backend (TipoContacto: solo admite estos dos valores). */
+  tipoContacto: 'Cliente' | 'Prospecto'
   fechaNacimiento: string
   sexo: 'Masculino' | 'Femenino' | 'Otro'
-  etiquetas: string[]
+  etiquetas: Etiqueta[]
   responsable: string
 }
 

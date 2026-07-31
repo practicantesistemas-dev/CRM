@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { Search, Plus, Download, Upload, X } from 'lucide-vue-next'
 import type { Contacto, ContactoDraft } from '../types/contacto'
 import { CONTACTO_DRAFT_VACIO, HISTORIAL_MOCK } from '../constants/contactos.constants'
@@ -13,8 +13,12 @@ const {
   contactos, buscar, filtroEstado, filtroCiudad, filtroResponsable, filtroSexo, filtroEdad,
   contactosFiltrados, ciudades, responsables, filtrosActivos, limpiarFiltros,
   paginaActual, paginado, totalPaginas,
-  crearContacto, actualizarContacto,
+  crearContacto, actualizarContacto, guardandoContacto, errorGuardarContacto,
+  etiquetas, cargandoEtiquetas, cargarEtiquetas,
+  crearEtiqueta, creandoEtiqueta, errorCrearEtiqueta,
 } = useContactos()
+
+onMounted(cargarEtiquetas)
 
 // ─── Modal Contacto ─────────────────────────────────────────────────────────
 const modalVisible     = ref(false)
@@ -25,22 +29,25 @@ const draft            = ref<ContactoDraft>({ ...CONTACTO_DRAFT_VACIO })
 const abrirNuevo = () => {
   modalModo.value = 'nuevo'
   contactoEditando.value = null
+  errorGuardarContacto.value = null
   draft.value = { ...CONTACTO_DRAFT_VACIO, etiquetas: [] }
   modalVisible.value = true
 }
 const abrirEditar = (c: Contacto) => {
   modalModo.value = 'editar'
   contactoEditando.value = c
+  errorGuardarContacto.value = null
   draft.value = { ...c, etiquetas: [...c.etiquetas] }
   modalVisible.value = true
 }
-const guardarContacto = () => {
+const guardarContacto = async () => {
   if (modalModo.value === 'nuevo') {
-    crearContacto(draft.value)
+    const ok = await crearContacto(draft.value)
+    if (ok) modalVisible.value = false
   } else if (contactoEditando.value) {
     actualizarContacto(contactoEditando.value.id, draft.value)
+    modalVisible.value = false
   }
-  modalVisible.value = false
 }
 
 // ─── Historial drawer ───────────────────────────────────────────────────────
@@ -143,6 +150,13 @@ const abrirSeguimiento = (c: Contacto) => { contactoSegActual.value = c; modalSe
       v-model:visible="modalVisible"
       v-model:draft="draft"
       :modo="modalModo"
+      :guardando="guardandoContacto"
+      :error="errorGuardarContacto"
+      :etiquetas="etiquetas"
+      :cargando-etiquetas="cargandoEtiquetas"
+      :creando-etiqueta="creandoEtiqueta"
+      :error-crear-etiqueta="errorCrearEtiqueta"
+      :crear-etiqueta="crearEtiqueta"
       @submit="guardarContacto"
     />
 
