@@ -38,12 +38,17 @@ export const fechaIngresoMaxima = (): string => new Date().toISOString().split('
 
 /**
  * Cupo real de beneficiarios de un titular según los planes que trae el backend.
- * Si no hay ese dato (titular creado localmente) o el plan no quedó vinculado
- * (cupo en 0 aunque sí haya beneficiarios activos), usa el tope por defecto.
+ * Si no hay ese dato (titular creado localmente) usa el tope por defecto. Si el backend
+ * sí trae un plan vinculado con cupo 0 (p. ej. un plan "Individual", que por diseño no
+ * admite beneficiarios), se respeta ese 0 — salvo que haya beneficiarios activos a pesar
+ * del cupo 0, lo que indica que el plan no quedó bien vinculado y se usa el tope por defecto.
  */
 export const cupoMaximoTitular = (t: Titular): number => {
-  const cupo = t.planesDetalle?.reduce((sum, p) => sum + p.cupo, 0) ?? 0
-  return cupo > 0 ? cupo : CUPO_MAXIMO
+  if (!t.planesDetalle?.length) return CUPO_MAXIMO
+  const cupo = t.planesDetalle.reduce((sum, p) => sum + p.cupo, 0)
+  if (cupo > 0) return cupo
+  const activos = t.planesDetalle.reduce((sum, p) => sum + p.activos, 0)
+  return activos > 0 ? CUPO_MAXIMO : 0
 }
 
 export const TIPO_SEG_META: Record<TipoSeguimiento, { icono: unknown; color: string }> = {

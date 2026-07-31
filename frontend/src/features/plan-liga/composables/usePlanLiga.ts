@@ -3,7 +3,7 @@ import type {
   Beneficiario, BeneficiarioDraft, PlanServicio, Titular, TitularDraft,
   ReemplazoPersonaDraft, ReemplazoTitularResultado, ReemplazoBeneficiarioResultado,
 } from '../types/plan-liga'
-import { CUPO_MAXIMO } from '../constants/plan-liga.constants'
+import { CUPO_MAXIMO, cupoMaximoTitular } from '../constants/plan-liga.constants'
 import {
   createTitular, updateTitular, activarTitular, desactivarTitular,
   createBeneficiario, updateBeneficiario, getResumenTitulares,
@@ -60,6 +60,27 @@ export function usePlanLiga() {
     }
   })
 
+  // El agregado de beneficiarios que trae /listado (BENEFICIARIOS "activos/cupo") cuenta
+  // TODOS los beneficiarios registrados del titular, sin filtrar por estado; por eso el
+  // badge de la tabla puede mostrar más activos de los que realmente hay (ej. "5/4" cuando
+  // en realidad 2 de esos 5 están inactivos). Se corrige por fila con el conteo real apenas
+  // llega — son pocas peticiones porque la página solo tiene TITULARES_POR_PAGINA titulares.
+  const sincronizarConteoRealTitular = async (t: Titular) => {
+    try {
+      const lista = await getBeneficiariosTitular(t.id)
+      const activos = lista.filter(b => b.estado === 'Activo').length
+      const idx = titulares.value.findIndex(x => x.id === t.id)
+      if (idx === -1) return
+      const actual = titulares.value[idx]
+      titulares.value[idx] = {
+        ...actual,
+        planesDetalle: [{ nombre: actual.planesDetalle?.[0]?.nombre ?? '', activos, cupo: cupoMaximoTitular(actual) }],
+      }
+    } catch {
+      // Si falla, se deja el valor (posiblemente impreciso) que trajo /listado.
+    }
+  }
+
   const cargarTitulares = async () => {
     cargandoTitulares.value = true
     errorTitulares.value = null
@@ -71,6 +92,7 @@ export function usePlanLiga() {
       })
       titulares.value = resultado.items
       totalTitulares.value = resultado.total
+      titulares.value.forEach(t => sincronizarConteoRealTitular(t))
     } catch (e) {
       errorTitulares.value = e instanceof Error ? e.message : 'No se pudo cargar el listado de titulares.'
     } finally {
@@ -242,6 +264,20 @@ export function usePlanLiga() {
     }
   }
 
+  // Activar/desactivar/crear un beneficiario desde el drawer no vuelve a pedir el listado
+  // completo de titulares (sería un roundtrip innecesario); sin este ajuste, el conteo de
+  // "activos" que muestra la tabla (viene de planesDetalle, calculado en el backend al
+  // momento del listado) queda desactualizado hasta que algo más refresque la página.
+  const ajustarConteoActivosTitular = (titularId: number, delta: number) => {
+    const idx = titulares.value.findIndex(t => t.id === titularId)
+    const planes = titulares.value[idx]?.planesDetalle
+    if (idx === -1 || !planes?.length) return
+    titulares.value[idx] = {
+      ...titulares.value[idx],
+      planesDetalle: planes.map((p, i) => i === 0 ? { ...p, activos: Math.max(0, p.activos + delta) } : p),
+    }
+  }
+
   const beneficiariosDeTitular = (titularId: number) =>
     beneficiarios.value.filter(b => b.titularId === titularId)
 
@@ -271,6 +307,7 @@ export function usePlanLiga() {
     try {
       await createBeneficiario(titularId, data)
       await cargarBeneficiariosTitular(titularId)
+      if (data.estado === 'Activo') ajustarConteoActivosTitular(titularId, 1)
       cargarResumen()
       return true
     } catch (e) {
@@ -329,6 +366,7 @@ export function usePlanLiga() {
       const actualizado = await activarBeneficiarioApi(titularId, b.id, fechaIngreso)
       const idx = beneficiariosTitular.value.findIndex(x => x.id === b.id)
       if (idx !== -1) beneficiariosTitular.value[idx] = actualizado
+      ajustarConteoActivosTitular(titularId, 1)
       cargarResumen()
     } catch (e) {
       errorEstadoBeneficiario.value = e instanceof Error ? e.message : 'No se pudo activar el beneficiario.'
@@ -344,6 +382,7 @@ export function usePlanLiga() {
       const actualizado = await desactivarBeneficiarioApi(titularId, b.id)
       const idx = beneficiariosTitular.value.findIndex(x => x.id === b.id)
       if (idx !== -1) beneficiariosTitular.value[idx] = actualizado
+      ajustarConteoActivosTitular(titularId, -1)
       cargarResumen()
     } catch (e) {
       errorEstadoBeneficiario.value = e instanceof Error ? e.message : 'No se pudo desactivar el beneficiario.'
