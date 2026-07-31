@@ -7,6 +7,7 @@ import { useNombreCompuesto } from '@/shared/composables/useNombreCompuesto'
 import { faltaApellido } from '@/shared/utils/nombreCompuesto'
 import { fieldStateClass } from '@/shared/utils/fieldStateClass'
 import FieldError from '@/shared/components/FieldError.vue'
+import FechaInput from '@/shared/components/FechaInput.vue'
 
 const draft = defineModel<TarjetaDraft>({ required: true })
 const emit = defineEmits<{ validSubmit: [] }>()
@@ -42,7 +43,7 @@ defineExpose({ submit: onValidSubmit(() => { if (!apellidoFaltante.value) emit('
       </div>
       <div>
         <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Seguimiento</label>
-        <input v-model="draft.seguimiento" type="date" class="w-full h-10 px-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#2447F9] focus:bg-white transition-all" />
+        <FechaInput v-model="draft.seguimiento" />
       </div>
     </div>
     <div>

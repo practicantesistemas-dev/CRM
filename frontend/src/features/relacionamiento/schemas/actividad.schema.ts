@@ -6,7 +6,6 @@ export const actividadSchema = z.object({
   tipo: z.enum(['Llamada', 'Correo', 'Reunión', 'WhatsApp', 'Nota']),
   contactoId: z.number().int().positive().nullable(),
   contactoNombre: z.string().trim(),
-  empresaId: z.number().int().positive().nullable(),
   empresaNombre: z.string().trim(),
   titularId: z.number().int().positive().nullable(),
   titularNombre: z.string().trim(),
@@ -16,9 +15,9 @@ export const actividadSchema = z.object({
   usuario: z.string().trim().min(1, 'Selecciona un usuario'),
   oportunidadId: z.number().int().positive().nullable(),
 }).superRefine((data, ctx) => {
-  if (!data.contactoId && !data.empresaId && !data.titularId) {
+  if (!data.contactoId && !data.empresaNombre.trim() && !data.titularId) {
     ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['contactoId'], message: MENSAJE_SUJETO })
-    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['empresaId'], message: MENSAJE_SUJETO })
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['empresaNombre'], message: MENSAJE_SUJETO })
     ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['titularId'], message: MENSAJE_SUJETO })
   }
 })

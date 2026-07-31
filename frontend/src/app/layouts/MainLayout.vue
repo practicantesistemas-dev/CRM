@@ -7,8 +7,8 @@ import {
   LayoutDashboard, Heart, Users, Building2, Truck,
   Target, GitBranch, Layers, SlidersHorizontal, Megaphone,
   BookOpen, Upload, Zap,
-  ChevronLeft, ChevronRight, LogOut,
-  RefreshCw, X
+  ChevronLeft, ChevronRight, LogOut, Settings,
+  RefreshCw, X, Menu
 } from 'lucide-vue-next'
 
 const router = useRouter()
@@ -74,9 +74,11 @@ const menuGroups: MenuGroup[] = [
 
 // ── Tabs ──────────────────────────────────────────────────────────
 const MAX_TABS = 4
-const tabs         = ref<Tab[]>([])
-const activeTabIdx = ref(0)
-const vistaActiva  = computed<Vista>(() => tabs.value[activeTabIdx.value]?.key ?? 'dashboard')
+const tabs = ref<Tab[]>([])
+// La pestaña activa se deriva siempre de la ruta (no de un índice guardado aparte),
+// así que reordenar las pestañas por drag & drop nunca desincroniza cuál está activa.
+const vistaActiva  = computed<Vista>(() => (route.path.replace(/^\//, '') || 'dashboard') as Vista)
+const activeTabIdx = computed(() => tabs.value.findIndex(t => t.key === vistaActiva.value))
 
 const findMenuItem = (key: string): Tab | undefined => {
   for (const g of menuGroups) {
@@ -87,28 +89,27 @@ const findMenuItem = (key: string): Tab | undefined => {
 }
 
 // Sincroniza las pestañas con la ruta activa (deep-linking / navegación directa por URL).
-watch(() => route.path, (path) => {
+watch(() => route.path, (path, pathAnterior) => {
   const key = (path.replace(/^\//, '') || 'dashboard') as Vista
-  const idx = tabs.value.findIndex(t => t.key === key)
-  if (idx !== -1) { activeTabIdx.value = idx; return }
+  if (tabs.value.some(t => t.key === key)) return
 
   const item = findMenuItem(key)
   if (!item) return
 
   if (tabs.value.length < MAX_TABS) {
     tabs.value.push(item)
-    activeTabIdx.value = tabs.value.length - 1
-  } else {
-    const replaceIdx = tabs.value.findIndex((_, i) => i !== activeTabIdx.value)
-    if (replaceIdx !== -1) {
-      tabs.value.splice(replaceIdx, 1, item)
-      activeTabIdx.value = replaceIdx
-    }
+    return
   }
+
+  // Al tope de pestañas: reemplaza la que estaba activa antes de esta navegación.
+  const keyAnterior = ((pathAnterior ?? '').replace(/^\//, '') || 'dashboard') as Vista
+  const idxAnterior = tabs.value.findIndex(t => t.key === keyAnterior)
+  tabs.value.splice(idxAnterior !== -1 ? idxAnterior : 0, 1, item)
 }, { immediate: true })
 
 const navigateTo = (item: Tab) => {
   router.push('/' + item.key)
+  sidebarMobileOpen.value = false
 }
 
 const goToTab = (idx: number) => {
@@ -123,9 +124,22 @@ const closeTab = (idx: number, e: MouseEvent) => {
   if (wasActive) {
     const nextIdx = Math.min(idx, tabs.value.length - 1)
     router.push('/' + tabs.value[nextIdx].key)
-  } else if (idx < activeTabIdx.value) {
-    activeTabIdx.value -= 1
   }
+}
+
+// Reordenar pestañas por drag & drop.
+const tabArrastrandoIdx = ref<number | null>(null)
+const iniciarArrastreTab = (idx: number, e: DragEvent) => {
+  tabArrastrandoIdx.value = idx
+  e.dataTransfer?.setData('text/plain', String(idx))
+  if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move'
+}
+const soltarTab = (idx: number) => {
+  const origen = tabArrastrandoIdx.value
+  tabArrastrandoIdx.value = null
+  if (origen === null || origen === idx) return
+  const [movida] = tabs.value.splice(origen, 1)
+  tabs.value.splice(idx, 0, movida)
 }
 
 const handleLogout = () => {
@@ -147,6 +161,9 @@ onUnmounted(() => document.removeEventListener('click', cerrarMenuUsuarioAfuera)
 
 // ── Misc ──────────────────────────────────────────────────────────
 const sidebarCollapsed = ref(false)
+// En móvil el sidebar es un drawer superpuesto (no ocupa espacio del layout);
+// se abre con el botón hamburguesa y se cierra al navegar o tocar el fondo.
+const sidebarMobileOpen = ref(false)
 
 const activeLabel = computed(() => {
   for (const g of menuGroups) {
@@ -161,16 +178,36 @@ const activeGroup = computed(() => {
   }
   return ''
 })
+
+// La página de Configuración se abre desde el avatar, no desde el menú lateral:
+// no forma parte del sistema de tabs, así que se maneja como vista independiente.
+const isConfigRoute = computed(() => route.path === '/configuracion')
+
+// Botón de refrescar del header: fuerza el remount SOLO de la ruta activa (contador por ruta,
+// no global) para que vuelva a ejecutar su carga de datos sin importar la vista en la que se esté.
+// Las demás pestañas, cacheadas por el <keep-alive>, no se ven afectadas.
+const refreshPorRuta = ref<Record<string, number>>({})
+const refrescarVistaActual = () => {
+  refreshPorRuta.value[route.path] = (refreshPorRuta.value[route.path] ?? 0) + 1
+}
 </script>
 
 <template>
   <div class="flex h-screen overflow-hidden bg-[#F8FAFC] font-[Inter,system-ui,sans-serif]">
 
+    <!-- Fondo oscuro tras el sidebar cuando está abierto como drawer en móvil -->
+    <div
+      v-if="sidebarMobileOpen"
+      @click="sidebarMobileOpen = false"
+      class="fixed inset-0 bg-black/40 z-20 md:hidden"
+    />
+
     <!-- ═══════════════════════════════════════════════
          SIDEBAR  —  lighter royal blue
     ═══════════════════════════════════════════════ -->
     <aside
-      class="flex flex-col shrink-0 overflow-hidden transition-all duration-300 z-20"
+      class="flex flex-col shrink-0 overflow-hidden transition-all duration-300 z-30 fixed md:relative inset-y-0 left-0 md:translate-x-0"
+      :class="sidebarMobileOpen ? 'translate-x-0' : '-translate-x-full'"
       style="background-color: #295FD3"
       :style="{ width: sidebarCollapsed ? '64px' : '224px' }"
     >
@@ -221,7 +258,7 @@ const activeGroup = computed(() => {
             @click="navigateTo(item)"
             :title="sidebarCollapsed ? item.label : undefined"
             class="flex items-center gap-3 rounded-lg mx-2 px-2 py-2 transition-all text-left w-[calc(100%-16px)] group/item"
-            :class="vistaActiva === item.key
+            :class="!isConfigRoute && vistaActiva === item.key
           ? 'bg-white/20 text-white'
           : 'text-white hover:text-white hover:bg-white/10'"
           >
@@ -229,7 +266,7 @@ const activeGroup = computed(() => {
               :is="item.icono"
               :size="16"
               class="shrink-0 transition-colors"
-              :class="vistaActiva === item.key ? 'text-white' : 'text-white/80'"
+              :class="!isConfigRoute && vistaActiva === item.key ? 'text-white' : 'text-white/80'"
             />
             <span
               v-if="!sidebarCollapsed"
@@ -239,12 +276,12 @@ const activeGroup = computed(() => {
             </span>
             <!-- Active dot -->
             <span
-              v-if="vistaActiva === item.key && !sidebarCollapsed"
+              v-if="!isConfigRoute && vistaActiva === item.key && !sidebarCollapsed"
               class="w-1.5 h-1.5 rounded-full bg-white shrink-0"
             />
             <!-- Tab indicator: small badge showing it's open in a tab -->
             <span
-              v-else-if="tabs.some(t => t.key === item.key) && !sidebarCollapsed && vistaActiva !== item.key"
+              v-else-if="tabs.some(t => t.key === item.key) && !sidebarCollapsed && (isConfigRoute || vistaActiva !== item.key)"
               class="w-1.5 h-1.5 rounded-full bg-white/40 shrink-0"
             />
           </button>
@@ -270,29 +307,46 @@ const activeGroup = computed(() => {
     <div class="flex-1 flex flex-col overflow-hidden min-w-0">
 
       <!-- ── Top header ────────────────────────────────────────── -->
-      <header class="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-4 shrink-0 gap-3 z-10">
-        <div class="flex items-center gap-3 min-w-0">
-          <!-- Toggle sidebar -->
+      <header class="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-3 md:px-4 shrink-0 gap-2 md:gap-3 z-10">
+        <div class="flex items-center gap-2 md:gap-3 min-w-0">
+          <!-- Hamburguesa: solo móvil, abre el sidebar como drawer -->
+          <button
+            @click="sidebarMobileOpen = true"
+            class="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-50 transition-all shrink-0 md:hidden"
+          >
+            <Menu :size="15" />
+          </button>
+          <!-- Toggle sidebar: solo desktop/tablet, colapsa a modo íconos -->
           <button
             @click="sidebarCollapsed = !sidebarCollapsed"
-            class="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-50 transition-all shrink-0"
+            class="hidden md:flex w-8 h-8 rounded-lg border border-slate-200 items-center justify-center text-slate-500 hover:bg-slate-50 transition-all shrink-0"
           >
             <component :is="sidebarCollapsed ? ChevronRight : ChevronLeft" :size="15" />
           </button>
           <!-- Breadcrumb -->
           <div class="flex items-center gap-1.5 text-[12px] min-w-0 overflow-hidden">
             <span class="text-slate-400 shrink-0">CRM Mercadeo</span>
-            <template v-if="activeGroup && activeGroup !== 'General'">
-              <span class="text-slate-300 shrink-0 hidden sm:inline">/</span>
-              <span class="text-slate-400 shrink-0 hidden sm:inline">{{ activeGroup }}</span>
+            <template v-if="isConfigRoute">
+              <span class="text-slate-300 shrink-0">/</span>
+              <span class="font-bold text-[#0F172A] truncate">Configuración</span>
             </template>
-            <span class="text-slate-300 shrink-0">/</span>
-            <span class="font-bold text-[#0F172A] truncate">{{ activeLabel }}</span>
+            <template v-else>
+              <template v-if="activeGroup && activeGroup !== 'General'">
+                <span class="text-slate-300 shrink-0 hidden sm:inline">/</span>
+                <span class="text-slate-400 shrink-0 hidden sm:inline">{{ activeGroup }}</span>
+              </template>
+              <span class="text-slate-300 shrink-0">/</span>
+              <span class="font-bold text-[#0F172A] truncate">{{ activeLabel }}</span>
+            </template>
           </div>
         </div>
 
         <div class="flex items-center gap-2 shrink-0">
-          <button class="h-8 w-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-50 transition-all" title="Actualizar">
+          <button
+            @click="refrescarVistaActual"
+            class="h-8 w-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-50 transition-all"
+            title="Actualizar"
+          >
             <RefreshCw :size="13" />
           </button>
           <div class="relative">
@@ -318,6 +372,13 @@ const activeGroup = computed(() => {
               class="menu-usuario-panel absolute right-0 top-full mt-2 w-48 bg-white rounded-xl border border-slate-200 shadow-lg py-1.5 z-30"
             >
               <button
+                @click="menuUsuarioAbierto = false; router.push('/configuracion')"
+                class="flex items-center gap-2 w-full px-3 py-2 text-[12px] font-semibold text-slate-600 hover:bg-slate-50 transition-all"
+              >
+                <Settings :size="14" class="shrink-0" />
+                Configuración
+              </button>
+              <button
                 @click="menuUsuarioAbierto = false; handleLogout()"
                 class="flex items-center gap-2 w-full px-3 py-2 text-[12px] font-semibold text-slate-600 hover:bg-red-50 hover:text-red-600 transition-all"
               >
@@ -330,15 +391,23 @@ const activeGroup = computed(() => {
       </header>
 
       <!-- ── Tab strip ─────────────────────────────────────────── -->
-      <div class="bg-white border-b border-slate-200 px-3 flex items-end gap-0.5 shrink-0 overflow-x-auto">
+      <div v-if="!isConfigRoute" class="bg-white border-b border-slate-200 px-3 flex items-end gap-0.5 shrink-0 overflow-x-auto">
         <button
           v-for="(tab, idx) in tabs"
           :key="tab.key"
+          draggable="true"
           @click="goToTab(idx)"
-          class="flex items-center gap-1.5 px-3 py-2.5 text-[11px] font-semibold border-b-2 transition-all shrink-0 group/tab rounded-t-lg hover:bg-slate-50"
-          :class="idx === activeTabIdx
-            ? 'border-[#1E3A8A] text-[#1E3A8A] bg-[#EEF2FF]/60'
-            : 'border-transparent text-slate-500 hover:text-slate-700'"
+          @dragstart="iniciarArrastreTab(idx, $event)"
+          @dragover.prevent
+          @drop.prevent="soltarTab(idx)"
+          @dragend="tabArrastrandoIdx = null"
+          class="flex items-center gap-1.5 px-3 py-2.5 text-[11px] font-semibold border-b-2 transition-all shrink-0 group/tab rounded-t-lg hover:bg-slate-50 cursor-grab active:cursor-grabbing"
+          :class="[
+            idx === activeTabIdx
+              ? 'border-[#1E3A8A] text-[#1E3A8A] bg-[#EEF2FF]/60'
+              : 'border-transparent text-slate-500 hover:text-slate-700',
+            tabArrastrandoIdx === idx ? 'opacity-40' : '',
+          ]"
         >
           <component :is="tab.icono" :size="12" class="shrink-0" />
           <span class="max-w-[120px] truncate">{{ tab.label }}</span>
@@ -362,9 +431,13 @@ const activeGroup = computed(() => {
 
       <!-- ── Content ───────────────────────────────────────────── -->
       <main
-        class="flex-1 min-h-0 overflow-y-auto p-6"
+        class="flex-1 min-h-0 overflow-y-auto p-3 sm:p-4 md:p-6"
       >
-        <router-view />
+        <router-view v-slot="{ Component, route: rutaActiva }">
+          <keep-alive :max="8">
+            <component :is="Component" :key="`${rutaActiva.path}::${refreshPorRuta[rutaActiva.path] ?? 0}`" />
+          </keep-alive>
+        </router-view>
       </main>
     </div>
   </div>

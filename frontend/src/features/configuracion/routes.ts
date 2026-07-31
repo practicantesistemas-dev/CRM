@@ -1,6 +1,7 @@
 import type { RouteRecordRaw } from 'vue-router'
 
-// Sin páginas todavía: feature reservado para la configuración global del CRM.
-const routes: RouteRecordRaw[] = []
+const routes: RouteRecordRaw[] = [
+  { path: 'configuracion', name: 'configuracion', component: () => import('./pages/perfil.vue') },
+]
 
 export default routes

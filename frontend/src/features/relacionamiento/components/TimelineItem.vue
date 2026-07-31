@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Target } from 'lucide-vue-next'
+import { Target, Trash2 } from 'lucide-vue-next'
 import type { Actividad } from '../types/actividad'
 import { TIPO_META } from '../constants/relacionamiento.constants'
 import { getOportunidades } from '@/features/oportunidades/services/oportunidades.api'
 import { clienteLabel } from '@/features/oportunidades/constants/oportunidades.constants'
 
 const props = defineProps<{ actividad: Actividad }>()
+const emit = defineEmits<{ eliminar: [] }>()
 
 const oportunidad = computed(() => getOportunidades().find(o => o.id === props.actividad.oportunidadId) ?? null)
 
@@ -14,7 +15,7 @@ const sujetos = computed(() => [props.actividad.contactoNombre, props.actividad.
 </script>
 
 <template>
-  <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex gap-4 hover:shadow-md transition-all">
+  <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex gap-4 hover:shadow-md transition-all group">
     <div class="flex-shrink-0">
       <div class="w-10 h-10 rounded-xl flex items-center justify-center" :style="{ backgroundColor: TIPO_META[actividad.tipo].bg }">
         <component :is="TIPO_META[actividad.tipo].icono" :size="16" :style="{ color: TIPO_META[actividad.tipo].color }" />
@@ -39,6 +40,12 @@ const sujetos = computed(() => [props.actividad.contactoNombre, props.actividad.
             </div>
             <span class="text-[10px] text-slate-400">{{ actividad.usuario }}</span>
           </div>
+          <span class="w-px h-5 bg-slate-200 shrink-0" />
+          <button @click="emit('eliminar')"
+            class="w-8 h-8 rounded-lg bg-slate-50 border border-slate-200 hover:bg-red-50 hover:border-red-200 hover:text-red-500 text-slate-500 flex items-center justify-center transition-colors shrink-0"
+            title="Eliminar actividad">
+            <Trash2 :size="15" />
+          </button>
         </div>
       </div>
 

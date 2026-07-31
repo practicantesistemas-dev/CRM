@@ -26,6 +26,8 @@ export const titularSchema = z.object({
   planNombre: z.string().trim(),
   fechaInscripcion: z.string().trim().min(1, 'La fecha de inscripción es obligatoria'),
   estado: z.enum(['Activo', 'Inactivo']),
+  // Opcional (se puede dejar en blanco); tope de 20 para calzar con el VARCHAR2(20) del backend.
+  factura: z.string().trim().max(20, 'La factura no puede superar los 20 caracteres'),
 })
 
 export type TitularSchema = z.infer<typeof titularSchema>

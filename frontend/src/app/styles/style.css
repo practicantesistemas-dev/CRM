@@ -1,4 +1,14 @@
-@import "tailwindcss";
+/* Tailwind partido en capas nombradas para que el orden de capas configurado en
+   app/plugins/primevue.ts (cssLayer.order: 'tailwind-base, primevue, tailwind-utilities')
+   realmente encadene con Tailwind: con el import único "tailwindcss" sus capas internas
+   se llaman "base"/"utilities" (no calzan con esos nombres), así que los estilos propios
+   de PrimeVue (ej. el panel flotante del Select) no quedaban bien priorizados frente a
+   Tailwind y se veían "sin estilo". Es la forma documentada de integrar Tailwind v4 con PrimeVue. */
+@layer tailwind-base, primevue, tailwind-utilities;
+
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/preflight.css" layer(tailwind-base);
+@import "tailwindcss/utilities.css" layer(tailwind-utilities);
 
 @source "../../**/*.vue";
 @source "../../**/*.ts";
@@ -60,7 +70,8 @@
 }
 
 /* El panel del DatePicker de PrimeVue se teletransporta a <body>; sube su z-index para
-   que quede por encima de los modales de la app (que usan z-[99999]) y no se corte. */
+   que quede por encima de los modales de la app (algunos usan hasta z-[999999], ej.
+   BeneficiarioFormDialog, que se abre encima de un drawer) y no se corte. */
 .p-datepicker-panel {
-  z-index: 100000 !important;
+  z-index: 2000000 !important;
 }

@@ -69,10 +69,13 @@ export async function createTitular(data: TitularDraft): Promise<void> {
     PLAN_NOMBRE: data.planNombre,
     // null es el Plan Estándar (cupo 4): se manda tal cual, no se convierte a 0.
     TIPO_PLAN_ID: data.tipoPlanId,
+    FACTURA: data.factura || null,
   }
+  // El backend resuelve el usuario creador (USUARIO_ID en INTRANET_PREPLANLIGA) a partir
+  // del Bearer token, igual que /api/bitacora/: sin este header, get_current_username falla.
   const response = await fetch(`${API_URL}/api/titulares-beneficiarios`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...authHeader() },
     body: JSON.stringify(body),
   })
   if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo crear el titular.')
@@ -316,6 +319,7 @@ function mapTitularListado(r: TitularListadoResponse): Titular {
     planNombre: '',
     fechaInscripcion: r.INSCRIPCION,
     estado: r.ESTADO === 'A' ? 'Activo' : 'Inactivo',
+    factura: '',
     planesDetalle,
   }
 }
@@ -351,6 +355,7 @@ function mapTitularDetalle(r: TitularDetalleResponse): Titular {
     planNombre: r.PLAN_NOMBRE ?? '',
     fechaInscripcion: r.FECHA_INGRESO ?? '',
     estado: r.ESTADO === 'A' ? 'Activo' : 'Inactivo',
+    factura: '',
   }
 }
 
@@ -514,13 +519,16 @@ const TIPO_SEG_API: Record<TipoSeguimiento, string> = {
 // El endpoint de bitácora no tiene un campo propio para beneficiario_id (solo titular_id),
 // así que cuando el seguimiento es sobre un beneficiario puntual, su nombre queda como
 // prefijo de la descripción para poder identificarlo dentro de la bitácora del titular.
-export async function registrarSeguimiento(titularId: number, data: SeguimientoDraft, beneficiarioNombre?: string): Promise<void> {
+// nombre_empresa ya no es FK (mercadeo_crm_empresas): viaja como texto plano, así que se
+// toma directo del titular en vez de pedirle al usuario que la busque/seleccione de nuevo.
+export async function registrarSeguimiento(titular: Titular, data: SeguimientoDraft, beneficiarioNombre?: string): Promise<void> {
   const body = {
     tipo: TIPO_SEG_API[data.tipo],
     descripcion: beneficiarioNombre ? `[Beneficiario: ${beneficiarioNombre}] ${data.accion}` : data.accion,
     proximo_paso: data.proximoPaso || null,
     fecha: data.fecha,
-    titular_id: titularId,
+    titular_id: titular.id,
+    nombre_empresa: titular.empresa || null,
     oportunidad_id: data.oportunidadId,
     estado: 'realizado',
   }

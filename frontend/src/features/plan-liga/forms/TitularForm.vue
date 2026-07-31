@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import { computed, watch } from 'vue'
+import Select from 'primevue/select'
 import type { PlanServicio, TitularDraft } from '../types/plan-liga'
 import { titularSchema } from '../schemas/titular.schema'
 import { useZodForm } from '@/shared/composables/useZodForm'
 import { useNombreCompuesto } from '@/shared/composables/useNombreCompuesto'
 import { faltaApellido } from '@/shared/utils/nombreCompuesto'
 import { fieldStateClass } from '@/shared/utils/fieldStateClass'
+import { useUbicaciones } from '@/shared/composables/useUbicaciones'
 import FieldError from '@/shared/components/FieldError.vue'
+import FechaInput from '@/shared/components/FechaInput.vue'
 
 const props = defineProps<{ modo?: 'nuevo' | 'editar'; planesServicio?: PlanServicio[] }>()
 const draft = defineModel<TitularDraft>({ required: true })
@@ -15,6 +18,18 @@ const emit = defineEmits<{ validSubmit: [] }>()
 const { errors, tocar, esVisible, onValidSubmit } = useZodForm(titularSchema, draft)
 const nombre = useNombreCompuesto(draft, 'nombre')
 const apellidoFaltante = computed(() => faltaApellido(nombre))
+
+const { departamentos, municipios, cargandoUbicaciones, municipiosDeDepartamento } = useUbicaciones()
+const municipiosDisponibles = computed(() => draft.value.departamento ? municipiosDeDepartamento(draft.value.departamento) : [])
+// Si cambia el departamento, la ciudad elegida deja de ser válida a menos que pertenezca al nuevo
+// (evita guardar una combinación ciudad/departamento inconsistente). Mientras el catálogo de
+// municipios todavía no ha cargado (municipios.value vacío) no se puede saber si pertenece o no,
+// así que no se toca: si se dejara correr, borraría la ciudad del titular que se está editando
+// apenas se abre el formulario, antes de que el catálogo llegue a tiempo.
+watch(() => draft.value.departamento, (nuevo, anterior) => {
+  if (nuevo === anterior || !draft.value.ciudad || municipios.value.length === 0) return
+  if (!municipiosDeDepartamento(nuevo).some(m => m.codigo === draft.value.ciudad)) draft.value.ciudad = ''
+})
 
 // El nombre del plan se guarda aparte (solo para mostrarlo en la tabla); el que
 // realmente se envía al crear el titular es el id (tipoPlanId → TIPO_PLAN_ID).
@@ -63,7 +78,9 @@ const hoy = new Date().toISOString().split('T')[0]
     </div>
     <div>
       <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Fecha de nacimiento *</label>
-      <input v-model="draft.fechaNacimiento" @blur="tocar('fechaNacimiento')" type="date" class="w-full h-10 px-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all" :class="fieldStateClass(esVisible('fechaNacimiento') && !!errors.fechaNacimiento, esVisible('fechaNacimiento') && !errors.fechaNacimiento && !!draft.fechaNacimiento, 'border-slate-200 focus:border-[#EC4899]')" />
+      <FechaInput v-model="draft.fechaNacimiento" @blur="tocar('fechaNacimiento')"
+        :invalid="esVisible('fechaNacimiento') && !!errors.fechaNacimiento"
+        :valid="esVisible('fechaNacimiento') && !errors.fechaNacimiento && !!draft.fechaNacimiento" />
       <FieldError :message="esVisible('fechaNacimiento') ? errors.fechaNacimiento : undefined" />
     </div>
     <div>
@@ -90,14 +107,21 @@ const hoy = new Date().toISOString().split('T')[0]
       <input v-model="draft.direccion" placeholder="Dirección de residencia" class="w-full h-10 px-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white transition-all" />
     </div>
     <div>
-      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Ciudad *</label>
-      <input v-model="draft.ciudad" @blur="tocar('ciudad')" placeholder="Ej: 001" class="w-full h-10 px-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all" :class="fieldStateClass(esVisible('ciudad') && !!errors.ciudad, esVisible('ciudad') && !errors.ciudad && !!draft.ciudad, 'border-slate-200 focus:border-[#EC4899]')" />
-      <FieldError :message="esVisible('ciudad') ? errors.ciudad : undefined" />
+      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Departamento *</label>
+      <Select v-model="draft.departamento" @change="tocar('departamento')" :options="departamentos" option-label="nombre" option-value="codigo"
+        filter filter-placeholder="Buscar departamento..." :loading="cargandoUbicaciones" placeholder="Selecciona un departamento"
+        empty-filter-message="Sin resultados" empty-message="Sin departamentos" class="w-full" input-class="h-10 text-[12px] flex items-center"
+        :class="fieldStateClass(esVisible('departamento') && !!errors.departamento, esVisible('departamento') && !errors.departamento && !!draft.departamento, '')" />
+      <FieldError :message="esVisible('departamento') ? errors.departamento : undefined" />
     </div>
     <div>
-      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Departamento *</label>
-      <input v-model="draft.departamento" @blur="tocar('departamento')" placeholder="Ej: 66" class="w-full h-10 px-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all" :class="fieldStateClass(esVisible('departamento') && !!errors.departamento, esVisible('departamento') && !errors.departamento && !!draft.departamento, 'border-slate-200 focus:border-[#EC4899]')" />
-      <FieldError :message="esVisible('departamento') ? errors.departamento : undefined" />
+      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Ciudad *</label>
+      <Select v-model="draft.ciudad" @change="tocar('ciudad')" :options="municipiosDisponibles" option-label="nombre" option-value="codigo"
+        filter filter-placeholder="Buscar municipio..." :disabled="!draft.departamento" :loading="cargandoUbicaciones"
+        :placeholder="draft.departamento ? 'Selecciona un municipio' : 'Elige primero un departamento'"
+        empty-filter-message="Sin resultados" empty-message="Sin municipios" class="w-full" input-class="h-10 text-[12px] flex items-center"
+        :class="fieldStateClass(esVisible('ciudad') && !!errors.ciudad, esVisible('ciudad') && !errors.ciudad && !!draft.ciudad, '')" />
+      <FieldError :message="esVisible('ciudad') ? errors.ciudad : undefined" />
     </div>
     <div>
       <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Empresa *</label>
@@ -139,8 +163,14 @@ const hoy = new Date().toISOString().split('T')[0]
       <input v-model="draft.planNombre" placeholder="Nombre comercial del plan" class="w-full h-10 px-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white transition-all" />
     </div>
     <div>
+      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Factura</label>
+      <input v-model="draft.factura" placeholder="Número de factura" :disabled="soloLecturaEnEdicion" class="w-full h-10 px-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed" />
+    </div>
+    <div>
       <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Fecha de inscripción *</label>
-      <input v-model="draft.fechaInscripcion" @blur="tocar('fechaInscripcion')" type="date" :max="hoy" :disabled="soloLecturaEnEdicion" class="w-full h-10 px-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed" :class="fieldStateClass(esVisible('fechaInscripcion') && !!errors.fechaInscripcion, esVisible('fechaInscripcion') && !errors.fechaInscripcion && !!draft.fechaInscripcion, 'border-slate-200 focus:border-[#EC4899]')" />
+      <FechaInput v-model="draft.fechaInscripcion" @blur="tocar('fechaInscripcion')" :max="hoy" :disabled="soloLecturaEnEdicion"
+        :invalid="esVisible('fechaInscripcion') && !!errors.fechaInscripcion"
+        :valid="esVisible('fechaInscripcion') && !errors.fechaInscripcion && !!draft.fechaInscripcion" />
       <FieldError :message="esVisible('fechaInscripcion') ? errors.fechaInscripcion : undefined" />
     </div>
     <div>

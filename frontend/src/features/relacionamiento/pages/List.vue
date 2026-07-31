@@ -1,17 +1,19 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { Plus, Filter, Loader2, AlertCircle } from 'lucide-vue-next'
-import type { ActividadDraft } from '../types/actividad'
+import type { Actividad, ActividadDraft } from '../types/actividad'
 import { ACTIVIDAD_DRAFT_VACIO } from '../constants/relacionamiento.constants'
 import { useRelacionamiento } from '../composables/useRelacionamiento'
 import FiltrosTipo from '../components/FiltrosTipo.vue'
 import TimelineItem from '../components/TimelineItem.vue'
 import ActividadFormDialog from '../dialogs/ActividadFormDialog.vue'
+import ConfirmarEliminarActividadDialog from '../dialogs/ConfirmarEliminarActividadDialog.vue'
 
 const {
   actividades, cargando, error, filtroTipo, filtroUsuario, buscar,
   actividadesFiltradas, usuarios,
   crearActividad, guardandoActividad, errorGuardarActividad,
+  eliminarActividad, eliminandoActividad, errorEliminarActividad,
 } = useRelacionamiento()
 
 const modalVisible = ref(false)
@@ -26,6 +28,17 @@ const abrirNuevo = () => {
 const guardar = async () => {
   const ok = await crearActividad(draft.value)
   if (ok) modalVisible.value = false
+}
+
+const actividadEliminando = ref<Actividad | null>(null)
+const abrirEliminar = (a: Actividad) => {
+  errorEliminarActividad.value = null
+  actividadEliminando.value = a
+}
+const confirmarEliminar = async () => {
+  if (!actividadEliminando.value) return
+  const ok = await eliminarActividad(actividadEliminando.value.id)
+  if (ok) actividadEliminando.value = null
 }
 </script>
 
@@ -71,7 +84,7 @@ const guardar = async () => {
       <Loader2 :size="16" class="animate-spin" />Cargando bitácora...
     </div>
     <div v-else class="space-y-3">
-      <TimelineItem v-for="a in actividadesFiltradas" :key="a.id" :actividad="a" />
+      <TimelineItem v-for="a in actividadesFiltradas" :key="a.id" :actividad="a" @eliminar="abrirEliminar(a)" />
 
       <div v-if="actividadesFiltradas.length === 0" class="bg-white rounded-2xl border border-slate-200 p-16 text-center text-slate-400 text-[12px]">
         No se encontraron actividades con los filtros aplicados.
@@ -79,5 +92,13 @@ const guardar = async () => {
     </div>
 
     <ActividadFormDialog v-model:visible="modalVisible" v-model:draft="draft" :guardando="guardandoActividad" :error="errorGuardarActividad" @submit="guardar" />
+
+    <ConfirmarEliminarActividadDialog
+      :actividad="actividadEliminando"
+      :eliminando="eliminandoActividad"
+      :error="errorEliminarActividad"
+      @confirmar="confirmarEliminar"
+      @cancelar="actividadEliminando = null"
+    />
   </div>
 </template>
