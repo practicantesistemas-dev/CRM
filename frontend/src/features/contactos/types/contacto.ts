@@ -16,9 +16,14 @@ export interface Contacto {
   telefono: string
   empresa: string
   cargo: string
+  /** Nombre legible (ej. "Pereira"), para tabla/filtros. */
   ciudad: string
-  /** Solo se usa al crear (POST /api/contactos/ trae "departamento" separado de "municipio"). */
+  /** Nombre legible (ej. "Risaralda"), para tabla/filtros. */
   departamento: string
+  /** Código DIVIPOLA crudo del municipio, tal como lo maneja el backend (option-value del Select). */
+  ciudadCodigo: string
+  /** Código DIVIPOLA crudo del departamento. */
+  departamentoCodigo: string
   estado: 'Activo' | 'Inactivo' | 'Prospecto' | 'En proceso'
   /** Clasificación general del contacto en el backend (TipoContacto: solo admite estos dos valores). */
   tipoContacto: 'Cliente' | 'Prospecto'
@@ -30,7 +35,9 @@ export interface Contacto {
 
 // 'responsable' queda fuera: no se captura en el formulario, lo resuelve el backend
 // a partir del usuario autenticado (Bearer token) al crear el contacto.
-export type ContactoDraft = Omit<Contacto, 'id' | 'responsable'>
+// 'ciudadCodigo'/'departamentoCodigo' quedan fuera: en el draft, 'ciudad'/'departamento' YA
+// son el código (los Select del formulario usan option-value="codigo" directamente).
+export type ContactoDraft = Omit<Contacto, 'id' | 'responsable' | 'ciudadCodigo' | 'departamentoCodigo'>
 
 export type TipoSeguimiento = 'Llamada' | 'Correo' | 'Reunión' | 'WhatsApp' | 'Nota'
 

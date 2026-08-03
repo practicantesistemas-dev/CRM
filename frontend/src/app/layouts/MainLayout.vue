@@ -356,8 +356,8 @@ const refrescarVistaActual = () => {
               class="menu-usuario-trigger flex items-center gap-2 pl-2 border-l border-slate-200 rounded-lg hover:bg-slate-50 transition-all py-1 pr-1"
             >
               <div class="text-right hidden sm:block leading-tight">
-                <div class="text-[23px] font-bold text-[#0F172A] whitespace-nowrap">{{ me?.nombres ?? '—' }}</div>
-                <div class="text-[21px] text-slate-400 font-bold uppercase tracking-wider">{{ me?.portal_role ?? '' }}</div>
+                <div class="text-[13px] font-bold text-[#0F172A] whitespace-nowrap">{{ me?.nombres ?? '—' }}</div>
+                <div class="text-[11px] text-slate-400 font-bold uppercase tracking-wider">{{ me?.portal_role ?? '' }}</div>
               </div>
               <div
                 class="h-8 w-8 rounded-lg bg-[#1E3A8A] text-white text-[10px] font-bold flex items-center justify-center select-none shrink-0"

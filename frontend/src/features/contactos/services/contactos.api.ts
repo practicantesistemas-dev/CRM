@@ -1,7 +1,7 @@
 import type { Contacto, ContactoDraft, Etiqueta, EtiquetaDraft } from '../types/contacto'
 import { splitNombreCompleto, joinNombreCompleto } from '@/shared/utils/nombreCompuesto'
 import { authHeader, useAuth } from '@/features/auth/composables/useAuth'
-import { useUbicaciones } from '@/shared/composables/useUbicaciones'
+import { useUbicaciones, esperarUbicaciones } from '@/shared/composables/useUbicaciones'
 import type { Departamento, Municipio } from '@/shared/types/ubicaciones'
 
 const API_URL = import.meta.env.VITE_CRM_API_URL
@@ -91,8 +91,12 @@ function mapContactoResponse(
   // ciudad/departamento viajan como código DIVIPOLA (igual que en Plan Liga), pero hay
   // registros antiguos con el nombre ya escrito de una: si no matchea ningún código del
   // catálogo, se muestra tal cual vino en vez de perder el dato.
-  const nombreDepartamento = catalogo.departamentos.find(d => d.codigo === r.departamento)?.nombre ?? r.departamento ?? ''
-  const nombreMunicipio = catalogo.municipios.find(m => m.codigo === r.municipio && m.departamentoCodigo === r.departamento)?.nombre ?? r.municipio ?? ''
+  const depto = catalogo.departamentos.find(d => d.codigo === r.departamento)
+    ?? catalogo.departamentos.find(d => d.nombre.toLowerCase() === (r.departamento ?? '').trim().toLowerCase())
+  const municipio = catalogo.municipios.find(m => m.codigo === r.municipio && m.departamentoCodigo === (depto?.codigo ?? r.departamento))
+    ?? catalogo.municipios.find(m => m.nombre.toLowerCase() === (r.municipio ?? '').trim().toLowerCase() && (!depto || m.departamentoCodigo === depto.codigo))
+  const nombreDepartamento = depto?.nombre ?? r.departamento ?? ''
+  const nombreMunicipio = municipio?.nombre ?? r.municipio ?? ''
 
   return {
     id: r.id,
@@ -107,6 +111,8 @@ function mapContactoResponse(
     cargo: r.cargo ?? '',
     ciudad: nombreMunicipio,
     departamento: nombreDepartamento,
+    ciudadCodigo: municipio?.codigo ?? '',
+    departamentoCodigo: depto?.codigo ?? '',
     estado: (ESTADO_VALIDOS.includes(r.estado ?? '') ? r.estado : fallback.estado ?? FALLBACK.estado) as Contacto['estado'],
     tipoContacto: r.tipo_contacto ?? fallback.tipoContacto ?? FALLBACK.tipoContacto,
     fechaNacimiento: r.fecha_nacimiento ?? '',
@@ -116,17 +122,30 @@ function mapContactoResponse(
   }
 }
 
-// Trae el listado real (GET /api/contactos/, sin auth). No expone paginación en el backend
-// (ni "total" ni cabecera de conteo), así que se pide un límite amplio de una sola vez y el
-// filtrado/paginado de la tabla se sigue resolviendo en el cliente (buscar, filtroEstado, etc.
-// en useContactos.ts) — el endpoint sí soporta filtros propios (q, estado, ciudad,
-// responsable_id, sexo, tipo_contacto, edad_min, edad_max) que no están conectados aún.
-export async function getContactos(limit = 500): Promise<Contacto[]> {
-  const response = await fetch(`${API_URL}/api/contactos/?skip=0&limit=${limit}`)
-  if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo cargar el listado de contactos.')
-  const data: ContactoReadResponse[] = await response.json()
+// El backend limita "limit" a un máximo de 6 por pedido (lo rechaza con 422 si se pide más) y
+// no expone "total" ni cabecera de conteo, así que para traer el listado completo se pagina en
+// bucle de a 6 hasta que una página vuelve con menos de 6 (ahí se acaba). El filtrado/paginado
+// de la tabla se sigue resolviendo en el cliente (buscar, filtroEstado, etc. en useContactos.ts)
+// — el endpoint sí soporta filtros propios (q, estado, municipio, departamento, responsable_id,
+// sexo, tipo_contacto, edad_min, edad_max) que no están conectados aún.
+const LIMITE_POR_PAGINA = 6
+// Tope de seguridad para no quedar en bucle infinito si el backend alguna vez dejara de
+// devolver páginas más cortas que el límite (bug del lado del servidor).
+const MAX_PAGINAS = 200
+
+export async function getContactos(): Promise<Contacto[]> {
+  const todos: ContactoReadResponse[] = []
+  for (let pagina = 0; pagina < MAX_PAGINAS; pagina++) {
+    const skip = pagina * LIMITE_POR_PAGINA
+    const response = await fetch(`${API_URL}/api/contactos/?skip=${skip}&limit=${LIMITE_POR_PAGINA}`)
+    if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo cargar el listado de contactos.')
+    const bloque: ContactoReadResponse[] = await response.json()
+    todos.push(...bloque)
+    if (bloque.length < LIMITE_POR_PAGINA) break
+  }
   const { departamentos, municipios } = useUbicaciones()
-  return data.map(r => mapContactoResponse(r, { departamentos: departamentos.value, municipios: municipios.value }))
+  await esperarUbicaciones()
+  return todos.map(r => mapContactoResponse(r, { departamentos: departamentos.value, municipios: municipios.value }))
 }
 
 // Crea el contacto en el backend real (POST /api/contactos/, requiere Bearer token).
@@ -164,6 +183,7 @@ export async function createContacto(data: ContactoDraft): Promise<Contacto> {
   const r: ContactoReadResponse = await response.json()
 
   const { departamentos, municipios } = useUbicaciones()
+  await esperarUbicaciones()
   return mapContactoResponse(r, { departamentos: departamentos.value, municipios: municipios.value }, {
     tipoDocumento: data.tipoDocumento,
     estado: data.estado,

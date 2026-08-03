@@ -30,3 +30,10 @@ export function useUbicaciones() {
 
   return { departamentos, municipios, cargandoUbicaciones: cargando, municipiosDeDepartamento }
 }
+
+// Para código fuera de un componente (ej. contactos.api.ts) que necesita el catálogo ya
+// resuelto antes de seguir, no solo los refs reactivos (que pueden estar vacíos todavía si
+// se leen justo al llamar useUbicaciones(), antes de que la petición termine).
+export function esperarUbicaciones(): Promise<void> {
+  return cargarUbicaciones()
+}

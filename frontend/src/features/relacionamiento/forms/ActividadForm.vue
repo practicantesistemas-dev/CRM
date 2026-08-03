@@ -11,6 +11,7 @@ import BuscadorEntidad, { type OpcionBuscador } from '@/shared/components/Buscad
 import { getOportunidades } from '@/features/oportunidades/services/oportunidades.api'
 import { clienteLabel } from '@/features/oportunidades/constants/oportunidades.constants'
 import { getContactos } from '@/features/contactos/services/contactos.api'
+import type { Contacto } from '@/features/contactos/types/contacto'
 import { getTitulares } from '@/features/plan-liga/services/plan-liga.api'
 import type { Titular } from '@/features/plan-liga/types/plan-liga'
 
@@ -20,8 +21,11 @@ const emit = defineEmits<{ validSubmit: [] }>()
 const { errors, tocar, esVisible, onValidSubmit } = useZodForm(actividadSchema, draft)
 defineExpose({ submit: onValidSubmit(() => emit('validSubmit')) })
 
+const contactos = ref<Contacto[]>([])
+onMounted(async () => { contactos.value = await getContactos() })
+
 const opcionesContactos = computed<OpcionBuscador[]>(() =>
-  getContactos().map(c => ({ id: c.id, label: c.nombre, sublabel: c.empresa })),
+  contactos.value.map(c => ({ id: c.id, label: c.nombre, sublabel: c.empresa })),
 )
 const titulares = ref<Titular[]>([])
 onMounted(async () => { titulares.value = await getTitulares() })

@@ -1,11 +1,12 @@
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import type { Contacto, ContactoDraft, Etiqueta, EtiquetaDraft } from '../types/contacto'
 import {
   getContactos, createContacto,
   getEtiquetas, createEtiqueta,
 } from '../services/contactos.api'
+import { useUbicaciones } from '@/shared/composables/useUbicaciones'
 
-const PAGE_SIZE = 8
+const PAGE_SIZE = 6
 
 export function useContactos() {
   const contactos = ref<Contacto[]>([])
@@ -24,12 +25,13 @@ export function useContactos() {
     }
   }
 
-  const buscar            = ref('')
-  const filtroEstado      = ref('todos')
-  const filtroCiudad      = ref('todas')
-  const filtroResponsable = ref('todos')
-  const filtroSexo        = ref('todos')
-  const filtroEdad        = ref('todos')
+  const buscar             = ref('')
+  const filtroEstado       = ref('todos')
+  const filtroCiudad       = ref('todas')
+  const filtroDepartamento = ref('todos')
+  const filtroResponsable  = ref('todos')
+  const filtroSexo         = ref('todos')
+  const filtroEdad         = ref('todos')
 
   const calcEdadBucket = (fechaNac: string): string => {
     if (!fechaNac) return ''
@@ -44,28 +46,31 @@ export function useContactos() {
     contactos.value.filter(c => {
       const q = buscar.value.toLowerCase()
       return (!q || [c.nombre, c.correo, c.empresa, c.documento].some(f => f.toLowerCase().includes(q)))
-        && (filtroEstado.value      === 'todos'  || c.estado === filtroEstado.value)
-        && (filtroCiudad.value      === 'todas'  || c.ciudad === filtroCiudad.value)
-        && (filtroResponsable.value === 'todos'  || c.responsable === filtroResponsable.value)
-        && (filtroSexo.value        === 'todos'  || c.sexo === filtroSexo.value)
-        && (filtroEdad.value        === 'todos'  || calcEdadBucket(c.fechaNacimiento) === filtroEdad.value)
+        && (filtroEstado.value       === 'todos'  || c.estado === filtroEstado.value)
+        && (filtroCiudad.value       === 'todas'  || c.ciudad === filtroCiudad.value)
+        && (filtroDepartamento.value === 'todos'  || c.departamento === filtroDepartamento.value)
+        && (filtroResponsable.value  === 'todos'  || c.responsable === filtroResponsable.value)
+        && (filtroSexo.value         === 'todos'  || c.sexo === filtroSexo.value)
+        && (filtroEdad.value         === 'todos'  || calcEdadBucket(c.fechaNacimiento) === filtroEdad.value)
     })
   )
 
   const ciudades       = computed(() => [...new Set(contactos.value.map(c => c.ciudad))].sort())
+  const departamentosLista = computed(() => [...new Set(contactos.value.map(c => c.departamento))].sort())
   const responsables   = computed(() => [...new Set(contactos.value.map(c => c.responsable))].sort())
   const filtrosActivos = computed(() =>
-    [filtroEstado.value !== 'todos', filtroCiudad.value !== 'todas',
+    [filtroEstado.value !== 'todos', filtroCiudad.value !== 'todas', filtroDepartamento.value !== 'todos',
      filtroResponsable.value !== 'todos', filtroSexo.value !== 'todos',
      filtroEdad.value !== 'todos'].filter(Boolean).length
   )
 
   const limpiarFiltros = () => {
-    filtroEstado.value      = 'todos'
-    filtroCiudad.value      = 'todas'
-    filtroResponsable.value = 'todos'
-    filtroSexo.value        = 'todos'
-    filtroEdad.value        = 'todos'
+    filtroEstado.value       = 'todos'
+    filtroCiudad.value       = 'todas'
+    filtroDepartamento.value = 'todos'
+    filtroResponsable.value  = 'todos'
+    filtroSexo.value         = 'todos'
+    filtroEdad.value         = 'todos'
   }
 
   const paginaActual = ref(1)
@@ -75,6 +80,13 @@ export function useContactos() {
     return contactosFiltrados.value.slice(start, start + porPagina)
   })
   const totalPaginas = computed(() => Math.ceil(contactosFiltrados.value.length / porPagina))
+
+  // Si cambia la búsqueda o algún filtro, se vuelve a la página 1: si te quedabas en una
+  // página que ya no existe (ej. estabas en la 2 y el filtro dejó 6 o menos resultados),
+  // "paginado" quedaba vacío por el slice fuera de rango, mostrando "sin resultados" mal.
+  watch([buscar, filtroEstado, filtroCiudad, filtroDepartamento, filtroResponsable, filtroSexo, filtroEdad], () => {
+    paginaActual.value = 1
+  })
 
   const guardandoContacto = ref(false)
   const errorGuardarContacto = ref<string | null>(null)
@@ -99,7 +111,19 @@ export function useContactos() {
   const actualizarContacto = (id: number, data: ContactoDraft) => {
     const idx = contactos.value.findIndex(c => c.id === id)
     if (idx === -1) return
-    contactos.value[idx] = { ...data, id, etiquetas: [...data.etiquetas], responsable: contactos.value[idx].responsable }
+    // data.ciudad/data.departamento son el código elegido en el Select; se resuelven a
+    // nombre legible para la tabla/filtros (mismo criterio que mapContactoResponse al crear).
+    const { departamentos, municipios } = useUbicaciones()
+    const depto = departamentos.value.find(d => d.codigo === data.departamento)
+    const municipio = municipios.value.find(m => m.codigo === data.ciudad && m.departamentoCodigo === data.departamento)
+    contactos.value[idx] = {
+      ...data, id, etiquetas: [...data.etiquetas],
+      responsable: contactos.value[idx].responsable,
+      ciudad: municipio?.nombre ?? data.ciudad,
+      departamento: depto?.nombre ?? data.departamento,
+      ciudadCodigo: data.ciudad,
+      departamentoCodigo: data.departamento,
+    }
   }
 
   // ─── Etiquetas (catálogo real para el selector del formulario) ──────────────
@@ -139,8 +163,8 @@ export function useContactos() {
 
   return {
     contactos, cargandoContactos, errorContactos, cargarContactos,
-    buscar, filtroEstado, filtroCiudad, filtroResponsable, filtroSexo, filtroEdad,
-    contactosFiltrados, ciudades, responsables, filtrosActivos, limpiarFiltros,
+    buscar, filtroEstado, filtroCiudad, filtroDepartamento, filtroResponsable, filtroSexo, filtroEdad,
+    contactosFiltrados, ciudades, departamentosLista, responsables, filtrosActivos, limpiarFiltros,
     paginaActual, porPagina, paginado, totalPaginas,
     crearContacto, actualizarContacto, guardandoContacto, errorGuardarContacto,
     etiquetas, cargandoEtiquetas, errorEtiquetas, cargarEtiquetas,

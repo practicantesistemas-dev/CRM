@@ -9,6 +9,7 @@ import FieldError from '@/shared/components/FieldError.vue'
 import BuscadorEntidad, { type OpcionBuscador } from '@/shared/components/BuscadorEntidad.vue'
 import { getEmpresas } from '@/features/empresas/services/empresas.api'
 import { getContactos } from '@/features/contactos/services/contactos.api'
+import type { Contacto } from '@/features/contactos/types/contacto'
 import { getTitulares } from '@/features/plan-liga/services/plan-liga.api'
 import type { Titular } from '@/features/plan-liga/types/plan-liga'
 
@@ -22,14 +23,17 @@ const opcionesEmpresas = computed<OpcionBuscador[]>(() =>
   getEmpresas().map(e => ({ id: e.id, label: e.razonSocial, sublabel: e.ciudad })),
 )
 
+const contactos = ref<Contacto[]>([])
+onMounted(async () => { contactos.value = await getContactos() })
+
 const opcionesContactos = computed<OpcionBuscador[]>(() =>
-  getContactos().map(c => ({ id: c.id, label: c.nombre, sublabel: c.empresa })),
+  contactos.value.map(c => ({ id: c.id, label: c.nombre, sublabel: c.empresa })),
 )
 
 const opcionesContactosDeEmpresa = computed<OpcionBuscador[]>(() => {
   const empresa = opcionesEmpresas.value.find(e => e.id === draft.value.empresaId)
   if (!empresa) return []
-  return getContactos()
+  return contactos.value
     .filter(c => c.empresa === empresa.label)
     .map(c => ({ id: c.id, label: c.nombre, sublabel: c.cargo }))
 })

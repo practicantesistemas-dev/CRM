@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Briefcase, MapPin, ClipboardList, Edit2, Clock } from 'lucide-vue-next'
+import { Briefcase, MapPin, ClipboardList, Edit2, Clock, ChevronLeft, ChevronRight } from 'lucide-vue-next'
 import type { Contacto } from '../types/contacto'
 import { estadoStyle } from '../constants/contactos.constants'
 import ContactoAvatar from '../components/ContactoAvatar.vue'
@@ -107,13 +107,18 @@ const emit = defineEmits<{
         </tbody>
       </table>
     </div>
-    <div v-if="totalPaginas > 1" class="flex items-center justify-between px-5 py-3 border-t border-slate-100 bg-[#F8FAFC]">
-      <span class="text-[11px] text-slate-500">Página {{ paginaActual }} de {{ totalPaginas }}</span>
-      <div class="flex gap-1">
-        <button v-for="p in totalPaginas" :key="p" @click="emit('update:paginaActual', p)"
-          class="w-7 h-7 rounded-lg text-[11px] font-semibold transition-all"
-          :class="p === paginaActual ? 'bg-[#2447F9] text-white shadow' : 'bg-white border border-slate-200 text-slate-500 hover:border-[#2447F9] hover:text-[#2447F9]'">{{ p }}</button>
-      </div>
+    <div v-if="totalPaginas > 1" class="flex items-center justify-center gap-3 px-1 py-3 border-t border-slate-100 bg-[#F8FAFC]">
+      <button @click="emit('update:paginaActual', paginaActual - 1)" :disabled="paginaActual <= 1"
+        class="w-8 h-8 rounded-lg border border-slate-200 bg-white text-slate-500 flex items-center justify-center hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+        title="Página anterior">
+        <ChevronLeft :size="15" />
+      </button>
+      <span class="text-[11px] text-slate-400">Página <strong class="text-slate-600">{{ paginaActual }}</strong> de <strong class="text-slate-600">{{ totalPaginas }}</strong></span>
+      <button @click="emit('update:paginaActual', paginaActual + 1)" :disabled="paginaActual >= totalPaginas"
+        class="w-8 h-8 rounded-lg border border-slate-200 bg-white text-slate-500 flex items-center justify-center hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+        title="Página siguiente">
+        <ChevronRight :size="15" />
+      </button>
     </div>
   </div>
 </template>

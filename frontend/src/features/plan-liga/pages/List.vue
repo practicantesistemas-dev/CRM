@@ -308,10 +308,10 @@ const modalImportVisible = ref(false)
 
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm px-4 py-3">
       <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-        <div class="relative flex-1 min-w-0">
+        <div class="relative flex-1 min-w-[220px]">
           <Search :size="14" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input v-model="buscar" placeholder="Buscar por nombre, documento, empresa o correo..."
-            class="w-full h-9 pl-9 pr-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white transition-all" />
+          <input v-model="buscar" placeholder="Buscar titular..." title="Buscar por nombre, documento, empresa o correo"
+            class="w-full h-9 pl-9 pr-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white transition-all truncate" />
         </div>
         <div class="flex flex-wrap items-center gap-2">
           <select v-model="filtroEstado" class="h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer flex-1 sm:flex-none min-w-[120px]">
