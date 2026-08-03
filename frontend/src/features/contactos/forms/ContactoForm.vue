@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { User, Mail, Phone, Building2, Briefcase, MapPin, UserCheck, Tag, X, Loader2, Plus, AlertCircle } from 'lucide-vue-next'
+import { ref, computed, watch } from 'vue'
+import Select from 'primevue/select'
+import { User, Mail, Phone, Building2, Briefcase, Tag, X, Loader2, Plus, AlertCircle } from 'lucide-vue-next'
 import type { ContactoDraft, Etiqueta, EtiquetaDraft } from '../types/contacto'
 import { TIPO_CONTACTO_OPTIONS } from '../constants/contactos.constants'
 import { contactoSchema } from '../schemas/contacto.schema'
@@ -8,6 +9,7 @@ import { useZodForm } from '@/shared/composables/useZodForm'
 import { useNombreCompuesto } from '@/shared/composables/useNombreCompuesto'
 import { faltaApellido } from '@/shared/utils/nombreCompuesto'
 import { fieldStateClass } from '@/shared/utils/fieldStateClass'
+import { useUbicaciones } from '@/shared/composables/useUbicaciones'
 import FieldError from '@/shared/components/FieldError.vue'
 import FechaInput from '@/shared/components/FechaInput.vue'
 
@@ -25,6 +27,16 @@ const emit = defineEmits<{ validSubmit: [] }>()
 const { errors, tocar, esVisible, onValidSubmit } = useZodForm(contactoSchema, draft)
 const nombre = useNombreCompuesto(draft, 'nombre')
 const apellidoFaltante = computed(() => faltaApellido(nombre))
+
+const { departamentos, municipios, cargandoUbicaciones, municipiosDeDepartamento } = useUbicaciones()
+const municipiosDisponibles = computed(() => draft.value.departamento ? municipiosDeDepartamento(draft.value.departamento) : [])
+// Si cambia el departamento, la ciudad elegida deja de ser válida a menos que pertenezca al nuevo
+// (mismo criterio que TitularForm.vue). Con el catálogo aún sin cargar no se puede saber si
+// pertenece, así que no se toca para no borrar la ciudad de un contacto que se está editando.
+watch(() => draft.value.departamento, (nuevo, anterior) => {
+  if (nuevo === anterior || !draft.value.ciudad || municipios.value.length === 0) return
+  if (!municipiosDeDepartamento(nuevo).some(m => m.codigo === draft.value.ciudad)) draft.value.ciudad = ''
+})
 
 defineExpose({ submit: onValidSubmit(() => { if (!apellidoFaltante.value) emit('validSubmit') }) })
 
@@ -85,7 +97,7 @@ const crearYSeleccionarEtiqueta = async () => {
       <FieldError :message="esVisible('documento') ? errors.documento : undefined" />
     </div>
     <div>
-      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Correo electrónico *</label>
+      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Correo electrónico</label>
       <div class="relative"><Mail :size="13" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
         <input v-model="draft.correo" @blur="tocar('correo')" type="email" placeholder="correo@empresa.com" class="w-full h-10 pl-9 pr-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all" :class="fieldStateClass(esVisible('correo') && !!errors.correo, esVisible('correo') && !errors.correo && !!draft.correo, 'border-slate-200 focus:border-[#2447F9]')" /></div>
       <FieldError :message="esVisible('correo') ? errors.correo : undefined" />
@@ -107,14 +119,21 @@ const crearYSeleccionarEtiqueta = async () => {
         <input v-model="draft.cargo" placeholder="Ej: Gerente Comercial" class="w-full h-10 pl-9 pr-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#2447F9] focus:bg-white transition-all" /></div>
     </div>
     <div>
-      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Ciudad</label>
-      <div class="relative"><MapPin :size="13" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-        <input v-model="draft.ciudad" placeholder="Ej: Pereira" class="w-full h-10 pl-9 pr-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#2447F9] focus:bg-white transition-all" /></div>
+      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Departamento *</label>
+      <Select v-model="draft.departamento" @change="tocar('departamento')" :options="departamentos" option-label="nombre" option-value="codigo"
+        filter filter-placeholder="Buscar departamento..." :loading="cargandoUbicaciones" placeholder="Selecciona un departamento"
+        empty-filter-message="Sin resultados" empty-message="Sin departamentos" class="w-full" input-class="h-10 text-[12px] flex items-center"
+        :class="fieldStateClass(esVisible('departamento') && !!errors.departamento, esVisible('departamento') && !errors.departamento && !!draft.departamento, '')" />
+      <FieldError :message="esVisible('departamento') ? errors.departamento : undefined" />
     </div>
     <div>
-      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Departamento</label>
-      <div class="relative"><MapPin :size="13" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-        <input v-model="draft.departamento" placeholder="Ej: Risaralda" class="w-full h-10 pl-9 pr-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#2447F9] focus:bg-white transition-all" /></div>
+      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Ciudad *</label>
+      <Select v-model="draft.ciudad" @change="tocar('ciudad')" :options="municipiosDisponibles" option-label="nombre" option-value="codigo"
+        filter filter-placeholder="Buscar municipio..." :disabled="!draft.departamento" :loading="cargandoUbicaciones"
+        :placeholder="draft.departamento ? 'Selecciona un municipio' : 'Elige primero un departamento'"
+        empty-filter-message="Sin resultados" empty-message="Sin municipios" class="w-full" input-class="h-10 text-[12px] flex items-center"
+        :class="fieldStateClass(esVisible('ciudad') && !!errors.ciudad, esVisible('ciudad') && !errors.ciudad && !!draft.ciudad, '')" />
+      <FieldError :message="esVisible('ciudad') ? errors.ciudad : undefined" />
     </div>
     <div>
       <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Tipo de contacto</label>
@@ -123,25 +142,16 @@ const crearYSeleccionarEtiqueta = async () => {
       </select>
     </div>
     <div>
-      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Estado</label>
-      <select v-model="draft.estado" class="w-full h-10 px-3 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#2447F9] focus:bg-white transition-all cursor-pointer">
-        <option value="Activo">Activo</option><option value="Inactivo">Inactivo</option>
-        <option value="Prospecto">Prospecto</option><option value="En proceso">En proceso</option>
-      </select>
-    </div>
-    <div>
       <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Fecha de nacimiento</label>
       <FechaInput v-model="draft.fechaNacimiento" />
     </div>
     <div>
-      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Responsable</label>
-      <div class="relative"><UserCheck :size="13" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-        <select v-model="draft.responsable" class="w-full h-10 pl-9 pr-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#2447F9] focus:bg-white transition-all cursor-pointer">
-          <option value="">Seleccionar responsable</option>
-          <option value="María García">María García</option>
-          <option value="Juan López">Juan López</option>
-          <option value="Carlos Torres">Carlos Torres</option>
-        </select></div>
+      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Sexo biológico</label>
+      <select v-model="draft.sexo" class="w-full h-10 px-3 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#2447F9] focus:bg-white transition-all cursor-pointer">
+        <option value="">Indefinido</option>
+        <option value="Masculino">Masculino</option>
+        <option value="Femenino">Femenino</option>
+      </select>
     </div>
     <div class="sm:col-span-2">
       <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Etiquetas <span class="font-normal normal-case text-slate-400">(opcional)</span></label>

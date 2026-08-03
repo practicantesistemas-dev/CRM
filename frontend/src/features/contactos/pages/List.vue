@@ -10,7 +10,8 @@ import HistorialDrawer from '../dialogs/HistorialDrawer.vue'
 import ContactosTable from '../tables/ContactosTable.vue'
 
 const {
-  contactos, buscar, filtroEstado, filtroCiudad, filtroResponsable, filtroSexo, filtroEdad,
+  contactos, cargandoContactos, errorContactos, cargarContactos,
+  buscar, filtroEstado, filtroCiudad, filtroResponsable, filtroSexo, filtroEdad,
   contactosFiltrados, ciudades, responsables, filtrosActivos, limpiarFiltros,
   paginaActual, paginado, totalPaginas,
   crearContacto, actualizarContacto, guardandoContacto, errorGuardarContacto,
@@ -18,7 +19,7 @@ const {
   crearEtiqueta, creandoEtiqueta, errorCrearEtiqueta,
 } = useContactos()
 
-onMounted(cargarEtiquetas)
+onMounted(() => { cargarContactos(); cargarEtiquetas() })
 
 // ─── Modal Contacto ─────────────────────────────────────────────────────────
 const modalVisible     = ref(false)
@@ -114,7 +115,6 @@ const abrirSeguimiento = (c: Contacto) => { contactoSegActual.value = c; modalSe
             <option value="todos">Sexo: Todos</option>
             <option value="Masculino">Masculino</option>
             <option value="Femenino">Femenino</option>
-            <option value="Otro">Otro</option>
           </select>
           <select v-model="filtroEdad" class="h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer">
             <option value="todos">Edad: Todos</option>
@@ -130,9 +130,13 @@ const abrirSeguimiento = (c: Contacto) => { contactoSegActual.value = c; modalSe
         </div>
       </div>
       <div class="mt-2 text-[11px] text-slate-400">
-        Mostrando <strong class="text-slate-600">{{ contactosFiltrados.length }}</strong> contactos
-        <span v-if="buscar || filtrosActivos > 0"> · filtrado de {{ contactos.length }} total</span>
+        <template v-if="cargandoContactos">Cargando contactos...</template>
+        <template v-else>
+          Mostrando <strong class="text-slate-600">{{ contactosFiltrados.length }}</strong> contactos
+          <span v-if="buscar || filtrosActivos > 0"> · filtrado de {{ contactos.length }} total</span>
+        </template>
       </div>
+      <p v-if="errorContactos" class="mt-1 text-[11px] font-medium text-red-500">{{ errorContactos }}</p>
     </div>
 
     <!-- ── Table ─────────────────────────────────────────────────── -->

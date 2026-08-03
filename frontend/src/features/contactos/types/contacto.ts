@@ -23,12 +23,14 @@ export interface Contacto {
   /** Clasificación general del contacto en el backend (TipoContacto: solo admite estos dos valores). */
   tipoContacto: 'Cliente' | 'Prospecto'
   fechaNacimiento: string
-  sexo: 'Masculino' | 'Femenino' | 'Otro'
+  sexo: 'Masculino' | 'Femenino' | ''
   etiquetas: Etiqueta[]
   responsable: string
 }
 
-export type ContactoDraft = Omit<Contacto, 'id'>
+// 'responsable' queda fuera: no se captura en el formulario, lo resuelve el backend
+// a partir del usuario autenticado (Bearer token) al crear el contacto.
+export type ContactoDraft = Omit<Contacto, 'id' | 'responsable'>
 
 export type TipoSeguimiento = 'Llamada' | 'Correo' | 'Reunión' | 'WhatsApp' | 'Nota'
 

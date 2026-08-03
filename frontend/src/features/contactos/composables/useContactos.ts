@@ -1,14 +1,28 @@
 import { ref, computed } from 'vue'
 import type { Contacto, ContactoDraft, Etiqueta, EtiquetaDraft } from '../types/contacto'
 import {
-  getContactos, createContacto, updateContacto,
+  getContactos, createContacto,
   getEtiquetas, createEtiqueta,
 } from '../services/contactos.api'
 
 const PAGE_SIZE = 8
 
 export function useContactos() {
-  const contactos = ref<Contacto[]>(getContactos())
+  const contactos = ref<Contacto[]>([])
+  const cargandoContactos = ref(false)
+  const errorContactos = ref<string | null>(null)
+
+  const cargarContactos = async () => {
+    cargandoContactos.value = true
+    errorContactos.value = null
+    try {
+      contactos.value = await getContactos()
+    } catch (e) {
+      errorContactos.value = e instanceof Error ? e.message : 'No se pudo cargar el listado de contactos.'
+    } finally {
+      cargandoContactos.value = false
+    }
+  }
 
   const buscar            = ref('')
   const filtroEstado      = ref('todos')
@@ -65,8 +79,6 @@ export function useContactos() {
   const guardandoContacto = ref(false)
   const errorGuardarContacto = ref<string | null>(null)
 
-  // Único tramo que ya habla con el backend real (POST /api/contactos/); el resto de este
-  // composable sigue sobre el mock local hasta que exista un GET /api/contactos/.
   const crearContacto = async (data: ContactoDraft): Promise<boolean> => {
     guardandoContacto.value = true
     errorGuardarContacto.value = null
@@ -82,11 +94,12 @@ export function useContactos() {
     }
   }
 
+  // Todavía no hay un PUT/PATCH /api/contactos/{id} real: el cambio solo se refleja
+  // en la tabla en memoria y se pierde al recargar la página.
   const actualizarContacto = (id: number, data: ContactoDraft) => {
-    const actualizado = updateContacto(id, data)
-    if (!actualizado) return
     const idx = contactos.value.findIndex(c => c.id === id)
-    if (idx !== -1) contactos.value[idx] = actualizado
+    if (idx === -1) return
+    contactos.value[idx] = { ...data, id, etiquetas: [...data.etiquetas], responsable: contactos.value[idx].responsable }
   }
 
   // ─── Etiquetas (catálogo real para el selector del formulario) ──────────────
@@ -125,7 +138,7 @@ export function useContactos() {
   }
 
   return {
-    contactos,
+    contactos, cargandoContactos, errorContactos, cargarContactos,
     buscar, filtroEstado, filtroCiudad, filtroResponsable, filtroSexo, filtroEdad,
     contactosFiltrados, ciudades, responsables, filtrosActivos, limpiarFiltros,
     paginaActual, porPagina, paginado, totalPaginas,
