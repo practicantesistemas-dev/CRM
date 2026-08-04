@@ -1,10 +1,9 @@
 import { ref, computed, watch } from 'vue'
-import type { Contacto, ContactoDraft, Etiqueta, EtiquetaDraft } from '../types/contacto'
+import type { Contacto, ContactoDraft, Etiqueta, EtiquetaDraft, HistorialItem } from '../types/contacto'
 import {
-  getContactos, createContacto,
+  getContactos, createContacto, updateContacto, getBitacoraContacto,
   getEtiquetas, createEtiqueta,
 } from '../services/contactos.api'
-import { useUbicaciones } from '@/shared/composables/useUbicaciones'
 
 const PAGE_SIZE = 6
 
@@ -106,23 +105,37 @@ export function useContactos() {
     }
   }
 
-  // Todavía no hay un PUT/PATCH /api/contactos/{id} real: el cambio solo se refleja
-  // en la tabla en memoria y se pierde al recargar la página.
-  const actualizarContacto = (id: number, data: ContactoDraft) => {
-    const idx = contactos.value.findIndex(c => c.id === id)
-    if (idx === -1) return
-    // data.ciudad/data.departamento son el código elegido en el Select; se resuelven a
-    // nombre legible para la tabla/filtros (mismo criterio que mapContactoResponse al crear).
-    const { departamentos, municipios } = useUbicaciones()
-    const depto = departamentos.value.find(d => d.codigo === data.departamento)
-    const municipio = municipios.value.find(m => m.codigo === data.ciudad && m.departamentoCodigo === data.departamento)
-    contactos.value[idx] = {
-      ...data, id, etiquetas: [...data.etiquetas],
-      responsable: contactos.value[idx].responsable,
-      ciudad: municipio?.nombre ?? data.ciudad,
-      departamento: depto?.nombre ?? data.departamento,
-      ciudadCodigo: data.ciudad,
-      departamentoCodigo: data.departamento,
+  const actualizarContacto = async (id: number, data: ContactoDraft): Promise<boolean> => {
+    guardandoContacto.value = true
+    errorGuardarContacto.value = null
+    try {
+      const actualizado = await updateContacto(id, data)
+      const idx = contactos.value.findIndex(c => c.id === id)
+      if (idx !== -1) contactos.value[idx] = actualizado
+      return true
+    } catch (e) {
+      errorGuardarContacto.value = e instanceof Error ? e.message : 'No se pudo actualizar el contacto.'
+      return false
+    } finally {
+      guardandoContacto.value = false
+    }
+  }
+
+  // ─── Historial (últimas actividades de bitácora) de un contacto ─────────────
+  const historialActual = ref<HistorialItem[]>([])
+  const cargandoHistorial = ref(false)
+  const errorHistorial = ref<string | null>(null)
+
+  const cargarHistorial = async (contactoId: number) => {
+    cargandoHistorial.value = true
+    errorHistorial.value = null
+    try {
+      historialActual.value = await getBitacoraContacto(contactoId)
+    } catch (e) {
+      errorHistorial.value = e instanceof Error ? e.message : 'No se pudo cargar el historial.'
+      historialActual.value = []
+    } finally {
+      cargandoHistorial.value = false
     }
   }
 
@@ -167,6 +180,7 @@ export function useContactos() {
     contactosFiltrados, ciudades, departamentosLista, responsables, filtrosActivos, limpiarFiltros,
     paginaActual, porPagina, paginado, totalPaginas,
     crearContacto, actualizarContacto, guardandoContacto, errorGuardarContacto,
+    historialActual, cargandoHistorial, errorHistorial, cargarHistorial,
     etiquetas, cargandoEtiquetas, errorEtiquetas, cargarEtiquetas,
     crearEtiqueta, creandoEtiqueta, errorCrearEtiqueta,
   }

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { X, ClipboardList, CheckCircle } from 'lucide-vue-next'
+import { X, ClipboardList, CheckCircle, Loader2 } from 'lucide-vue-next'
 import type { Contacto, SeguimientoDraft, TipoSeguimiento } from '../types/contacto'
 import { TIPOS_SEGUIMIENTO_META } from '../constants/contactos.constants'
 import { seguimientoSchema } from '../schemas/seguimiento.schema'
@@ -10,11 +10,14 @@ import FieldError from '@/shared/components/FieldError.vue'
 import FechaInput from '@/shared/components/FechaInput.vue'
 import BuscadorEntidad, { type OpcionBuscador } from '@/shared/components/BuscadorEntidad.vue'
 import { getOportunidades } from '@/features/oportunidades/services/oportunidades.api'
+import { createActividad } from '@/features/relacionamiento/services/relacionamiento.api'
 
 const props = defineProps<{ contacto: Contacto | null }>()
 const visible = defineModel<boolean>('visible', { required: true })
 
 const segGuardado = ref(false)
+const guardando = ref(false)
+const error = ref<string | null>(null)
 const formSeg = ref<SeguimientoDraft>({
   tipo: 'Nota', accion: '', proximoPaso: '', fecha: new Date().toISOString().split('T')[0], oportunidadId: null,
 })
@@ -31,12 +34,34 @@ watch(visible, (v) => {
   if (!v) return
   formSeg.value = { tipo: 'Nota', accion: '', proximoPaso: '', fecha: new Date().toISOString().split('T')[0], oportunidadId: null }
   segGuardado.value = false
+  error.value = null
 })
 
-const guardarSeguimiento = onValidSubmit(() => {
-  // En producción esto se persistiría en la bitácora
-  segGuardado.value = true
-  setTimeout(() => { visible.value = false; segGuardado.value = false }, 1200)
+const guardarSeguimiento = onValidSubmit(async () => {
+  if (!props.contacto) return
+  guardando.value = true
+  error.value = null
+  try {
+    await createActividad({
+      tipo: formSeg.value.tipo,
+      contactoId: props.contacto.id,
+      contactoNombre: props.contacto.nombre,
+      empresaNombre: props.contacto.empresa,
+      titularId: null,
+      titularNombre: '',
+      accion: formSeg.value.accion,
+      proximoPaso: formSeg.value.proximoPaso,
+      fecha: formSeg.value.fecha,
+      usuario: '',
+      oportunidadId: formSeg.value.oportunidadId,
+    })
+    segGuardado.value = true
+    setTimeout(() => { visible.value = false; segGuardado.value = false }, 1200)
+  } catch (e) {
+    error.value = e instanceof Error ? e.message : 'No se pudo registrar el seguimiento.'
+  } finally {
+    guardando.value = false
+  }
 })
 </script>
 
@@ -122,11 +147,15 @@ const guardarSeguimiento = onValidSubmit(() => {
             vacio="Este contacto aún no tiene oportunidades asociadas"
           />
         </div>
+
+        <p v-if="error" class="text-[11px] text-red-600 font-medium">{{ error }}</p>
       </div>
 
       <div v-if="!segGuardado" class="flex items-center justify-end gap-2 px-6 py-4 border-t border-slate-200 bg-[#F8FAFC]">
         <button @click="visible = false" class="h-9 px-5 rounded-lg border border-slate-200 bg-white text-[11px] font-semibold text-slate-600 hover:bg-slate-50 transition-all">Cancelar</button>
-        <button @click="guardarSeguimiento" class="h-9 px-6 rounded-lg bg-[#059669] text-white text-[11px] font-bold shadow hover:bg-[#047857] transition-all">
+        <button @click="guardarSeguimiento" :disabled="guardando"
+          class="flex items-center gap-1.5 h-9 px-6 rounded-lg bg-[#059669] text-white text-[11px] font-bold shadow hover:bg-[#047857] disabled:opacity-60 disabled:cursor-not-allowed transition-all">
+          <Loader2 v-if="guardando" :size="12" class="animate-spin" />
           Guardar en Bitácora
         </button>
       </div>

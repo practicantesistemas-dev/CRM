@@ -310,25 +310,25 @@ const modalImportVisible = ref(false)
       <div class="flex flex-wrap gap-2 items-center">
         <div class="relative flex-1 min-w-[220px] max-w-[350px]">
           <Search :size="14" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input v-model="buscar" placeholder="Buscar titular (empresa, nombre, cédula)..." title="Buscar por nombre, documento, empresa o correo"
+          <input v-model="buscar" placeholder="Buscar titular (cédula,nombre,empresa)..." title="Buscar por nombre, documento, empresa o correo"
             class="w-full h-9 pl-9 pr-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white transition-all truncate" />
         </div>
-        <select v-model="filtroEstado" class="h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer w-[130px] shrink-0">
+        <select v-model="filtroEstado" class="h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer w-[145px] shrink-0">
           <option value="todos">Estado: Todos</option>
           <option value="Activo">Activo</option>
           <option value="Inactivo">Inactivo</option>
         </select>
-        <select v-model="filtroPlan" class="h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer w-[130px] shrink-0">
+        <select v-model="filtroPlan" class="h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer w-[145px] shrink-0">
           <option value="todos">Plan: Todos</option>
           <option value="estandar">Estándar</option>
           <option v-for="p in planesServicio" :key="p.id" :value="p.id">{{ p.nombre }}</option>
         </select>
-        <select v-model="filtroSexo" class="h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer w-[160px] shrink-0">
+        <select v-model="filtroSexo" class="h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer w-[180px] shrink-0">
           <option value="todos">Sexo biológico: Todos</option>
           <option value="Masculino">Masculino</option>
           <option value="Femenino">Femenino</option>
         </select>
-        <select v-model="filtroEdad" class="h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer w-[130px] shrink-0">
+        <select v-model="filtroEdad" class="h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer w-[145px] shrink-0">
           <option value="todos">Edad: Todos</option>
           <option value="0-17">0 – 17 años</option>
           <option value="18-35">18 – 35 años</option>
