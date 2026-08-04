@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { Edit2, ToggleLeft, ToggleRight, RefreshCw, History, ClipboardList } from 'lucide-vue-next'
+import { Edit2, ToggleLeft, ToggleRight, RefreshCw, ArrowLeftRight, History, ClipboardList } from 'lucide-vue-next'
 import type { Beneficiario } from '../types/plan-liga'
-import { estadoBeneStyle } from '../constants/plan-liga.constants'
+import { estadoBeneStyle, formatearFechaCorta } from '../constants/plan-liga.constants'
 import PersonaAvatar from './PersonaAvatar.vue'
 
 defineProps<{ beneficiario: Beneficiario }>()
@@ -10,6 +10,7 @@ const emit = defineEmits<{
   activar: []
   desactivar: []
   reemplazar: []
+  'cambiar-titular': []
   seguimiento: []
 }>()
 </script>
@@ -54,7 +55,7 @@ const emit = defineEmits<{
       </div>
       <div v-if="beneficiario.fechaInscripcion" class="min-w-0">
         <div class="text-[9px] font-semibold text-slate-400 uppercase tracking-wide">Inscripción</div>
-        <div class="text-[11px] text-slate-600 truncate">{{ beneficiario.fechaInscripcion }}</div>
+        <div class="text-[11px] text-slate-600 truncate">{{ formatearFechaCorta(beneficiario.fechaInscripcion) }}</div>
       </div>
     </div>
     <div class="flex flex-wrap items-center gap-1 mt-3 pt-3 border-t border-slate-100 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
@@ -63,6 +64,7 @@ const emit = defineEmits<{
       <button v-if="beneficiario.estado === 'Activo'" @click="emit('desactivar')" class="flex items-center gap-1 h-7 px-2.5 rounded-lg bg-slate-100 hover:bg-red-50 hover:text-red-500 text-slate-500 text-[10px] font-semibold transition-all"><ToggleLeft :size="10" /> Desactivar</button>
       <button v-else-if="beneficiario.estado === 'Inactivo'" @click="emit('activar')" class="flex items-center gap-1 h-7 px-2.5 rounded-lg bg-slate-100 hover:bg-emerald-50 hover:text-emerald-600 text-slate-500 text-[10px] font-semibold transition-all"><ToggleRight :size="10" /> Activar</button>
       <button v-if="beneficiario.estado === 'Activo'" @click="emit('reemplazar')" class="flex items-center gap-1 h-7 px-2.5 rounded-lg bg-slate-100 hover:bg-amber-50 hover:text-amber-600 text-slate-500 text-[10px] font-semibold transition-all"><RefreshCw :size="10" /> Reemplazar</button>
+      <button v-if="beneficiario.estado !== 'Retirado' && beneficiario.estado !== 'Reemplazado'" @click="emit('cambiar-titular')" class="flex items-center gap-1 h-7 px-2.5 rounded-lg bg-slate-100 hover:bg-[#EEF2FF] hover:text-[#2447F9] text-slate-500 text-[10px] font-semibold transition-all"><ArrowLeftRight :size="10" /> Cambiar titular</button>
       <button class="flex items-center gap-1 h-7 px-2.5 rounded-lg bg-slate-100 hover:bg-[#EEF2FF] hover:text-[#2447F9] text-slate-500 text-[10px] font-semibold transition-all"><History :size="10" /> Historial</button>
     </div>
   </div>

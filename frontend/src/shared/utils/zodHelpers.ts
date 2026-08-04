@@ -10,18 +10,20 @@ export const optionalEmail = (message = 'Correo electrónico inválido') =>
 
 /**
  * Nombre de persona: "nombre1 [nombre2] apellido1 [apellido2]".
- * Exige al menos un nombre y un apellido (2 a 4 palabras), solo letras, y capitaliza cada palabra.
+ * Exige al menos un nombre y un apellido (2 a 6 palabras: cubre casos con 3 nombres o 3
+ * apellidos, que en el formulario se escriben dos palabras juntas en el campo "segundo
+ * nombre" o "segundo apellido"), solo letras, y capitaliza cada palabra.
  */
 export const nombrePersona = (opts: { opcional?: boolean; message?: string } = {}) => {
   const mensaje = opts.message ??
-    'Escribe nombre(s) y apellido(s) separados por espacio: mínimo un nombre y un apellido, solo letras (máx. 4 palabras)'
+    'Escribe nombre(s) y apellido(s) separados por espacio: mínimo un nombre y un apellido, solo letras (máx. 6 palabras)'
   return z.string()
     .trim()
     .transform((v) => v.replace(/\s+/g, ' '))
     .refine((v) => {
       if (opts.opcional && v === '') return true
       const palabras = v.split(' ').filter(Boolean)
-      return palabras.length >= 2 && palabras.length <= 4 && palabras.every((p) => SOLO_LETRAS.test(p))
+      return palabras.length >= 2 && palabras.length <= 6 && palabras.every((p) => SOLO_LETRAS.test(p))
     }, mensaje)
     .transform((v) => (v === '' ? v : v.split(' ').map(capitalizar).join(' ')))
 }

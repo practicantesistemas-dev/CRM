@@ -1,3 +1,12 @@
+/** Etiqueta real del backend (GET/POST /api/etiquetas/), no un string libre. */
+export interface Etiqueta {
+  id: number
+  nombre: string
+  color: string
+}
+
+export type EtiquetaDraft = Omit<Etiqueta, 'id'>
+
 export interface Contacto {
   id: number
   nombre: string
@@ -7,15 +16,28 @@ export interface Contacto {
   telefono: string
   empresa: string
   cargo: string
+  /** Nombre legible (ej. "Pereira"), para tabla/filtros. */
   ciudad: string
+  /** Nombre legible (ej. "Risaralda"), para tabla/filtros. */
+  departamento: string
+  /** Código DIVIPOLA crudo del municipio, tal como lo maneja el backend (option-value del Select). */
+  ciudadCodigo: string
+  /** Código DIVIPOLA crudo del departamento. */
+  departamentoCodigo: string
   estado: 'Activo' | 'Inactivo' | 'Prospecto' | 'En proceso'
+  /** Clasificación general del contacto en el backend (TipoContacto: solo admite estos dos valores). */
+  tipoContacto: 'Cliente' | 'Prospecto'
   fechaNacimiento: string
-  sexo: 'Masculino' | 'Femenino' | 'Otro'
-  etiquetas: string[]
+  sexo: 'Masculino' | 'Femenino' | ''
+  etiquetas: Etiqueta[]
   responsable: string
 }
 
-export type ContactoDraft = Omit<Contacto, 'id'>
+// 'responsable' queda fuera: no se captura en el formulario, lo resuelve el backend
+// a partir del usuario autenticado (Bearer token) al crear el contacto.
+// 'ciudadCodigo'/'departamentoCodigo' quedan fuera: en el draft, 'ciudad'/'departamento' YA
+// son el código (los Select del formulario usan option-value="codigo" directamente).
+export type ContactoDraft = Omit<Contacto, 'id' | 'responsable' | 'ciudadCodigo' | 'departamentoCodigo'>
 
 export type TipoSeguimiento = 'Llamada' | 'Correo' | 'Reunión' | 'WhatsApp' | 'Nota'
 

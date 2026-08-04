@@ -11,6 +11,7 @@ import BeneficiariosDrawer from '../dialogs/BeneficiariosDrawer.vue'
 import ActivarFechaDialog from '../dialogs/ActivarFechaDialog.vue'
 import ConfirmarDesactivarDialog from '../dialogs/ConfirmarDesactivarDialog.vue'
 import ReemplazarPersonaDialog from '../dialogs/ReemplazarPersonaDialog.vue'
+import CambiarTitularDialog from '../dialogs/CambiarTitularDialog.vue'
 import SeguimientoDialog from '../dialogs/SeguimientoDialog.vue'
 import ImportacionPlanLigaDialog from '../dialogs/ImportacionPlanLigaDialog.vue'
 
@@ -30,6 +31,7 @@ const {
   guardandoBeneficiario, errorGuardarBeneficiario,
   activarEstadoBeneficiario, desactivarEstadoBeneficiario, errorEstadoBeneficiario, guardandoEstadoBeneficiario,
   reemplazarBeneficiarioAccion, reemplazandoBeneficiario, errorReemplazarBeneficiario, resultadoReemplazoBeneficiario,
+  cambiarTitularBeneficiarioAccion, cambiandoTitularBeneficiario, errorCambiarTitularBeneficiario,
   beneficiariosTitular, cargandoBeneficiariosTitular, cargarBeneficiariosTitular,
 } = usePlanLiga()
 
@@ -217,6 +219,23 @@ const confirmarReemplazarBeneficiario = async () => {
   }
 }
 
+const modalCambiarTitularVisible = ref(false)
+const beneficiarioCambiandoTitular = ref<Beneficiario | null>(null)
+
+const abrirCambiarTitular = (b: Beneficiario) => {
+  errorCambiarTitularBeneficiario.value = null
+  beneficiarioCambiandoTitular.value = b
+  modalCambiarTitularVisible.value = true
+}
+const confirmarCambiarTitular = async (documentoTitularNuevo: string) => {
+  if (!titularSeleccionado.value || !beneficiarioCambiandoTitular.value) return
+  const ok = await cambiarTitularBeneficiarioAccion(titularSeleccionado.value.id, beneficiarioCambiandoTitular.value, documentoTitularNuevo)
+  if (ok) {
+    modalCambiarTitularVisible.value = false
+    avisoReemplazo.value = `Beneficiario movido al nuevo titular (documento ${documentoTitularNuevo}) correctamente.`
+  }
+}
+
 // ─── Seguimiento rápido ──────────────────────────────────────────
 const modalSegVisible = ref(false)
 const titularSegActual = ref<Titular | null>(null)
@@ -289,10 +308,10 @@ const modalImportVisible = ref(false)
 
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm px-4 py-3">
       <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-        <div class="relative flex-1 min-w-0">
+        <div class="relative flex-1 min-w-[220px]">
           <Search :size="14" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input v-model="buscar" placeholder="Buscar por nombre, documento, empresa o correo..."
-            class="w-full h-9 pl-9 pr-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white transition-all" />
+          <input v-model="buscar" placeholder="Buscar titular..." title="Buscar por nombre, documento, empresa o correo"
+            class="w-full h-9 pl-9 pr-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white transition-all truncate" />
         </div>
         <div class="flex flex-wrap items-center gap-2">
           <select v-model="filtroEstado" class="h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer flex-1 sm:flex-none min-w-[120px]">
@@ -366,6 +385,7 @@ const modalImportVisible = ref(false)
       @activar="activarBeneficiario"
       @desactivar="desactivarBeneficiario"
       @reemplazar="abrirReemplazarBeneficiario"
+      @cambiar-titular="abrirCambiarTitular"
       @seguimiento="abrirSeguimientoBeneficiario"
       @agregar-nuevo="abrirNuevoBeneficiario"
     />
@@ -432,6 +452,14 @@ const modalImportVisible = ref(false)
       :guardando="reemplazandoBeneficiario"
       :error="errorReemplazarBeneficiario"
       @submit="confirmarReemplazarBeneficiario"
+    />
+
+    <CambiarTitularDialog
+      v-model:visible="modalCambiarTitularVisible"
+      :nombre-actual="beneficiarioCambiandoTitular?.nombre"
+      :guardando="cambiandoTitularBeneficiario"
+      :error="errorCambiarTitularBeneficiario"
+      @confirmar="confirmarCambiarTitular"
     />
 
     <BeneficiarioFormDialog

@@ -51,7 +51,7 @@ export function useDashboard() {
   const cargarActividades = async () => {
     errorActividades.value = null
     try {
-      actividades.value = await getActividadReciente(6)
+      actividades.value = await getActividadReciente(4)
     } catch (e) {
       errorActividades.value = e instanceof Error ? e.message : 'No se pudo cargar la actividad reciente.'
     }

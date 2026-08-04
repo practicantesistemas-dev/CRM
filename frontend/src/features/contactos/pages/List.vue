@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { Search, Plus, Download, Upload, X } from 'lucide-vue-next'
 import type { Contacto, ContactoDraft } from '../types/contacto'
 import { CONTACTO_DRAFT_VACIO, HISTORIAL_MOCK } from '../constants/contactos.constants'
@@ -10,11 +10,16 @@ import HistorialDrawer from '../dialogs/HistorialDrawer.vue'
 import ContactosTable from '../tables/ContactosTable.vue'
 
 const {
-  contactos, buscar, filtroEstado, filtroCiudad, filtroResponsable, filtroSexo, filtroEdad,
-  contactosFiltrados, ciudades, responsables, filtrosActivos, limpiarFiltros,
+  contactos, cargandoContactos, errorContactos, cargarContactos,
+  buscar, filtroEstado, filtroCiudad, filtroDepartamento, filtroResponsable, filtroSexo, filtroEdad,
+  contactosFiltrados, ciudades, departamentosLista, responsables, filtrosActivos, limpiarFiltros,
   paginaActual, paginado, totalPaginas,
-  crearContacto, actualizarContacto,
+  crearContacto, actualizarContacto, guardandoContacto, errorGuardarContacto,
+  etiquetas, cargandoEtiquetas, cargarEtiquetas,
+  crearEtiqueta, creandoEtiqueta, errorCrearEtiqueta,
 } = useContactos()
+
+onMounted(() => { cargarContactos(); cargarEtiquetas() })
 
 // ─── Modal Contacto ─────────────────────────────────────────────────────────
 const modalVisible     = ref(false)
@@ -25,22 +30,27 @@ const draft            = ref<ContactoDraft>({ ...CONTACTO_DRAFT_VACIO })
 const abrirNuevo = () => {
   modalModo.value = 'nuevo'
   contactoEditando.value = null
+  errorGuardarContacto.value = null
   draft.value = { ...CONTACTO_DRAFT_VACIO, etiquetas: [] }
   modalVisible.value = true
 }
 const abrirEditar = (c: Contacto) => {
   modalModo.value = 'editar'
   contactoEditando.value = c
-  draft.value = { ...c, etiquetas: [...c.etiquetas] }
+  errorGuardarContacto.value = null
+  // El draft usa código (ciudadCodigo/departamentoCodigo) porque los Select del formulario
+  // trabajan con option-value="codigo"; c.ciudad/c.departamento son el nombre legible de la tabla.
+  draft.value = { ...c, ciudad: c.ciudadCodigo, departamento: c.departamentoCodigo, etiquetas: [...c.etiquetas] }
   modalVisible.value = true
 }
-const guardarContacto = () => {
+const guardarContacto = async () => {
   if (modalModo.value === 'nuevo') {
-    crearContacto(draft.value)
+    const ok = await crearContacto(draft.value)
+    if (ok) modalVisible.value = false
   } else if (contactoEditando.value) {
     actualizarContacto(contactoEditando.value.id, draft.value)
+    modalVisible.value = false
   }
-  modalVisible.value = false
 }
 
 // ─── Historial drawer ───────────────────────────────────────────────────────
@@ -81,35 +91,38 @@ const abrirSeguimiento = (c: Contacto) => { contactoSegActual.value = c; modalSe
 
     <!-- ── Toolbar ───────────────────────────────────────────────── -->
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm px-4 py-3">
-      <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-        <div class="relative flex-1 min-w-0">
+      <div class="flex flex-col xl:flex-row gap-3 items-start xl:items-center">
+        <div class="relative w-full xl:w-[380px] xl:shrink-0">
           <Search :size="14" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input v-model="buscar" placeholder="Buscar por nombre, correo, empresa o documento..."
-            class="w-full h-9 pl-9 pr-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#2447F9] focus:bg-white transition-all" />
+          <input v-model="buscar" placeholder="Buscar por documento, empresa o nombre..." title="Buscar por nombre, correo, empresa o documento"
+            class="w-full h-9 pl-9 pr-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#2447F9] focus:bg-white transition-all truncate" />
         </div>
-        <div class="flex items-center gap-2 flex-wrap">
-          <select v-model="filtroEstado" class="h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer">
+        <div class="grid grid-cols-3 gap-2 w-full xl:flex xl:flex-wrap xl:items-center xl:flex-1">
+          <select v-model="filtroEstado" class="w-full xl:flex-1 xl:min-w-[155px] xl:max-w-[240px] h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer">
             <option value="todos">Estado: Todos</option>
             <option value="Activo">Activo</option>
             <option value="Inactivo">Inactivo</option>
             <option value="Prospecto">Prospecto</option>
             <option value="En proceso">En proceso</option>
           </select>
-          <select v-model="filtroCiudad" class="h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer">
+          <select v-model="filtroCiudad" class="w-full xl:flex-1 xl:min-w-[185px] xl:max-w-[260px] h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer">
             <option value="todas">Ciudad: Todas</option>
             <option v-for="ciudad in ciudades" :key="ciudad" :value="ciudad">{{ ciudad }}</option>
           </select>
-          <select v-model="filtroResponsable" class="h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer">
+          <select v-model="filtroDepartamento" class="w-full xl:flex-1 xl:min-w-[210px] xl:max-w-[280px] h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer">
+            <option value="todos">Departamento: Todos</option>
+            <option v-for="depto in departamentosLista" :key="depto" :value="depto">{{ depto }}</option>
+          </select>
+          <select v-model="filtroResponsable" class="w-full xl:flex-1 xl:min-w-[195px] xl:max-w-[270px] h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer">
             <option value="todos">Responsable: Todos</option>
             <option v-for="r in responsables" :key="r" :value="r">{{ r }}</option>
           </select>
-          <select v-model="filtroSexo" class="h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer">
+          <select v-model="filtroSexo" class="w-full xl:flex-1 xl:min-w-[140px] xl:max-w-[220px] h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer">
             <option value="todos">Sexo: Todos</option>
             <option value="Masculino">Masculino</option>
             <option value="Femenino">Femenino</option>
-            <option value="Otro">Otro</option>
           </select>
-          <select v-model="filtroEdad" class="h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer">
+          <select v-model="filtroEdad" class="w-full xl:flex-1 xl:min-w-[145px] xl:max-w-[220px] h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer">
             <option value="todos">Edad: Todos</option>
             <option value="0-17">0 – 17 años</option>
             <option value="18-35">18 – 35 años</option>
@@ -117,15 +130,19 @@ const abrirSeguimiento = (c: Contacto) => { contactoSegActual.value = c; modalSe
             <option value="51+">51+ años</option>
           </select>
           <button v-if="filtrosActivos > 0" @click="limpiarFiltros"
-            class="flex items-center gap-1 h-9 px-3 rounded-lg border border-red-200 bg-red-50 text-[11px] font-semibold text-red-500 hover:bg-red-100 transition-all">
+            class="w-full xl:flex-1 xl:min-w-[130px] xl:max-w-[220px] flex items-center justify-center gap-1 h-9 px-3 rounded-lg border border-red-200 bg-red-50 text-[11px] font-semibold text-red-500 hover:bg-red-100 transition-all">
             <X :size="12" /> Limpiar ({{ filtrosActivos }})
           </button>
         </div>
       </div>
       <div class="mt-2 text-[11px] text-slate-400">
-        Mostrando <strong class="text-slate-600">{{ contactosFiltrados.length }}</strong> contactos
-        <span v-if="buscar || filtrosActivos > 0"> · filtrado de {{ contactos.length }} total</span>
+        <template v-if="cargandoContactos">Cargando contactos...</template>
+        <template v-else>
+          Mostrando <strong class="text-slate-600">{{ contactosFiltrados.length }}</strong> contactos
+          <span v-if="buscar || filtrosActivos > 0"> · filtrado de {{ contactos.length }} total</span>
+        </template>
       </div>
+      <p v-if="errorContactos" class="mt-1 text-[11px] font-medium text-red-500">{{ errorContactos }}</p>
     </div>
 
     <!-- ── Table ─────────────────────────────────────────────────── -->
@@ -143,6 +160,13 @@ const abrirSeguimiento = (c: Contacto) => { contactoSegActual.value = c; modalSe
       v-model:visible="modalVisible"
       v-model:draft="draft"
       :modo="modalModo"
+      :guardando="guardandoContacto"
+      :error="errorGuardarContacto"
+      :etiquetas="etiquetas"
+      :cargando-etiquetas="cargandoEtiquetas"
+      :creando-etiqueta="creandoEtiqueta"
+      :error-crear-etiqueta="errorCrearEtiqueta"
+      :crear-etiqueta="crearEtiqueta"
       @submit="guardarContacto"
     />
 

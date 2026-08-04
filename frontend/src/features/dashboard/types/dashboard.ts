@@ -14,7 +14,7 @@ export interface ActividadReciente {
   icono: unknown
   contacto: string
   empresa: string
-  hace: string
+  fechaHora: string
   usuario: string
   color: string
   bg: string
@@ -74,6 +74,8 @@ export interface ActividadRecienteResponse {
   contacto_id: number | null
   contacto_nombre: string | null
   nombre_empresa: string | null
+  titular_id: number | null
+  titular_nombre: string | null
   usuario_id: number | null
   usuario_nombre: string | null
 }

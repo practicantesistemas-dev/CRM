@@ -10,6 +10,7 @@ import {
   getListadoTitulares, getPlanesServicio, getTitular, getBeneficiariosTitular, exportarTitulares,
   activarBeneficiario as activarBeneficiarioApi, desactivarBeneficiario as desactivarBeneficiarioApi,
   reemplazarTitular as reemplazarTitularApi, reemplazarBeneficiario as reemplazarBeneficiarioApi,
+  cambiarTitularBeneficiario as cambiarTitularBeneficiarioApi,
 } from '../services/plan-liga.api'
 import type { FiltrosTitulares } from '../services/plan-liga.api'
 
@@ -356,6 +357,35 @@ export function usePlanLiga() {
     }
   }
 
+  const cambiandoTitularBeneficiario = ref(false)
+  const errorCambiarTitularBeneficiario = ref<string | null>(null)
+
+  // Mueve al beneficiario a otro titular (por documento). El titular actual pierde un activo
+  // (se refresca su drawer y su fila en la tabla); el titular nuevo, si ya está cargado en la
+  // página actual, gana uno — si no está en la página visible, su fila se corrige sola la
+  // próxima vez que se cargue (sincronizarConteoRealTitular).
+  const cambiarTitularBeneficiarioAccion = async (titularActualId: number, b: Beneficiario, documentoTitularNuevo: string): Promise<boolean> => {
+    cambiandoTitularBeneficiario.value = true
+    errorCambiarTitularBeneficiario.value = null
+    try {
+      await cambiarTitularBeneficiarioApi(b.id, documentoTitularNuevo)
+      await cargarBeneficiariosTitular(titularActualId)
+      // Solo mueve el conteo de "activos" si el beneficiario contaba como tal antes del cambio.
+      if (b.estado === 'Activo') {
+        ajustarConteoActivosTitular(titularActualId, -1)
+        const titularNuevo = titulares.value.find(t => t.documento === documentoTitularNuevo)
+        if (titularNuevo) ajustarConteoActivosTitular(titularNuevo.id, 1)
+      }
+      cargarResumen()
+      return true
+    } catch (e) {
+      errorCambiarTitularBeneficiario.value = e instanceof Error ? e.message : 'No se pudo cambiar el titular del beneficiario.'
+      return false
+    } finally {
+      cambiandoTitularBeneficiario.value = false
+    }
+  }
+
   const guardandoEstadoBeneficiario = ref(false)
   const errorEstadoBeneficiario = ref<string | null>(null)
 
@@ -409,6 +439,7 @@ export function usePlanLiga() {
     activarEstadoBeneficiario, desactivarEstadoBeneficiario,
     guardandoEstadoBeneficiario, errorEstadoBeneficiario,
     reemplazarBeneficiarioAccion, reemplazandoBeneficiario, errorReemplazarBeneficiario, resultadoReemplazoBeneficiario,
+    cambiarTitularBeneficiarioAccion, cambiandoTitularBeneficiario, errorCambiarTitularBeneficiario,
     beneficiariosTitular, cargandoBeneficiariosTitular, errorBeneficiariosTitular, cargarBeneficiariosTitular,
   }
 }
