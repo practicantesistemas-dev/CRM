@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { Search, Plus, Download, Upload, X } from 'lucide-vue-next'
+import { Search, Plus, Download, X } from 'lucide-vue-next'
 import type { Contacto, ContactoDraft } from '../types/contacto'
 import { CONTACTO_DRAFT_VACIO } from '../constants/contactos.constants'
 import { useContactos } from '../composables/useContactos'
+import { exportarContactosExcel } from '../utils/exportarContactosExcel'
 import ContactoFormDialog from '../dialogs/ContactoFormDialog.vue'
 import SeguimientoDialog from '../dialogs/SeguimientoDialog.vue'
 import HistorialDrawer from '../dialogs/HistorialDrawer.vue'
@@ -63,6 +64,11 @@ const abrirHistorial = (c: Contacto) => { contactoHistorial.value = c; drawerVis
 const modalSegVisible   = ref(false)
 const contactoSegActual = ref<Contacto | null>(null)
 const abrirSeguimiento = (c: Contacto) => { contactoSegActual.value = c; modalSegVisible.value = true }
+
+// ─── Exportar a Excel ───────────────────────────────────────────────────────
+// Exporta lo que el usuario está viendo en la tabla (respeta búsqueda y filtros activos),
+// no siempre el listado completo de contactos.
+const exportarContactos = () => exportarContactosExcel(contactosFiltrados.value)
 </script>
 
 <template>
@@ -78,10 +84,7 @@ const abrirSeguimiento = (c: Contacto) => { contactoSegActual.value = c; modalSe
         <p class="text-[12px] text-slate-500 mt-0.5">Administra contactos, cargos, etiquetas y seguimientos</p>
       </div>
       <div class="flex items-center gap-2">
-        <button class="flex items-center gap-1.5 h-9 px-4 rounded-lg border border-slate-200 bg-white text-[11px] font-semibold text-slate-600 hover:bg-slate-50 transition-all">
-          <Upload :size="13" /> Importar
-        </button>
-        <button class="flex items-center gap-1.5 h-9 px-4 rounded-lg border border-slate-200 bg-white text-[11px] font-semibold text-slate-600 hover:bg-slate-50 transition-all">
+        <button @click="exportarContactos" class="flex items-center gap-1.5 h-9 px-4 rounded-lg border border-slate-200 bg-white text-[11px] font-semibold text-slate-600 hover:bg-slate-50 transition-all">
           <Download :size="13" /> Exportar
         </button>
         <button @click="abrirNuevo" class="flex items-center gap-1.5 h-9 px-4 rounded-lg bg-[#2447F9] text-white text-[11px] font-bold shadow hover:bg-[#1D3DD9] transition-all">
