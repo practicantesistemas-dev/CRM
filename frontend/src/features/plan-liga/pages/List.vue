@@ -307,36 +307,34 @@ const modalImportVisible = ref(false)
     </div>
 
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm px-4 py-3">
-      <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-        <div class="relative flex-1 min-w-[220px]">
+      <div class="flex flex-wrap gap-2 items-center">
+        <div class="relative flex-1 min-w-[220px] max-w-[350px]">
           <Search :size="14" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input v-model="buscar" placeholder="Buscar titular..." title="Buscar por nombre, documento, empresa o correo"
+          <input v-model="buscar" placeholder="Buscar titular (cédula,nombre,empresa)..." title="Buscar por nombre, documento, empresa o correo"
             class="w-full h-9 pl-9 pr-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white transition-all truncate" />
         </div>
-        <div class="flex flex-wrap items-center gap-2">
-          <select v-model="filtroEstado" class="h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer flex-1 sm:flex-none min-w-[120px]">
-            <option value="todos">Estado: Todos</option>
-            <option value="Activo">Activo</option>
-            <option value="Inactivo">Inactivo</option>
-          </select>
-          <select v-model="filtroPlan" class="h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer flex-1 sm:flex-none min-w-[120px]">
-            <option value="todos">Plan: Todos</option>
-            <option value="estandar">Estándar</option>
-            <option v-for="p in planesServicio" :key="p.id" :value="p.id">{{ p.nombre }}</option>
-          </select>
-          <select v-model="filtroSexo" class="h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer flex-1 sm:flex-none min-w-[120px]">
-            <option value="todos">Sexo biológico: Todos</option>
-            <option value="Masculino">Masculino</option>
-            <option value="Femenino">Femenino</option>
-          </select>
-          <select v-model="filtroEdad" class="h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer flex-1 sm:flex-none min-w-[120px]">
-            <option value="todos">Edad: Todos</option>
-            <option value="0-17">0 – 17 años</option>
-            <option value="18-35">18 – 35 años</option>
-            <option value="36-50">36 – 50 años</option>
-            <option value="51+">51+ años</option>
-          </select>
-        </div>
+        <select v-model="filtroEstado" class="h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer w-[145px] shrink-0">
+          <option value="todos">Estado: Todos</option>
+          <option value="Activo">Activo</option>
+          <option value="Inactivo">Inactivo</option>
+        </select>
+        <select v-model="filtroPlan" class="h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer w-[145px] shrink-0">
+          <option value="todos">Plan: Todos</option>
+          <option value="estandar">Estándar</option>
+          <option v-for="p in planesServicio" :key="p.id" :value="p.id">{{ p.nombre }}</option>
+        </select>
+        <select v-model="filtroSexo" class="h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer w-[180px] shrink-0">
+          <option value="todos">Sexo biológico: Todos</option>
+          <option value="Masculino">Masculino</option>
+          <option value="Femenino">Femenino</option>
+        </select>
+        <select v-model="filtroEdad" class="h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer w-[145px] shrink-0">
+          <option value="todos">Edad: Todos</option>
+          <option value="0-17">0 – 17 años</option>
+          <option value="18-35">18 – 35 años</option>
+          <option value="36-50">36 – 50 años</option>
+          <option value="51+">51+ años</option>
+        </select>
       </div>
       <div class="mt-2 text-[11px] text-slate-400">
         Mostrando <strong class="text-slate-600">{{ titulares.length }}</strong> de <strong class="text-slate-600">{{ totalTitulares }}</strong> titulares

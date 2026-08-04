@@ -1,4 +1,5 @@
-import type { Contacto, ContactoDraft, Etiqueta, EtiquetaDraft } from '../types/contacto'
+import type { Contacto, ContactoDraft, Etiqueta, EtiquetaDraft, HistorialItem, TipoSeguimiento } from '../types/contacto'
+import { TIPOS_SEGUIMIENTO_META } from '../constants/contactos.constants'
 import { splitNombreCompleto, joinNombreCompleto } from '@/shared/utils/nombreCompuesto'
 import { authHeader, useAuth } from '@/features/auth/composables/useAuth'
 import { useUbicaciones, esperarUbicaciones } from '@/shared/composables/useUbicaciones'
@@ -91,10 +92,14 @@ function mapContactoResponse(
   // ciudad/departamento viajan como código DIVIPOLA (igual que en Plan Liga), pero hay
   // registros antiguos con el nombre ya escrito de una: si no matchea ningún código del
   // catálogo, se muestra tal cual vino en vez de perder el dato.
+  // El nombre puede venir en mayúsculas y sin tildes (ej. "MEDELLIN" contra "Medellín" del
+  // catálogo), así que la comparación por nombre ignora tildes/mayúsculas; si no, el Select
+  // del formulario de edición no encuentra el código y queda sin nada seleccionado.
+  const normalizarNombreLugar = (s: string) => s.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
   const depto = catalogo.departamentos.find(d => d.codigo === r.departamento)
-    ?? catalogo.departamentos.find(d => d.nombre.toLowerCase() === (r.departamento ?? '').trim().toLowerCase())
+    ?? catalogo.departamentos.find(d => normalizarNombreLugar(d.nombre) === normalizarNombreLugar(r.departamento ?? ''))
   const municipio = catalogo.municipios.find(m => m.codigo === r.municipio && m.departamentoCodigo === (depto?.codigo ?? r.departamento))
-    ?? catalogo.municipios.find(m => m.nombre.toLowerCase() === (r.municipio ?? '').trim().toLowerCase() && (!depto || m.departamentoCodigo === depto.codigo))
+    ?? catalogo.municipios.find(m => normalizarNombreLugar(m.nombre) === normalizarNombreLugar(r.municipio ?? '') && (!depto || m.departamentoCodigo === depto.codigo))
   const nombreDepartamento = depto?.nombre ?? r.departamento ?? ''
   const nombreMunicipio = municipio?.nombre ?? r.municipio ?? ''
 
@@ -193,5 +198,94 @@ export async function createContacto(data: ContactoDraft): Promise<Contacto> {
     // Respaldo por si la respuesta no trajera "responsable" (no debería pasar): quien
     // crea el contacto queda como responsable, así que se usa el usuario autenticado.
     responsable: useAuth().me.value?.nombres ?? '',
+  })
+}
+
+// Actualiza el contacto en el backend real (PUT /api/contactos/{id}, requiere Bearer token).
+// Todos los campos del body son opcionales para el backend (exclude_unset): acá se manda
+// el set completo que ya vive en el draft, EXCEPTO empresa_id y estado.
+// - empresa_id se omite (no se manda ni siquiera null): el formulario no tiene un id real de
+//   empresa que resolver (mismo motivo que en createContacto), y a diferencia de crear, en
+//   edición mandar null sí podría borrar una asociación de empresa que ya existía.
+// - estado no forma parte del contrato de este PUT (no está en el form tampoco): se deja que
+//   el backend conserve el que ya tenía.
+export async function updateContacto(id: number, data: ContactoDraft): Promise<Contacto> {
+  const { nombre1, nombre2, apellido1, apellido2 } = splitNombreCompleto(data.nombre)
+  const body = {
+    nombre1,
+    nombre2: nombre2 || null,
+    apellido1: apellido1 || null,
+    apellido2: apellido2 || null,
+    tipo_documento: data.tipoDocumento || null,
+    documento: data.documento || null,
+    correo: data.correo || null,
+    telefono: data.telefono || null,
+    cargo: data.cargo || null,
+    departamento: data.departamento || null,
+    municipio: data.ciudad || null,
+    tipo_contacto: data.tipoContacto,
+    fecha_nacimiento: data.fechaNacimiento || null,
+    sexo: SEXO_API[data.sexo] ?? null,
+    etiqueta_ids: data.etiquetas.map(e => e.id),
+  }
+  const response = await fetch(`${API_URL}/api/contactos/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...authHeader() },
+    body: JSON.stringify(body),
+  })
+  if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo actualizar el contacto.')
+  const r: ContactoReadResponse = await response.json()
+
+  const { departamentos, municipios } = useUbicaciones()
+  await esperarUbicaciones()
+  return mapContactoResponse(r, { departamentos: departamentos.value, municipios: municipios.value }, {
+    tipoDocumento: data.tipoDocumento,
+    tipoContacto: data.tipoContacto,
+    sexo: data.sexo,
+    empresa: data.empresa,
+  })
+}
+
+// ─── Bitácora del contacto (GET /api/contactos/{id}/bitacora, sin auth) ──────
+interface BitacoraContactoApiItem {
+  id: number
+  tipo: string
+  descripcion: string
+  proximo_paso: string | null
+  fecha: string
+  estado: string
+  usuario_id: number | null
+  usuario_nombre: string | null
+  contacto_id: number | null
+  contacto_nombre: string | null
+  nombre_empresa: string | null
+  oportunidad_id: number | null
+  titular_id: number | null
+  plan_nombre: string | null
+}
+
+// El "tipo" que guarda el backend no es consistente en mayúsculas/tildes (mismo problema
+// documentado en relacionamiento.api.ts), así que se normaliza antes de mapear al ícono/color.
+const normalizarTipoSeguimiento = (tipo: string) => tipo.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+const TIPO_SEG_DESDE_API: Record<string, TipoSeguimiento> = {
+  llamada: 'Llamada', correo: 'Correo', reunion: 'Reunión', whatsapp: 'WhatsApp', nota: 'Nota',
+}
+
+export async function getBitacoraContacto(contactoId: number, limit = 4): Promise<HistorialItem[]> {
+  const response = await fetch(`${API_URL}/api/contactos/${contactoId}/bitacora?limit=${limit}`)
+  if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo cargar el historial del contacto.')
+  const items: BitacoraContactoApiItem[] = await response.json()
+  return items.map((r) => {
+    const tipo = TIPO_SEG_DESDE_API[normalizarTipoSeguimiento(r.tipo)] ?? 'Nota'
+    const meta = TIPOS_SEGUIMIENTO_META[tipo]
+    return {
+      tipo,
+      desc: r.descripcion,
+      fecha: r.fecha.split('T')[0],
+      usuario: r.usuario_nombre ?? '',
+      icono: meta.icono,
+      color: meta.color,
+      bg: meta.bg,
+    }
   })
 }

@@ -40,7 +40,7 @@ const cuposTitular = (t: Titular, activosLocal: number) => ({
             <th class="text-left px-4 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Beneficiarios</th>
             <th class="text-left px-4 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Inscripción</th>
             <th class="text-left px-4 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Estado</th>
-            <th class="text-right px-5 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Acciones</th>
+            <th class="text-right pl-5 pr-13 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Acciones</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-slate-100">

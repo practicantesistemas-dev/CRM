@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { Search, Plus, Download, Upload, X } from 'lucide-vue-next'
 import type { Contacto, ContactoDraft } from '../types/contacto'
-import { CONTACTO_DRAFT_VACIO, HISTORIAL_MOCK } from '../constants/contactos.constants'
+import { CONTACTO_DRAFT_VACIO } from '../constants/contactos.constants'
 import { useContactos } from '../composables/useContactos'
 import ContactoFormDialog from '../dialogs/ContactoFormDialog.vue'
 import SeguimientoDialog from '../dialogs/SeguimientoDialog.vue'
@@ -15,6 +15,7 @@ const {
   contactosFiltrados, ciudades, departamentosLista, responsables, filtrosActivos, limpiarFiltros,
   paginaActual, paginado, totalPaginas,
   crearContacto, actualizarContacto, guardandoContacto, errorGuardarContacto,
+  historialActual, cargandoHistorial, cargarHistorial,
   etiquetas, cargandoEtiquetas, cargarEtiquetas,
   crearEtiqueta, creandoEtiqueta, errorCrearEtiqueta,
 } = useContactos()
@@ -48,15 +49,15 @@ const guardarContacto = async () => {
     const ok = await crearContacto(draft.value)
     if (ok) modalVisible.value = false
   } else if (contactoEditando.value) {
-    actualizarContacto(contactoEditando.value.id, draft.value)
-    modalVisible.value = false
+    const ok = await actualizarContacto(contactoEditando.value.id, draft.value)
+    if (ok) modalVisible.value = false
   }
 }
 
 // ─── Historial drawer ───────────────────────────────────────────────────────
 const drawerVisible     = ref(false)
 const contactoHistorial = ref<Contacto | null>(null)
-const abrirHistorial = (c: Contacto) => { contactoHistorial.value = c; drawerVisible.value = true }
+const abrirHistorial = (c: Contacto) => { contactoHistorial.value = c; drawerVisible.value = true; cargarHistorial(c.id) }
 
 // ─── Seguimiento rápido ─────────────────────────────────────────────────────
 const modalSegVisible   = ref(false)
@@ -178,7 +179,8 @@ const abrirSeguimiento = (c: Contacto) => { contactoSegActual.value = c; modalSe
     <HistorialDrawer
       v-model:visible="drawerVisible"
       :contacto="contactoHistorial"
-      :items="HISTORIAL_MOCK"
+      :items="historialActual"
+      :cargando="cargandoHistorial"
       @registrar="contactoHistorial && abrirSeguimiento(contactoHistorial)"
     />
   </div>
