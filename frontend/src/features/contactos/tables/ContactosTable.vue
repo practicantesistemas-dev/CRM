@@ -21,47 +21,47 @@ const emit = defineEmits<{
 <template>
   <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
     <div class="overflow-x-auto">
-      <table class="w-full min-w-[1000px]">
+      <table class="w-full min-w-[860px]">
         <thead class="bg-[#F8FAFC] border-b border-slate-200">
           <tr>
-            <th class="text-left px-5 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider w-[220px]">Contacto</th>
-            <th class="text-left px-4 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Documento</th>
-            <th class="text-left px-4 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Empresa · Cargo</th>
-            <th class="text-left px-4 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Ciudad</th>
-            <th class="text-left px-4 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Estado</th>
-            <th class="text-left px-4 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Etiquetas</th>
-            <th class="text-left px-4 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Responsable</th>
-            <th class="text-right px-5 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Acciones</th>
+            <th class="text-left px-4 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider w-[190px]">Contacto</th>
+            <th class="text-left px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Documento</th>
+            <th class="text-left px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Empresa · Cargo</th>
+            <th class="text-left px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Ciudad</th>
+            <th class="text-left px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Estado</th>
+            <th class="text-left px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Etiquetas</th>
+            <th class="text-left px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Responsable</th>
+            <th class="text-right pl-4 pr-6 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider w-[84px]">Acciones</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-slate-100">
           <tr v-for="c in rows" :key="c.id" class="hover:bg-slate-50/60 transition-colors group">
-            <td class="px-5 py-3.5">
-              <div class="flex items-center gap-3">
+            <td class="px-4 py-3">
+              <div class="flex items-center gap-2.5">
                 <ContactoAvatar :nombre="c.nombre" />
                 <div class="min-w-0">
-                  <div class="text-[12px] font-semibold text-[#0F172A] truncate">{{ c.nombre }}</div>
-                  <div class="text-[11px] text-slate-400 truncate">{{ c.correo }}</div>
+                  <div class="text-[12px] font-semibold text-[#0F172A] truncate max-w-[130px]">{{ c.nombre }}</div>
+                  <div class="text-[11px] text-slate-400 truncate max-w-[130px]">{{ c.correo }}</div>
                   <div class="text-[10px] text-slate-400">{{ c.telefono }}</div>
                 </div>
               </div>
             </td>
-            <td class="px-4 py-3.5">
-              <div class="text-[11px] text-slate-500 font-medium"><span class="text-slate-400 mr-1">{{ c.tipoDocumento }}</span>{{ c.documento }}</div>
-              <div class="text-[10px] text-slate-400 mt-0.5">Nac: {{ c.fechaNacimiento }}</div>
+            <td class="px-3 py-3">
+              <div class="text-[11px] text-slate-500 font-medium whitespace-nowrap"><span class="text-slate-400 mr-1">{{ c.tipoDocumento }}</span>{{ c.documento }}</div>
+              <div class="text-[10px] text-slate-400 mt-0.5 whitespace-nowrap">Nac: {{ c.fechaNacimiento }}</div>
             </td>
-            <td class="px-4 py-3.5">
-              <div class="text-[12px] font-semibold text-slate-700 truncate max-w-[160px]">{{ c.empresa }}</div>
-              <div class="text-[11px] text-slate-400 flex items-center gap-1 mt-0.5"><Briefcase :size="10" />{{ c.cargo }}</div>
+            <td class="px-3 py-3">
+              <div class="text-[12px] font-semibold text-slate-700 truncate max-w-[120px]">{{ c.empresa }}</div>
+              <div class="text-[11px] text-slate-400 flex items-center gap-1 mt-0.5 truncate max-w-[120px]"><Briefcase :size="10" class="shrink-0" />{{ c.cargo }}</div>
             </td>
-            <td class="px-4 py-3.5">
-              <div class="flex items-center gap-1 text-[11px] text-slate-600"><MapPin :size="11" class="text-slate-400" />{{ c.ciudad }}</div>
+            <td class="px-3 py-3">
+              <div class="flex items-center gap-1 text-[11px] text-slate-600 truncate max-w-[90px]"><MapPin :size="11" class="text-slate-400 shrink-0" />{{ c.ciudad }}</div>
             </td>
-            <td class="px-4 py-3.5">
-              <span class="text-[11px] font-semibold" :class="estadoStyle(c.estado)">{{ c.estado }}</span>
+            <td class="px-3 py-3">
+              <span class="text-[11px] font-semibold whitespace-nowrap" :class="estadoStyle(c.estado)">{{ c.estado }}</span>
             </td>
-            <td class="px-4 py-3.5">
-              <div class="flex flex-wrap gap-1">
+            <td class="px-3 py-3">
+              <div class="flex flex-wrap gap-1 max-w-[85px]">
                 <span v-for="tag in c.etiquetas.slice(0, 2)" :key="tag.id"
                   class="text-[10px] font-semibold" :style="{ color: tag.color }">{{ tag.nombre }}</span>
                 <span v-if="c.etiquetas.length > 2"
@@ -69,34 +69,34 @@ const emit = defineEmits<{
                 <span v-if="c.etiquetas.length === 0" class="text-[11px] text-slate-300">—</span>
               </div>
             </td>
-            <td class="px-4 py-3.5">
+            <td class="px-3 py-3">
               <div class="flex items-center gap-1.5">
                 <ContactoAvatar :nombre="c.responsable" size="sm" />
-                <span class="text-[11px] text-slate-600 truncate max-w-[100px]">{{ c.responsable }}</span>
+                <span class="text-[11px] text-slate-600 truncate max-w-[75px]">{{ c.responsable }}</span>
               </div>
             </td>
-            <td class="px-5 py-3.5 text-right">
+            <td class="px-3 py-3 text-right">
               <div class="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
                   @click="emit('seguimiento', c)"
-                  class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-[#D1FAE5] hover:text-[#059669] text-slate-500 flex items-center justify-center transition-all"
+                  class="w-6 h-6 rounded-lg bg-slate-100 hover:bg-[#D1FAE5] hover:text-[#059669] text-slate-500 flex items-center justify-center transition-all shrink-0"
                   title="Registrar seguimiento"
                 >
-                  <ClipboardList :size="12" />
+                  <ClipboardList :size="11" />
                 </button>
                 <button
                   @click="emit('editar', c)"
-                  class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-[#EEF2FF] hover:text-[#2447F9] text-slate-500 flex items-center justify-center transition-all"
+                  class="w-6 h-6 rounded-lg bg-slate-100 hover:bg-[#EEF2FF] hover:text-[#2447F9] text-slate-500 flex items-center justify-center transition-all shrink-0"
                   title="Editar"
                 >
-                  <Edit2 :size="12" />
+                  <Edit2 :size="11" />
                 </button>
                 <button
                   @click="emit('historial', c)"
-                  class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-amber-50 hover:text-amber-600 text-slate-500 flex items-center justify-center transition-all"
+                  class="w-6 h-6 rounded-lg bg-slate-100 hover:bg-amber-50 hover:text-amber-600 text-slate-500 flex items-center justify-center transition-all shrink-0"
                   title="Historial"
                 >
-                  <Clock :size="12" />
+                  <Clock :size="11" />
                 </button>
               </div>
             </td>
