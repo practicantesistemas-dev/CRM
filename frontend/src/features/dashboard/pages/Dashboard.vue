@@ -10,7 +10,7 @@ import TableauEmbed from '../components/TableauEmbed.vue'
 
 const {
   periodo, periodoOptions, kpis, cargandoKpis, errorKpis,
-  actividades, errorActividades,
+  actividades,
   distribucion, errorDistribucion,
   topPlanes, errorTopPlanes,
   embudoResumen, errorEmbudo, accesosRapidos,
@@ -39,7 +39,7 @@ const {
     <KpiCards :kpis="kpis" />
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <ActividadReciente :actividades="actividades" :error="errorActividades" />
+      <ActividadReciente :actividades="actividades" />
       <div class="flex flex-col gap-4">
         <DistribucionContactos :distribucion="distribucion" :error="errorDistribucion" />
         <TopPlanes :planes="topPlanes" :error="errorTopPlanes" />

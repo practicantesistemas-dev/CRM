@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { Plus, Filter, Loader2, AlertCircle } from 'lucide-vue-next'
+import { Plus, Filter, Loader2 } from 'lucide-vue-next'
 import type { Actividad, ActividadDraft } from '../types/actividad'
 import { ACTIVIDAD_DRAFT_VACIO } from '../constants/relacionamiento.constants'
 import { useRelacionamiento } from '../composables/useRelacionamiento'
@@ -10,7 +10,7 @@ import ActividadFormDialog from '../dialogs/ActividadFormDialog.vue'
 import ConfirmarEliminarActividadDialog from '../dialogs/ConfirmarEliminarActividadDialog.vue'
 
 const {
-  actividades, cargando, error, filtroTipo, filtroUsuario, buscar,
+  actividades, cargando, filtroTipo, filtroUsuario, buscar,
   actividadesFiltradas, usuarios,
   crearActividad, guardandoActividad, errorGuardarActividad,
   eliminarActividad, eliminandoActividad, errorEliminarActividad,
@@ -75,20 +75,11 @@ const confirmarEliminar = async () => {
       </div>
     </div>
 
-    <div v-if="error" class="flex items-center gap-2.5 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
-      <AlertCircle :size="16" class="text-red-500 shrink-0" />
-      <p class="text-[12px] font-semibold text-red-600">{{ error }}</p>
-    </div>
-
     <div v-if="cargando" class="flex items-center justify-center gap-2 bg-white rounded-2xl border border-slate-200 p-16 text-slate-400 text-[12px]">
       <Loader2 :size="16" class="animate-spin" />Cargando bitácora...
     </div>
     <div v-else class="space-y-3">
       <TimelineItem v-for="a in actividadesFiltradas" :key="a.id" :actividad="a" @eliminar="abrirEliminar(a)" />
-
-      <div v-if="actividadesFiltradas.length === 0" class="bg-white rounded-2xl border border-slate-200 p-16 text-center text-slate-400 text-[12px]">
-        No se encontraron actividades con los filtros aplicados.
-      </div>
     </div>
 
     <ActividadFormDialog v-model:visible="modalVisible" v-model:draft="draft" :guardando="guardandoActividad" :error="errorGuardarActividad" @submit="guardar" />
