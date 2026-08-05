@@ -6,11 +6,11 @@ defineProps<{ kpis: Kpi[] }>()
 </script>
 
 <template>
-  <div class="grid grid-cols-2 sm:grid-cols-3 xl:flex xl:flex-row gap-4">
+  <div class="grid grid-cols-2 sm:grid-cols-3 lg:flex lg:flex-row gap-4">
     <div
       v-for="kpi in kpis"
       :key="kpi.label"
-      class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 hover:shadow-md transition-all cursor-default xl:flex-1 xl:min-w-0"
+      class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 hover:shadow-md transition-all cursor-default lg:flex-1 lg:min-w-0"
     >
       <div class="flex items-center justify-between mb-4">
         <div class="w-9 h-9 rounded-xl flex items-center justify-center" :style="{ backgroundColor: kpi.bg }">

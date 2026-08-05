@@ -12,7 +12,7 @@ import { authHeader } from '@/features/auth/composables/useAuth'
 const API_URL = import.meta.env.VITE_CRM_API_URL
 
 async function obtenerJson<T>(ruta: string, mensajeError: string): Promise<T> {
-  const response = await fetch(`${API_URL}${ruta}`)
+  const response = await fetch(`${API_URL}${ruta}`, { headers: authHeader() })
   if (!response.ok) await lanzarErrorConDetalle(response, mensajeError)
   return response.json()
 }
@@ -118,7 +118,7 @@ export async function updateTitular(id: number, data: TitularDraft): Promise<Tit
   }
   const response = await fetch(`${API_URL}/api/titulares-beneficiarios/${id}`, {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...authHeader() },
     body: JSON.stringify(body),
   })
   if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo actualizar el titular.')
@@ -128,7 +128,7 @@ export async function updateTitular(id: number, data: TitularDraft): Promise<Tit
 export async function activarTitular(idTitular: number, fechaIngreso: string): Promise<void> {
   const response = await fetch(`${API_URL}/api/titulares-beneficiarios/${idTitular}/activar`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...authHeader() },
     body: JSON.stringify({ FECHA_INGRESO: fechaIngreso }),
   })
   if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo activar el titular.')
@@ -137,6 +137,7 @@ export async function activarTitular(idTitular: number, fechaIngreso: string): P
 export async function desactivarTitular(idTitular: number): Promise<void> {
   const response = await fetch(`${API_URL}/api/titulares-beneficiarios/${idTitular}/desactivar`, {
     method: 'POST',
+    headers: { ...authHeader() },
   })
   if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo desactivar el titular.')
 }
@@ -171,7 +172,7 @@ function construirBodyReemplazoPersona(data: ReemplazoPersonaDraft) {
 export async function reemplazarTitular(idTitular: number, data: ReemplazoPersonaDraft): Promise<ReemplazoTitularResultado> {
   const response = await fetch(`${API_URL}/api/titulares-beneficiarios/${idTitular}/reemplazar`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...authHeader() },
     body: JSON.stringify(construirBodyReemplazoPersona(data)),
   })
   if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo reemplazar el titular.')
@@ -216,7 +217,7 @@ export async function createBeneficiario(idTitular: number, data: BeneficiarioDr
   }
   const response = await fetch(`${API_URL}/api/titulares-beneficiarios/${idTitular}/beneficiarios`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...authHeader() },
     body: JSON.stringify(body),
   })
   if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo crear el beneficiario.')
@@ -248,7 +249,7 @@ export async function updateBeneficiario(idTitular: number, idBeneficiario: numb
   }
   const response = await fetch(`${API_URL}/api/titulares-beneficiarios/${idTitular}/beneficiarios/${idBeneficiario}`, {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...authHeader() },
     body: JSON.stringify(body),
   })
   if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo actualizar el beneficiario.')
@@ -417,7 +418,7 @@ export async function activarBeneficiario(idTitular: number, idBeneficiario: num
   const body = { FECHA_INGRESO: fechaIngreso }
   const response = await fetch(`${API_URL}/api/titulares-beneficiarios/${idTitular}/beneficiarios/${idBeneficiario}/activar`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...authHeader() },
     body: JSON.stringify(body),
   })
   if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo activar el beneficiario.')
@@ -428,6 +429,7 @@ export async function activarBeneficiario(idTitular: number, idBeneficiario: num
 export async function desactivarBeneficiario(idTitular: number, idBeneficiario: number): Promise<Beneficiario> {
   const response = await fetch(`${API_URL}/api/titulares-beneficiarios/${idTitular}/beneficiarios/${idBeneficiario}/desactivar`, {
     method: 'POST',
+    headers: { ...authHeader() },
   })
   if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo desactivar el beneficiario.')
   const data: { beneficiario: BeneficiarioListadoResponse } = await response.json()
@@ -439,7 +441,7 @@ export async function desactivarBeneficiario(idTitular: number, idBeneficiario: 
 export async function activarBeneficiarioPorDocumento(documento: string, fechaIngreso: string): Promise<void> {
   const response = await fetch(`${API_URL}/api/titulares-beneficiarios/beneficiarios/${documento}/activar`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...authHeader() },
     body: JSON.stringify({ FECHA_INGRESO: fechaIngreso }),
   })
   if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo activar el beneficiario.')
@@ -448,6 +450,7 @@ export async function activarBeneficiarioPorDocumento(documento: string, fechaIn
 export async function desactivarBeneficiarioPorDocumento(documento: string): Promise<void> {
   const response = await fetch(`${API_URL}/api/titulares-beneficiarios/beneficiarios/${documento}/desactivar`, {
     method: 'POST',
+    headers: { ...authHeader() },
   })
   if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo desactivar el beneficiario.')
 }
@@ -458,7 +461,7 @@ export async function desactivarBeneficiarioPorDocumento(documento: string): Pro
 export async function reemplazarBeneficiario(idTitular: number, idBeneficiario: number, data: ReemplazoPersonaDraft): Promise<ReemplazoBeneficiarioResultado> {
   const response = await fetch(`${API_URL}/api/titulares-beneficiarios/${idTitular}/beneficiarios/${idBeneficiario}/reemplazar`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...authHeader() },
     body: JSON.stringify(construirBodyReemplazoPersona(data)),
   })
   if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo reemplazar el beneficiario.')
@@ -511,7 +514,7 @@ function mapBeneficiarioDetalle(r: BeneficiarioDetalleResponse, titularId: numbe
 export async function cambiarTitularBeneficiario(idBeneficiario: number, documentoTitularNuevo: string): Promise<Beneficiario> {
   const response = await fetch(`${API_URL}/api/titulares-beneficiarios/beneficiarios/${idBeneficiario}/cambiar-titular`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...authHeader() },
     body: JSON.stringify({ DOCUMENTO_TITULAR_NUEVO: documentoTitularNuevo }),
   })
   if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo cambiar el titular del beneficiario.')
@@ -549,7 +552,7 @@ export async function getListadoTitulares(params: ListadoTitularesParams = {}): 
 // (los mismos de /listado); el backend arma el .xlsx completo, acá solo se dispara la descarga.
 export async function exportarTitulares(params: FiltrosTitulares = {}): Promise<Blob> {
   const qs = construirQueryFiltrosTitulares(params).toString()
-  const response = await fetch(`${API_URL}/api/titulares-beneficiarios/exportar${qs ? `?${qs}` : ''}`)
+  const response = await fetch(`${API_URL}/api/titulares-beneficiarios/exportar${qs ? `?${qs}` : ''}`, { headers: authHeader() })
   if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo exportar el listado.')
   return response.blob()
 }
