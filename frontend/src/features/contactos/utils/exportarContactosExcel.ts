@@ -12,7 +12,8 @@ export function exportarContactosExcel(contactos: Contacto[]): void {
     'Correo': c.correo,
     'Empresa': c.empresa,
     'Cargo': c.cargo,
-    'Documento': [c.tipoDocumento, c.documento].filter(Boolean).join(' '),
+    'Tipo de documento': c.tipoDocumento,
+    'Número de documento': c.documento,
     'Ciudad': c.ciudad,
     'Departamento': c.departamento,
     'Estado': c.estado,
@@ -26,8 +27,8 @@ export function exportarContactosExcel(contactos: Contacto[]): void {
   const hoja = XLSX.utils.json_to_sheet(filas)
   hoja['!cols'] = [
     { wch: 28 }, { wch: 15 }, { wch: 28 }, { wch: 24 }, { wch: 18 },
-    { wch: 16 }, { wch: 16 }, { wch: 16 }, { wch: 12 }, { wch: 15 },
-    { wch: 20 }, { wch: 18 }, { wch: 16 }, { wch: 10 },
+    { wch: 14 }, { wch: 18 }, { wch: 16 }, { wch: 16 }, { wch: 12 },
+    { wch: 15 }, { wch: 20 }, { wch: 18 }, { wch: 16 }, { wch: 10 },
   ]
 
   const libro = XLSX.utils.book_new()

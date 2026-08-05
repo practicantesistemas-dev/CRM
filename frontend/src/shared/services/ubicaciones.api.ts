@@ -1,3 +1,4 @@
+import { authHeader } from '@/features/auth/composables/useAuth'
 import type { Departamento, Municipio } from '../types/ubicaciones'
 
 const API_URL = import.meta.env.VITE_CRM_API_URL
@@ -15,7 +16,7 @@ interface MunicipioResponse {
 }
 
 export async function getDepartamentos(): Promise<Departamento[]> {
-  const response = await fetch(`${API_URL}/api/compartidos/ubicaciones/departamentos`)
+  const response = await fetch(`${API_URL}/api/compartidos/ubicaciones/departamentos`, { headers: authHeader() })
   if (!response.ok) throw new Error('No se pudo cargar la lista de departamentos.')
   const data: DepartamentoResponse[] = await response.json()
   return data.map(d => ({ codigo: d.CODIGO, nombre: d.NOMBRE }))
@@ -25,7 +26,7 @@ export async function getDepartamentos(): Promise<Departamento[]> {
 // (ej. "91263" = depto "91" + municipio "263"), no el código propio del municipio. Se quita
 // ese prefijo para quedarnos con el código que realmente se debe guardar en CIUDAD.
 export async function getMunicipios(): Promise<Municipio[]> {
-  const response = await fetch(`${API_URL}/api/compartidos/ubicaciones/municipios`)
+  const response = await fetch(`${API_URL}/api/compartidos/ubicaciones/municipios`, { headers: authHeader() })
   if (!response.ok) throw new Error('No se pudo cargar la lista de municipios.')
   const data: MunicipioResponse[] = await response.json()
   return data.map(m => ({

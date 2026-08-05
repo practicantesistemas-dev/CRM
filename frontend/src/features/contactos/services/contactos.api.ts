@@ -15,11 +15,11 @@ async function lanzarErrorConDetalle(response: Response, mensajeError: string): 
   throw new Error(detail ?? mensajeError)
 }
 
-// ─── Etiquetas (GET/POST /api/etiquetas/, sin auth) ──────────────────────────
+// ─── Etiquetas (GET/POST /api/etiquetas/, requiere Bearer token) ────────────
 interface EtiquetaResponse { id: number; nombre: string; color: string }
 
 export async function getEtiquetas(): Promise<Etiqueta[]> {
-  const response = await fetch(`${API_URL}/api/etiquetas/?skip=0&limit=100`)
+  const response = await fetch(`${API_URL}/api/etiquetas/?skip=0&limit=100`, { headers: authHeader() })
   if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudieron cargar las etiquetas.')
   const data: EtiquetaResponse[] = await response.json()
   return data.map(e => ({ id: e.id, nombre: e.nombre, color: e.color }))
@@ -28,7 +28,7 @@ export async function getEtiquetas(): Promise<Etiqueta[]> {
 export async function createEtiqueta(data: EtiquetaDraft): Promise<Etiqueta> {
   const response = await fetch(`${API_URL}/api/etiquetas/`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...authHeader() },
     body: JSON.stringify({ nombre: data.nombre, color: data.color }),
   })
   if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo crear la etiqueta.')
@@ -142,7 +142,7 @@ export async function getContactos(): Promise<Contacto[]> {
   const todos: ContactoReadResponse[] = []
   for (let pagina = 0; pagina < MAX_PAGINAS; pagina++) {
     const skip = pagina * LIMITE_POR_PAGINA
-    const response = await fetch(`${API_URL}/api/contactos/?skip=${skip}&limit=${LIMITE_POR_PAGINA}`)
+    const response = await fetch(`${API_URL}/api/contactos/?skip=${skip}&limit=${LIMITE_POR_PAGINA}`, { headers: authHeader() })
     if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo cargar el listado de contactos.')
     const bloque: ContactoReadResponse[] = await response.json()
     todos.push(...bloque)
@@ -246,7 +246,16 @@ export async function updateContacto(id: number, data: ContactoDraft): Promise<C
   })
 }
 
-// ─── Bitácora del contacto (GET /api/contactos/{id}/bitacora, sin auth) ──────
+// Elimina el contacto en el backend real (DELETE /api/contactos/{id}, requiere Bearer token).
+export async function deleteContacto(id: number): Promise<void> {
+  const response = await fetch(`${API_URL}/api/contactos/${id}`, {
+    method: 'DELETE',
+    headers: { ...authHeader() },
+  })
+  if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo eliminar el contacto.')
+}
+
+// ─── Bitácora del contacto (GET /api/contactos/{id}/bitacora, requiere Bearer token) ──
 interface BitacoraContactoApiItem {
   id: number
   tipo: string
@@ -272,7 +281,7 @@ const TIPO_SEG_DESDE_API: Record<string, TipoSeguimiento> = {
 }
 
 export async function getBitacoraContacto(contactoId: number, limit = 4): Promise<HistorialItem[]> {
-  const response = await fetch(`${API_URL}/api/contactos/${contactoId}/bitacora?limit=${limit}`)
+  const response = await fetch(`${API_URL}/api/contactos/${contactoId}/bitacora?limit=${limit}`, { headers: authHeader() })
   if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo cargar el historial del contacto.')
   const items: BitacoraContactoApiItem[] = await response.json()
   return items.map((r) => {

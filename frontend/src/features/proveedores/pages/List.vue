@@ -1,17 +1,23 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { Search, Plus, Download } from 'lucide-vue-next'
 import type { Proveedor, ProveedorDraft } from '../types/proveedor'
 import { PROVEEDOR_DRAFT_VACIO } from '../constants/proveedores.constants'
 import { useProveedores } from '../composables/useProveedores'
 import ProveedorFormDialog from '../dialogs/ProveedorFormDialog.vue'
 import ProveedoresTable from '../tables/ProveedoresTable.vue'
+import ProveedorServiciosDrawer from '../dialogs/ProveedorServiciosDrawer.vue'
+import ConfirmDialog from '@/shared/components/ConfirmDialog.vue'
 
 const {
-  proveedores, buscar, filtroEstado, filtroCategoria,
+  proveedores, cargandoProveedores, errorProveedores, cargarProveedores,
+  buscar, filtroEstado, filtroCategoria,
   proveedoresFiltrados, categorias,
-  crearProveedor, actualizarProveedor,
+  crearProveedor, actualizarProveedor, errorGuardarProveedor,
+  eliminarProveedor, errorEliminarProveedor,
 } = useProveedores()
+
+onMounted(() => { cargarProveedores() })
 
 const modalVisible = ref(false)
 const modalModo = ref<'nuevo' | 'editar'>('nuevo')
@@ -30,13 +36,29 @@ const abrirEditar = (p: Proveedor) => {
   draft.value = { ...p }
   modalVisible.value = true
 }
-const guardar = () => {
-  if (modalModo.value === 'nuevo') {
-    crearProveedor(draft.value)
-  } else if (proveedorEditando.value) {
-    actualizarProveedor(proveedorEditando.value.id, draft.value)
-  }
-  modalVisible.value = false
+const guardar = async () => {
+  const ok = modalModo.value === 'nuevo'
+    ? await crearProveedor(draft.value)
+    : proveedorEditando.value ? await actualizarProveedor(proveedorEditando.value.id, draft.value) : false
+  if (ok) modalVisible.value = false
+}
+const confirmBorrarVisible = ref(false)
+const proveedorABorrar = ref<Proveedor | null>(null)
+const pedirBorrarProveedor = (p: Proveedor) => {
+  proveedorABorrar.value = p
+  errorEliminarProveedor.value = null
+  confirmBorrarVisible.value = true
+}
+const confirmarBorrado = async () => {
+  if (proveedorABorrar.value) await eliminarProveedor(proveedorABorrar.value.id)
+  proveedorABorrar.value = null
+}
+
+const serviciosDrawerVisible = ref(false)
+const proveedorServicios = ref<Proveedor | null>(null)
+const abrirServicios = (p: Proveedor) => {
+  proveedorServicios.value = p
+  serviciosDrawerVisible.value = true
 }
 </script>
 
@@ -79,17 +101,33 @@ const guardar = () => {
         </div>
       </div>
       <div class="mt-2 text-[11px] text-slate-400">
-        Mostrando <strong class="text-slate-600">{{ proveedoresFiltrados.length }}</strong> proveedores
+        <template v-if="cargandoProveedores">Cargando proveedores...</template>
+        <template v-else>Mostrando <strong class="text-slate-600">{{ proveedoresFiltrados.length }}</strong> proveedores</template>
       </div>
+      <p v-if="errorProveedores" class="mt-1 text-[11px] font-medium text-red-500">{{ errorProveedores }}</p>
+      <p v-if="errorEliminarProveedor" class="mt-1 text-[11px] font-medium text-red-500">{{ errorEliminarProveedor }}</p>
     </div>
 
-    <ProveedoresTable :rows="proveedoresFiltrados" @editar="abrirEditar" />
+    <ProveedoresTable :rows="proveedoresFiltrados" @editar="abrirEditar" @borrar="pedirBorrarProveedor" @servicios="abrirServicios" />
 
     <ProveedorFormDialog
       v-model:visible="modalVisible"
       v-model:draft="draft"
       :modo="modalModo"
+      :error="errorGuardarProveedor"
       @submit="guardar"
+    />
+
+    <ConfirmDialog
+      v-model:visible="confirmBorrarVisible"
+      titulo="Eliminar proveedor"
+      :mensaje="`¿Eliminar a ${proveedorABorrar?.nombre}? Esta acción no se puede deshacer.`"
+      @confirmar="confirmarBorrado"
+    />
+
+    <ProveedorServiciosDrawer
+      v-model:visible="serviciosDrawerVisible"
+      :proveedor="proveedorServicios"
     />
   </div>
 </template>

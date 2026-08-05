@@ -1,3 +1,4 @@
+import { authHeader } from '@/features/auth/composables/useAuth'
 import {
   ACCESOS_RAPIDOS_MOCK, KPI_META,
   TIPO_ACTIVIDAD_META, TIPO_ACTIVIDAD_DEFAULT, DISTRIBUCION_META, EMBUDO_COLORES,
@@ -13,7 +14,7 @@ import type {
 const API_URL = import.meta.env.VITE_CRM_API_URL
 
 async function obtenerJson<T>(ruta: string, mensajeError: string): Promise<T> {
-  const response = await fetch(`${API_URL}${ruta}`)
+  const response = await fetch(`${API_URL}${ruta}`, { headers: authHeader() })
   if (!response.ok) {
     throw new Error(mensajeError)
   }

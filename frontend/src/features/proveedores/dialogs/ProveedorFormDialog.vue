@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { X } from 'lucide-vue-next'
+import { X, AlertCircle } from 'lucide-vue-next'
 import type { ProveedorDraft } from '../types/proveedor'
 import ProveedorForm from '../forms/ProveedorForm.vue'
 
-defineProps<{ modo: 'nuevo' | 'editar' }>()
+defineProps<{ modo: 'nuevo' | 'editar'; error?: string | null }>()
 const emit = defineEmits<{ submit: [] }>()
 
 const visible = defineModel<boolean>('visible', { required: true })
@@ -24,6 +24,10 @@ const formRef = ref<InstanceType<typeof ProveedorForm>>()
         <button @click="visible = false" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500"><X :size="14" /></button>
       </div>
       <div class="p-6">
+        <div v-if="error" class="mb-4 flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-3 py-2">
+          <AlertCircle :size="13" class="text-red-500 shrink-0" />
+          <p class="text-[11px] text-red-600 font-medium">{{ error }}</p>
+        </div>
         <ProveedorForm ref="formRef" v-model="draft" @valid-submit="emit('submit')" />
       </div>
       <div class="flex items-center justify-end gap-2 px-6 py-4 border-t border-slate-200 bg-[#F8FAFC]">

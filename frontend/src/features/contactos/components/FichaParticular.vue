@@ -253,7 +253,7 @@ const metricasRedes = computed(() => {
                   :key="i"
                   class="bg-slate-100 text-slate-600 border border-slate-200 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-tight"
                 >
-                  #{ { tag } }
+                  #{{ tag }}
                 </span>
               </div>
               <span v-else class="text-[10px] text-slate-400 italic">Sin etiquetas asignadas.</span>

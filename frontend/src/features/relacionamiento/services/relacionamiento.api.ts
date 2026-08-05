@@ -77,7 +77,7 @@ function mapItem(r: BitacoraApiItem, titularNombre: string): Actividad {
 }
 
 export async function getActividades(): Promise<Actividad[]> {
-  const response = await fetch(`${API_URL}/api/bitacora/?limit=200`)
+  const response = await fetch(`${API_URL}/api/bitacora/?limit=200`, { headers: authHeader() })
   if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo cargar la bitácora.')
   const { items }: BitacoraListadoResponse = await response.json()
 

@@ -5,7 +5,7 @@ defineProps<{ actividades: ActividadReciente[]; error?: string | null }>()
 </script>
 
 <template>
-  <div class="xl:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+  <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
     <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100">
       <div>
         <h3 class="text-[13px] font-bold text-[#0F172A]">Actividad Reciente</h3>

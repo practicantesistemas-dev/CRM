@@ -38,7 +38,7 @@ const {
 
     <KpiCards :kpis="kpis" />
 
-    <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <ActividadReciente :actividades="actividades" :error="errorActividades" />
       <div class="flex flex-col gap-4">
         <DistribucionContactos :distribucion="distribucion" :error="errorDistribucion" />
@@ -46,7 +46,7 @@ const {
       </div>
     </div>
 
-    <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <EmbudoResumen :etapas="embudoResumen" :error="errorEmbudo" />
       <AccesosRapidos :accesos="accesosRapidos" />
     </div>
