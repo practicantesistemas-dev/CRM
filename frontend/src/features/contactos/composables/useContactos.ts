@@ -1,7 +1,7 @@
 import { ref, computed, watch } from 'vue'
 import type { Contacto, ContactoDraft, Etiqueta, EtiquetaDraft, HistorialItem } from '../types/contacto'
 import {
-  getContactos, createContacto, updateContacto, getBitacoraContacto,
+  getContactos, createContacto, updateContacto, deleteContacto, getBitacoraContacto,
   getEtiquetas, createEtiqueta,
 } from '../services/contactos.api'
 
@@ -121,6 +121,24 @@ export function useContactos() {
     }
   }
 
+  const eliminandoContacto = ref(false)
+  const errorEliminarContacto = ref<string | null>(null)
+
+  const eliminarContacto = async (id: number): Promise<boolean> => {
+    eliminandoContacto.value = true
+    errorEliminarContacto.value = null
+    try {
+      await deleteContacto(id)
+      contactos.value = contactos.value.filter(c => c.id !== id)
+      return true
+    } catch (e) {
+      errorEliminarContacto.value = e instanceof Error ? e.message : 'No se pudo eliminar el contacto.'
+      return false
+    } finally {
+      eliminandoContacto.value = false
+    }
+  }
+
   // ─── Historial (últimas actividades de bitácora) de un contacto ─────────────
   const historialActual = ref<HistorialItem[]>([])
   const cargandoHistorial = ref(false)
@@ -180,6 +198,7 @@ export function useContactos() {
     contactosFiltrados, ciudades, departamentosLista, responsables, filtrosActivos, limpiarFiltros,
     paginaActual, porPagina, paginado, totalPaginas,
     crearContacto, actualizarContacto, guardandoContacto, errorGuardarContacto,
+    eliminarContacto, eliminandoContacto, errorEliminarContacto,
     historialActual, cargandoHistorial, errorHistorial, cargarHistorial,
     etiquetas, cargandoEtiquetas, errorEtiquetas, cargarEtiquetas,
     crearEtiqueta, creandoEtiqueta, errorCrearEtiqueta,

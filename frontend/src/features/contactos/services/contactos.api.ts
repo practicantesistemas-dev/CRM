@@ -246,6 +246,15 @@ export async function updateContacto(id: number, data: ContactoDraft): Promise<C
   })
 }
 
+// Elimina el contacto en el backend real (DELETE /api/contactos/{id}, requiere Bearer token).
+export async function deleteContacto(id: number): Promise<void> {
+  const response = await fetch(`${API_URL}/api/contactos/${id}`, {
+    method: 'DELETE',
+    headers: { ...authHeader() },
+  })
+  if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo eliminar el contacto.')
+}
+
 // ─── Bitácora del contacto (GET /api/contactos/{id}/bitacora, requiere Bearer token) ──
 interface BitacoraContactoApiItem {
   id: number

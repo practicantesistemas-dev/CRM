@@ -9,6 +9,7 @@ import ContactoFormDialog from '../dialogs/ContactoFormDialog.vue'
 import SeguimientoDialog from '../dialogs/SeguimientoDialog.vue'
 import HistorialDrawer from '../dialogs/HistorialDrawer.vue'
 import ContactosTable from '../tables/ContactosTable.vue'
+import ConfirmDialog from '@/shared/components/ConfirmDialog.vue'
 
 const {
   contactos, cargandoContactos, errorContactos, cargarContactos,
@@ -16,6 +17,7 @@ const {
   contactosFiltrados, ciudades, departamentosLista, responsables, filtrosActivos, limpiarFiltros,
   paginaActual, paginado, totalPaginas,
   crearContacto, actualizarContacto, guardandoContacto, errorGuardarContacto,
+  eliminarContacto, errorEliminarContacto,
   historialActual, cargandoHistorial, cargarHistorial,
   etiquetas, cargandoEtiquetas, cargarEtiquetas,
   crearEtiqueta, creandoEtiqueta, errorCrearEtiqueta,
@@ -53,6 +55,19 @@ const guardarContacto = async () => {
     const ok = await actualizarContacto(contactoEditando.value.id, draft.value)
     if (ok) modalVisible.value = false
   }
+}
+
+// ─── Eliminar contacto ──────────────────────────────────────────────────────
+const confirmBorrarVisible = ref(false)
+const contactoABorrar = ref<Contacto | null>(null)
+const pedirBorrarContacto = (c: Contacto) => {
+  contactoABorrar.value = c
+  errorEliminarContacto.value = null
+  confirmBorrarVisible.value = true
+}
+const confirmarBorrado = async () => {
+  if (contactoABorrar.value) await eliminarContacto(contactoABorrar.value.id)
+  contactoABorrar.value = null
 }
 
 // ─── Historial drawer ───────────────────────────────────────────────────────
@@ -147,6 +162,7 @@ const exportarContactos = () => exportarContactosExcel(contactosFiltrados.value)
         </template>
       </div>
       <p v-if="errorContactos" class="mt-1 text-[11px] font-medium text-red-500">{{ errorContactos }}</p>
+      <p v-if="errorEliminarContacto" class="mt-1 text-[11px] font-medium text-red-500">{{ errorEliminarContacto }}</p>
     </div>
 
     <!-- ── Table ─────────────────────────────────────────────────── -->
@@ -157,6 +173,7 @@ const exportarContactos = () => exportarContactosExcel(contactosFiltrados.value)
       @editar="abrirEditar"
       @historial="abrirHistorial"
       @seguimiento="abrirSeguimiento"
+      @borrar="pedirBorrarContacto"
       @update:pagina-actual="paginaActual = $event"
     />
 
@@ -185,6 +202,13 @@ const exportarContactos = () => exportarContactosExcel(contactosFiltrados.value)
       :items="historialActual"
       :cargando="cargandoHistorial"
       @registrar="contactoHistorial && abrirSeguimiento(contactoHistorial)"
+    />
+
+    <ConfirmDialog
+      v-model:visible="confirmBorrarVisible"
+      titulo="Eliminar contacto"
+      :mensaje="`¿Eliminar a ${contactoABorrar?.nombre}? Esta acción no se puede deshacer.`"
+      @confirmar="confirmarBorrado"
     />
   </div>
 </template>

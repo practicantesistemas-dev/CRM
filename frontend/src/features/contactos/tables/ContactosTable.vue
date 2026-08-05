@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Briefcase, MapPin, ClipboardList, Edit2, Clock, ChevronLeft, ChevronRight } from 'lucide-vue-next'
+import { Briefcase, MapPin, ClipboardList, Edit2, Clock, Trash2, ChevronLeft, ChevronRight } from 'lucide-vue-next'
 import type { Contacto } from '../types/contacto'
 import { estadoStyle } from '../constants/contactos.constants'
 import ContactoAvatar from '../components/ContactoAvatar.vue'
@@ -14,6 +14,7 @@ const emit = defineEmits<{
   editar: [c: Contacto]
   historial: [c: Contacto]
   seguimiento: [c: Contacto]
+  borrar: [c: Contacto]
   'update:paginaActual': [p: number]
 }>()
 </script>
@@ -97,6 +98,13 @@ const emit = defineEmits<{
                   title="Historial"
                 >
                   <Clock :size="11" />
+                </button>
+                <button
+                  @click="emit('borrar', c)"
+                  class="w-6 h-6 rounded-lg bg-slate-100 hover:bg-red-50 hover:text-red-600 text-slate-500 flex items-center justify-center transition-all shrink-0"
+                  title="Eliminar"
+                >
+                  <Trash2 :size="11" />
                 </button>
               </div>
             </td>

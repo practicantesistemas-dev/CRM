@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { Mail, Phone, Edit2 } from 'lucide-vue-next'
+import { Mail, Phone, Edit2, Trash2, Wrench } from 'lucide-vue-next'
 import type { Proveedor } from '../types/proveedor'
 import { categoriaColor } from '../constants/proveedores.constants'
 
 defineProps<{ rows: Proveedor[] }>()
-const emit = defineEmits<{ editar: [p: Proveedor] }>()
+const emit = defineEmits<{ editar: [p: Proveedor]; borrar: [p: Proveedor]; servicios: [p: Proveedor] }>()
 </script>
 
 <template>
@@ -47,8 +47,14 @@ const emit = defineEmits<{ editar: [p: Proveedor] }>()
             </td>
             <td class="px-5 py-3.5 text-right">
               <div class="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button @click="emit('servicios', p)" class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-emerald-50 hover:text-emerald-600 text-slate-500 flex items-center justify-center transition-all" title="Actividades">
+                  <Wrench :size="12" />
+                </button>
                 <button @click="emit('editar', p)" class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-[#EEF2FF] hover:text-[#2447F9] text-slate-500 flex items-center justify-center transition-all" title="Editar">
                   <Edit2 :size="12" />
+                </button>
+                <button @click="emit('borrar', p)" class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-red-50 hover:text-red-600 text-slate-500 flex items-center justify-center transition-all" title="Eliminar">
+                  <Trash2 :size="12" />
                 </button>
               </div>
             </td>
