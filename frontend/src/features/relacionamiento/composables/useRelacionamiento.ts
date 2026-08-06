@@ -1,6 +1,6 @@
 import { ref, computed, onMounted } from 'vue'
 import type { Actividad, ActividadDraft, TipoActividad } from '../types/actividad'
-import { getActividades, createActividad, updateActividad, deleteActividad } from '../services/relacionamiento.api'
+import { getActividades, createActividad, updateActividad, completarActividad, deleteActividad } from '../services/relacionamiento.api'
 
 export function useRelacionamiento() {
   const actividades = ref<Actividad[]>([])
@@ -70,12 +70,32 @@ export function useRelacionamiento() {
     }
   }
 
-  // ─── Pendientes: actividades con próximo paso, para la alarma de seguimientos ───────────
+  // ─── Pendientes: actividades con próximo paso aún no completado, para la alarma de
+  // seguimientos. "estado" es la fuente de verdad (completarActividad ya no borra el texto
+  // del próximo paso, solo cambia estado a 'realizado'), proximoPaso solo filtra legado.
   const pendientes = computed(() =>
     actividades.value
-      .filter(a => !!a.proximoPaso)
+      .filter(a => !!a.proximoPaso && a.estado === 'pendiente')
       .sort((a, b) => (a.proximoPasoFecha || '9999-99-99').localeCompare(b.proximoPasoFecha || '9999-99-99'))
   )
+
+  const completandoId = ref<number | null>(null)
+  const errorCompletarActividad = ref<string | null>(null)
+
+  const marcarRealizada = async (id: number): Promise<boolean> => {
+    completandoId.value = id
+    errorCompletarActividad.value = null
+    try {
+      await completarActividad(id)
+      await cargarActividades()
+      return true
+    } catch (e) {
+      errorCompletarActividad.value = e instanceof Error ? e.message : 'No se pudo marcar la actividad como realizada.'
+      return false
+    } finally {
+      completandoId.value = null
+    }
+  }
 
   const eliminandoActividad = ref(false)
   const errorEliminarActividad = ref<string | null>(null)
@@ -101,6 +121,6 @@ export function useRelacionamiento() {
     actividadesFiltradas, usuarios,
     crearActividad, actualizarActividad, guardandoActividad, errorGuardarActividad,
     eliminarActividad, eliminandoActividad, errorEliminarActividad,
-    pendientes,
+    pendientes, marcarRealizada, completandoId, errorCompletarActividad,
   }
 }

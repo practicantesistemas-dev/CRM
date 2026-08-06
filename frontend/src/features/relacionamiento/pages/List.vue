@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { Plus, Filter, Loader2, AlertCircle } from 'lucide-vue-next'
+import { Plus, Filter, Loader2, AlertCircle, CheckCircle2, X } from 'lucide-vue-next'
 import type { Actividad, ActividadDraft } from '../types/actividad'
 import { ACTIVIDAD_DRAFT_VACIO } from '../constants/relacionamiento.constants'
 import { useRelacionamiento } from '../composables/useRelacionamiento'
@@ -15,7 +15,14 @@ const {
   actividadesFiltradas, usuarios, pendientes,
   crearActividad, actualizarActividad, guardandoActividad, errorGuardarActividad,
   eliminarActividad, eliminandoActividad, errorEliminarActividad,
+  marcarRealizada, completandoId, errorCompletarActividad,
 } = useRelacionamiento()
+
+const avisoRealizado = ref<string | null>(null)
+const marcarRealizado = async (a: Actividad) => {
+  const ok = await marcarRealizada(a.id)
+  if (ok) avisoRealizado.value = `"${a.proximoPaso}" quedó marcado como realizado y salió de pendientes.`
+}
 
 const modalVisible = ref(false)
 const modalModo = ref<'nuevo' | 'editar'>('nuevo')
@@ -72,7 +79,18 @@ const confirmarEliminar = async () => {
       </button>
     </div>
 
-    <PendientesAlerta :pendientes="pendientes" @abrir="abrirEditar" />
+    <div v-if="avisoRealizado" class="flex items-center gap-2.5 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3">
+      <CheckCircle2 :size="16" class="text-emerald-600 shrink-0" />
+      <p class="text-[12px] font-semibold text-emerald-700">{{ avisoRealizado }}</p>
+      <button @click="avisoRealizado = null" class="ml-auto text-emerald-400 hover:text-emerald-600 shrink-0"><X :size="13" /></button>
+    </div>
+
+    <PendientesAlerta :pendientes="pendientes" :completando="completandoId" @abrir="abrirEditar" @completar="marcarRealizado" />
+
+    <div v-if="errorCompletarActividad" class="flex items-center gap-2.5 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+      <AlertCircle :size="16" class="text-red-500 shrink-0" />
+      <p class="text-[12px] font-semibold text-red-600">{{ errorCompletarActividad }}</p>
+    </div>
 
     <FiltrosTipo :actividades="actividades" :filtro-tipo="filtroTipo" @update:filtro-tipo="filtroTipo = $event" />
 

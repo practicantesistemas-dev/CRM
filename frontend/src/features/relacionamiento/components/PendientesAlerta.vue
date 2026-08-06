@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { AlarmClock, ChevronDown, ChevronUp } from 'lucide-vue-next'
+import { AlarmClock, Check, ChevronDown, ChevronUp, Loader2 } from 'lucide-vue-next'
 import type { Actividad } from '../types/actividad'
 
-const props = defineProps<{ pendientes: Actividad[] }>()
-const emit = defineEmits<{ abrir: [Actividad] }>()
+const props = defineProps<{ pendientes: Actividad[]; completando?: number | null }>()
+const emit = defineEmits<{ abrir: [Actividad]; completar: [Actividad] }>()
 
 const abierto = ref(true)
 
@@ -39,19 +39,27 @@ const vencidos = computed(() => props.pendientes.filter(a => estadoDe(a) === 've
     </button>
 
     <div v-if="abierto" class="divide-y divide-slate-100 max-h-64 overflow-y-auto">
-      <button v-for="a in pendientes" :key="a.id" @click="emit('abrir', a)"
-        class="w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-slate-50 transition-colors">
-        <span class="w-1.5 h-1.5 rounded-full flex-shrink-0"
-          :class="estadoDe(a) === 'vencido' ? 'bg-red-500' : estadoDe(a) === 'hoy' ? 'bg-amber-500' : 'bg-slate-300'" />
-        <div class="flex-1 min-w-0">
-          <p class="text-[11px] font-semibold text-[#0F172A] truncate">{{ a.proximoPaso }}</p>
-          <p class="text-[10px] text-slate-400 truncate">{{ sujetoDe(a) }}</p>
-        </div>
-        <span class="text-[10px] font-semibold flex-shrink-0"
-          :class="estadoDe(a) === 'vencido' ? 'text-red-500' : estadoDe(a) === 'hoy' ? 'text-amber-600' : 'text-slate-400'">
-          {{ a.proximoPasoFecha || 'sin fecha' }}
-        </span>
-      </button>
+      <div v-for="a in pendientes" :key="a.id"
+        class="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 transition-colors">
+        <button type="button" title="Marcar como realizado" :disabled="completando === a.id"
+          @click="emit('completar', a)"
+          class="w-5 h-5 rounded-full border border-slate-300 flex items-center justify-center flex-shrink-0 text-transparent hover:text-emerald-600 hover:border-emerald-500 transition-colors disabled:opacity-50">
+          <Loader2 v-if="completando === a.id" :size="11" class="animate-spin text-slate-400" />
+          <Check v-else :size="11" />
+        </button>
+        <button type="button" @click="emit('abrir', a)" class="flex-1 min-w-0 flex items-center gap-3 text-left">
+          <span class="w-1.5 h-1.5 rounded-full flex-shrink-0"
+            :class="estadoDe(a) === 'vencido' ? 'bg-red-500' : estadoDe(a) === 'hoy' ? 'bg-amber-500' : 'bg-slate-300'" />
+          <div class="flex-1 min-w-0">
+            <p class="text-[11px] font-semibold text-[#0F172A] truncate">{{ a.proximoPaso }}</p>
+            <p class="text-[10px] text-slate-400 truncate">{{ sujetoDe(a) }}</p>
+          </div>
+          <span class="text-[10px] font-semibold flex-shrink-0"
+            :class="estadoDe(a) === 'vencido' ? 'text-red-500' : estadoDe(a) === 'hoy' ? 'text-amber-600' : 'text-slate-400'">
+            {{ a.proximoPasoFecha ? (estadoDe(a) === 'vencido' ? 'Venció ' : 'Para ') + a.proximoPasoFecha : 'Registrada ' + a.fecha }}
+          </span>
+        </button>
+      </div>
     </div>
   </div>
 </template>

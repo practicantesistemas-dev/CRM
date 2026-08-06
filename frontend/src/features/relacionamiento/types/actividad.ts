@@ -1,4 +1,5 @@
 export type TipoActividad = 'Llamada' | 'Correo' | 'Reunión' | 'WhatsApp' | 'Nota'
+export type EstadoActividad = 'pendiente' | 'realizado'
 
 export interface Actividad {
   id: number
@@ -21,6 +22,10 @@ export interface Actividad {
   usuario: string
   /** Oportunidad a la que queda ligada la actividad; null si aún no tiene una oportunidad asociada. */
   oportunidadId: number | null
+  /** Deriva del backend a partir de si hay próximo paso pendiente; no es un campo que el
+   *  formulario deje editar directamente (ver construirBody en relacionamiento.api.ts). Se
+   *  puede cambiar a 'realizado' sin tocar el resto vía completarActividad(). */
+  estado: EstadoActividad
 }
 
-export type ActividadDraft = Omit<Actividad, 'id' | 'usuario'>
+export type ActividadDraft = Omit<Actividad, 'id' | 'usuario' | 'estado'>

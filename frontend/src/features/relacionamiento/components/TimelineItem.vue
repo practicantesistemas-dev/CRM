@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Target, Trash2, Pencil, AlarmClock } from 'lucide-vue-next'
+import { Target, Trash2, Pencil, AlarmClock, Check } from 'lucide-vue-next'
 import type { Actividad } from '../types/actividad'
 import { TIPO_META } from '../constants/relacionamiento.constants'
 import { getOportunidades } from '@/features/oportunidades/services/oportunidades.api'
@@ -15,9 +15,12 @@ const sujetos = computed(() => [props.actividad.contactoNombre, props.actividad.
 
 // Vencido: la fecha límite del próximo paso ya pasó. Hoy: vence hoy mismo. El resto no
 // resalta (aún hay margen), solo se distingue vencido/hoy porque son los que requieren acción.
+// completarActividad() ya no borra proximoPaso al completar (solo cambia "estado"), así que
+// un próximo paso ya realizado sigue teniendo texto: se distingue por estado, no por presencia.
 const hoy = new Date().toISOString().split('T')[0]
-const estadoProximoPaso = computed<'vencido' | 'hoy' | 'proximo' | null>(() => {
+const estadoProximoPaso = computed<'vencido' | 'hoy' | 'proximo' | 'realizado' | null>(() => {
   if (!props.actividad.proximoPaso) return null
+  if (props.actividad.estado === 'realizado') return 'realizado'
   if (!props.actividad.proximoPasoFecha) return 'proximo'
   if (props.actividad.proximoPasoFecha < hoy) return 'vencido'
   if (props.actividad.proximoPasoFecha === hoy) return 'hoy'
@@ -74,13 +77,17 @@ const estadoProximoPaso = computed<'vencido' | 'hoy' | 'proximo' | null>(() => {
       </div>
 
       <div v-if="actividad.proximoPaso" class="flex items-center gap-2 rounded-lg px-3 py-2"
-        :class="estadoProximoPaso === 'vencido' ? 'bg-red-50' : estadoProximoPaso === 'hoy' ? 'bg-amber-50' : 'bg-[#F8FAFC]'">
+        :class="estadoProximoPaso === 'vencido' ? 'bg-red-50' : estadoProximoPaso === 'hoy' ? 'bg-amber-50' : estadoProximoPaso === 'realizado' ? 'bg-emerald-50' : 'bg-[#F8FAFC]'">
         <AlarmClock v-if="estadoProximoPaso === 'vencido' || estadoProximoPaso === 'hoy'" :size="12"
           :class="estadoProximoPaso === 'vencido' ? 'text-red-500' : 'text-amber-500'" class="flex-shrink-0" />
+        <Check v-if="estadoProximoPaso === 'realizado'" :size="12" class="text-emerald-600 flex-shrink-0" />
         <span class="text-[9px] font-bold uppercase tracking-wide flex-shrink-0"
-          :class="estadoProximoPaso === 'vencido' ? 'text-red-500' : estadoProximoPaso === 'hoy' ? 'text-amber-600' : 'text-slate-400'">Próx. paso:</span>
-        <span class="text-[11px] font-medium" :class="estadoProximoPaso === 'vencido' ? 'text-red-600' : estadoProximoPaso === 'hoy' ? 'text-amber-700' : 'text-[#2447F9]'">{{ actividad.proximoPaso }}</span>
-        <span v-if="actividad.proximoPasoFecha" class="text-[10px] text-slate-400 ml-auto flex-shrink-0">
+          :class="estadoProximoPaso === 'vencido' ? 'text-red-500' : estadoProximoPaso === 'hoy' ? 'text-amber-600' : estadoProximoPaso === 'realizado' ? 'text-emerald-600' : 'text-slate-400'">
+          {{ estadoProximoPaso === 'realizado' ? 'Próx. paso realizado:' : 'Próx. paso:' }}
+        </span>
+        <span class="text-[11px] font-medium"
+          :class="estadoProximoPaso === 'vencido' ? 'text-red-600' : estadoProximoPaso === 'hoy' ? 'text-amber-700' : estadoProximoPaso === 'realizado' ? 'text-emerald-700 line-through' : 'text-[#2447F9]'">{{ actividad.proximoPaso }}</span>
+        <span v-if="actividad.proximoPasoFecha && estadoProximoPaso !== 'realizado'" class="text-[10px] text-slate-400 ml-auto flex-shrink-0">
           {{ estadoProximoPaso === 'vencido' ? 'Venció' : 'Para' }} {{ actividad.proximoPasoFecha }}
         </span>
       </div>

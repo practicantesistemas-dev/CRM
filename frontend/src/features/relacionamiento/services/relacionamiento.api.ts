@@ -93,6 +93,7 @@ function mapItem(r: BitacoraApiItem, titularNombre: string): Actividad {
     fecha: r.fecha.split('T')[0],
     usuario: r.usuario_nombre ?? '',
     oportunidadId: r.oportunidad_id,
+    estado: r.estado === 'realizado' ? 'realizado' : 'pendiente',
   }
 }
 
@@ -153,6 +154,16 @@ export async function updateActividad(id: number, data: ActividadDraft): Promise
     body: JSON.stringify(construirBody(data)),
   })
   if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo actualizar la actividad.')
+}
+
+// Marca la actividad como realizada sin tocar el resto de sus campos (PATCH dedicado,
+// más directo que reutilizar el PUT completo con el próximo paso vacío).
+export async function completarActividad(id: number): Promise<void> {
+  const response = await fetch(`${API_URL}/api/bitacora/${id}/completar`, {
+    method: 'PATCH',
+    headers: { ...authHeader() },
+  })
+  if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo marcar la actividad como realizada.')
 }
 
 export async function deleteActividad(id: number): Promise<void> {
