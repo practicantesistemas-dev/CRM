@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Edit2, ToggleLeft, ToggleRight, RefreshCw, ArrowLeftRight, History, ClipboardList } from 'lucide-vue-next'
+import { Edit2, ToggleLeft, ToggleRight, RefreshCw, ArrowLeftRight, ClipboardList } from 'lucide-vue-next'
 import type { Beneficiario } from '../types/plan-liga'
 import { estadoBeneStyle, formatearFechaCorta } from '../constants/plan-liga.constants'
 import PersonaAvatar from './PersonaAvatar.vue'
@@ -65,7 +65,6 @@ const emit = defineEmits<{
       <button v-else-if="beneficiario.estado === 'Inactivo'" @click="emit('activar')" class="flex items-center gap-1 h-7 px-2.5 rounded-lg bg-slate-100 hover:bg-emerald-50 hover:text-emerald-600 text-slate-500 text-[10px] font-semibold transition-all"><ToggleRight :size="10" /> Activar</button>
       <button v-if="beneficiario.estado === 'Activo'" @click="emit('reemplazar')" class="flex items-center gap-1 h-7 px-2.5 rounded-lg bg-slate-100 hover:bg-amber-50 hover:text-amber-600 text-slate-500 text-[10px] font-semibold transition-all"><RefreshCw :size="10" /> Reemplazar</button>
       <button v-if="beneficiario.estado !== 'Retirado' && beneficiario.estado !== 'Reemplazado'" @click="emit('cambiar-titular')" class="flex items-center gap-1 h-7 px-2.5 rounded-lg bg-slate-100 hover:bg-[#EEF2FF] hover:text-[#2447F9] text-slate-500 text-[10px] font-semibold transition-all"><ArrowLeftRight :size="10" /> Cambiar titular</button>
-      <button class="flex items-center gap-1 h-7 px-2.5 rounded-lg bg-slate-100 hover:bg-[#EEF2FF] hover:text-[#2447F9] text-slate-500 text-[10px] font-semibold transition-all"><History :size="10" /> Historial</button>
     </div>
   </div>
 </template>

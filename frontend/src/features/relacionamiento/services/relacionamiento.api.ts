@@ -96,10 +96,23 @@ function mapItem(r: BitacoraApiItem, titularNombre: string): Actividad {
   }
 }
 
+// El backend limita "limit" a un máximo de 6 por pedido (igual que /api/contactos/), así
+// que para traer la bitácora completa se pagina en bucle de a 6 hasta que una página vuelve
+// con menos de 6 (ahí se acaba). El filtrado/búsqueda de la página y el panel de Pendientes
+// siguen operando en el cliente sobre el listado completo ya cargado.
+const LIMITE_POR_PAGINA = 6
+const MAX_PAGINAS = 500
+
 export async function getActividades(): Promise<Actividad[]> {
-  const response = await fetch(`${API_URL}/api/bitacora/?limit=200`, { headers: authHeader() })
-  if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo cargar la bitácora.')
-  const { items }: BitacoraListadoResponse = await response.json()
+  const items: BitacoraApiItem[] = []
+  for (let pagina = 0; pagina < MAX_PAGINAS; pagina++) {
+    const skip = pagina * LIMITE_POR_PAGINA
+    const response = await fetch(`${API_URL}/api/bitacora/?skip=${skip}&limit=${LIMITE_POR_PAGINA}`, { headers: authHeader() })
+    if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo cargar la bitácora.')
+    const bloque: BitacoraListadoResponse = await response.json()
+    items.push(...bloque.items)
+    if (bloque.items.length < LIMITE_POR_PAGINA) break
+  }
 
   const titularIds = [...new Set(items.map(d => d.titular_id).filter((id): id is number => id !== null))]
   const nombresPorTitular = new Map<number, string>()
