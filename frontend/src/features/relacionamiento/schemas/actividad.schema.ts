@@ -11,14 +11,17 @@ export const actividadSchema = z.object({
   titularNombre: z.string().trim(),
   accion: z.string().trim().min(5, 'Describe la actividad realizada (mín. 5 caracteres)'),
   proximoPaso: z.string().trim(),
+  proximoPasoFecha: z.string().trim(),
   fecha: z.string().trim(),
-  usuario: z.string().trim().min(1, 'Selecciona un usuario'),
   oportunidadId: z.number().int().positive().nullable(),
 }).superRefine((data, ctx) => {
   if (!data.contactoId && !data.empresaNombre.trim() && !data.titularId) {
     ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['contactoId'], message: MENSAJE_SUJETO })
     ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['empresaNombre'], message: MENSAJE_SUJETO })
     ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['titularId'], message: MENSAJE_SUJETO })
+  }
+  if (data.proximoPasoFecha && !data.proximoPaso.trim()) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['proximoPaso'], message: 'Describe el próximo paso para poder ponerle fecha' })
   }
 })
 

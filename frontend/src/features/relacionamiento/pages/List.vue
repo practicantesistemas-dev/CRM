@@ -6,27 +6,42 @@ import { ACTIVIDAD_DRAFT_VACIO } from '../constants/relacionamiento.constants'
 import { useRelacionamiento } from '../composables/useRelacionamiento'
 import FiltrosTipo from '../components/FiltrosTipo.vue'
 import TimelineItem from '../components/TimelineItem.vue'
+import PendientesAlerta from '../components/PendientesAlerta.vue'
 import ActividadFormDialog from '../dialogs/ActividadFormDialog.vue'
 import ConfirmarEliminarActividadDialog from '../dialogs/ConfirmarEliminarActividadDialog.vue'
 
 const {
   actividades, cargando, error, filtroTipo, filtroUsuario, buscar,
-  actividadesFiltradas, usuarios,
-  crearActividad, guardandoActividad, errorGuardarActividad,
+  actividadesFiltradas, usuarios, pendientes,
+  crearActividad, actualizarActividad, guardandoActividad, errorGuardarActividad,
   eliminarActividad, eliminandoActividad, errorEliminarActividad,
 } = useRelacionamiento()
 
 const modalVisible = ref(false)
+const modalModo = ref<'nuevo' | 'editar'>('nuevo')
 const draft = ref<ActividadDraft>({ ...ACTIVIDAD_DRAFT_VACIO })
+const actividadEditandoId = ref<number | null>(null)
 
 const abrirNuevo = () => {
+  modalModo.value = 'nuevo'
+  actividadEditandoId.value = null
   draft.value = { ...ACTIVIDAD_DRAFT_VACIO, fecha: new Date().toISOString().split('T')[0] }
   errorGuardarActividad.value = null
   modalVisible.value = true
 }
 
+const abrirEditar = (a: Actividad) => {
+  modalModo.value = 'editar'
+  actividadEditandoId.value = a.id
+  draft.value = { ...a }
+  errorGuardarActividad.value = null
+  modalVisible.value = true
+}
+
 const guardar = async () => {
-  const ok = await crearActividad(draft.value)
+  const ok = modalModo.value === 'editar' && actividadEditandoId.value !== null
+    ? await actualizarActividad(actividadEditandoId.value, draft.value)
+    : await crearActividad(draft.value)
   if (ok) modalVisible.value = false
 }
 
@@ -57,6 +72,8 @@ const confirmarEliminar = async () => {
       </button>
     </div>
 
+    <PendientesAlerta :pendientes="pendientes" @abrir="abrirEditar" />
+
     <FiltrosTipo :actividades="actividades" :filtro-tipo="filtroTipo" @update:filtro-tipo="filtroTipo = $event" />
 
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm px-4 py-3">
@@ -84,14 +101,14 @@ const confirmarEliminar = async () => {
       <Loader2 :size="16" class="animate-spin" />Cargando bitácora...
     </div>
     <div v-else class="space-y-3">
-      <TimelineItem v-for="a in actividadesFiltradas" :key="a.id" :actividad="a" @eliminar="abrirEliminar(a)" />
+      <TimelineItem v-for="a in actividadesFiltradas" :key="a.id" :actividad="a" @eliminar="abrirEliminar(a)" @editar="abrirEditar(a)" />
 
       <div v-if="actividadesFiltradas.length === 0" class="bg-white rounded-2xl border border-slate-200 p-16 text-center text-slate-400 text-[12px]">
         No se encontraron actividades con los filtros aplicados.
       </div>
     </div>
 
-    <ActividadFormDialog v-model:visible="modalVisible" v-model:draft="draft" :guardando="guardandoActividad" :error="errorGuardarActividad" @submit="guardar" />
+    <ActividadFormDialog v-model:visible="modalVisible" v-model:draft="draft" :modo="modalModo" :guardando="guardandoActividad" :error="errorGuardarActividad" @submit="guardar" />
 
     <ConfirmarEliminarActividadDialog
       :actividad="actividadEliminando"

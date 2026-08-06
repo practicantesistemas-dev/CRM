@@ -48,6 +48,24 @@ async function lanzarErrorConDetalle(response: Response, mensajeError: string): 
   throw new Error(detail ?? mensajeError)
 }
 
+// El backend solo tiene "proximo_paso" como texto libre (sin un campo propio para su fecha
+// límite), así que la fecha viaja codificada como prefijo "YYYY-MM-DD::" dentro de ese mismo
+// texto. Es el mismo truco que ya usa plan-liga.api.ts para colar el nombre del beneficiario
+// dentro de "descripcion" cuando el backend tampoco tiene un campo dedicado.
+const RE_PROXIMO_PASO_FECHA = /^(\d{4}-\d{2}-\d{2})::/
+
+function codificarProximoPaso(texto: string, fechaLimite: string): string | null {
+  if (!texto.trim()) return null
+  return fechaLimite ? `${fechaLimite}::${texto}` : texto
+}
+
+function decodificarProximoPaso(raw: string | null): { proximoPaso: string; proximoPasoFecha: string } {
+  if (!raw) return { proximoPaso: '', proximoPasoFecha: '' }
+  const match = raw.match(RE_PROXIMO_PASO_FECHA)
+  if (!match) return { proximoPaso: raw, proximoPasoFecha: '' }
+  return { proximoPaso: raw.slice(match[0].length), proximoPasoFecha: match[1] }
+}
+
 // El endpoint no trae titular_nombre; se resuelve aparte con Plan Liga, que sí está
 // conectado al backend real.
 async function resolverTitularNombre(titularId: number | null): Promise<string> {
@@ -60,6 +78,7 @@ async function resolverTitularNombre(titularId: number | null): Promise<string> 
 }
 
 function mapItem(r: BitacoraApiItem, titularNombre: string): Actividad {
+  const { proximoPaso, proximoPasoFecha } = decodificarProximoPaso(r.proximo_paso)
   return {
     id: r.id,
     tipo: TIPO_DESDE_API[normalizarTipo(r.tipo)] ?? 'Nota',
@@ -69,7 +88,8 @@ function mapItem(r: BitacoraApiItem, titularNombre: string): Actividad {
     titularId: r.titular_id,
     titularNombre,
     accion: r.descripcion,
-    proximoPaso: r.proximo_paso ?? '',
+    proximoPaso,
+    proximoPasoFecha,
     fecha: r.fecha.split('T')[0],
     usuario: r.usuario_nombre ?? '',
     oportunidadId: r.oportunidad_id,
@@ -90,24 +110,36 @@ export async function getActividades(): Promise<Actividad[]> {
     .sort((a, b) => b.fecha.localeCompare(a.fecha))
 }
 
-export async function createActividad(data: ActividadDraft): Promise<void> {
-  const body = {
+function construirBody(data: ActividadDraft) {
+  return {
     tipo: TIPO_A_API[data.tipo],
     descripcion: data.accion,
-    proximo_paso: data.proximoPaso || null,
+    proximo_paso: codificarProximoPaso(data.proximoPaso, data.proximoPasoFecha),
     fecha: data.fecha,
     contacto_id: data.contactoId,
     nombre_empresa: data.empresaNombre || null,
     titular_id: data.titularId,
     oportunidad_id: data.oportunidadId,
-    estado: 'realizado',
+    estado: data.proximoPaso.trim() ? 'pendiente' : 'realizado',
   }
+}
+
+export async function createActividad(data: ActividadDraft): Promise<void> {
   const response = await fetch(`${API_URL}/api/bitacora/`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...authHeader() },
-    body: JSON.stringify(body),
+    body: JSON.stringify(construirBody(data)),
   })
   if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo registrar la actividad.')
+}
+
+export async function updateActividad(id: number, data: ActividadDraft): Promise<void> {
+  const response = await fetch(`${API_URL}/api/bitacora/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...authHeader() },
+    body: JSON.stringify(construirBody(data)),
+  })
+  if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo actualizar la actividad.')
 }
 
 export async function deleteActividad(id: number): Promise<void> {

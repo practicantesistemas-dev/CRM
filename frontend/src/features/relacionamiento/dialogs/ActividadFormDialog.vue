@@ -4,7 +4,7 @@ import { X, AlertCircle } from 'lucide-vue-next'
 import type { ActividadDraft } from '../types/actividad'
 import ActividadForm from '../forms/ActividadForm.vue'
 
-defineProps<{ guardando?: boolean; error?: string | null }>()
+const props = defineProps<{ guardando?: boolean; error?: string | null; modo?: 'nuevo' | 'editar' }>()
 const emit = defineEmits<{ submit: [] }>()
 
 const visible = defineModel<boolean>('visible', { required: true })
@@ -18,7 +18,7 @@ const formRef = ref<InstanceType<typeof ActividadForm>>()
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden">
       <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-[#F8FAFC]">
         <div>
-          <h3 class="text-[14px] font-bold text-[#0F172A]">Registrar Actividad</h3>
+          <h3 class="text-[14px] font-bold text-[#0F172A]">{{ props.modo === 'editar' ? 'Editar Actividad' : 'Registrar Actividad' }}</h3>
           <p class="text-[11px] text-slate-400 mt-0.5">Bitácora de relacionamiento</p>
         </div>
         <button @click="visible = false" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500"><X :size="14" /></button>
@@ -34,7 +34,7 @@ const formRef = ref<InstanceType<typeof ActividadForm>>()
         <button @click="visible = false" class="h-9 px-5 rounded-lg border border-slate-200 bg-white text-[11px] font-semibold text-slate-600 hover:bg-slate-50 transition-all">Cancelar</button>
         <button @click="formRef?.submit()" :disabled="guardando"
           class="h-9 px-6 rounded-lg bg-[#2447F9] text-white text-[11px] font-bold shadow hover:bg-[#1D3DD9] transition-all disabled:opacity-60 disabled:cursor-not-allowed">
-          {{ guardando ? 'Guardando...' : 'Guardar actividad' }}
+          {{ guardando ? 'Guardando...' : (props.modo === 'editar' ? 'Guardar cambios' : 'Guardar actividad') }}
         </button>
       </div>
     </div>

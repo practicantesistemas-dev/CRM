@@ -1,6 +1,6 @@
 import { ref, computed, onMounted } from 'vue'
 import type { Actividad, ActividadDraft, TipoActividad } from '../types/actividad'
-import { getActividades, createActividad, deleteActividad } from '../services/relacionamiento.api'
+import { getActividades, createActividad, updateActividad, deleteActividad } from '../services/relacionamiento.api'
 
 export function useRelacionamiento() {
   const actividades = ref<Actividad[]>([])
@@ -55,6 +55,28 @@ export function useRelacionamiento() {
     }
   }
 
+  const actualizarActividad = async (id: number, data: ActividadDraft): Promise<boolean> => {
+    guardandoActividad.value = true
+    errorGuardarActividad.value = null
+    try {
+      await updateActividad(id, data)
+      await cargarActividades()
+      return true
+    } catch (e) {
+      errorGuardarActividad.value = e instanceof Error ? e.message : 'No se pudo actualizar la actividad.'
+      return false
+    } finally {
+      guardandoActividad.value = false
+    }
+  }
+
+  // ─── Pendientes: actividades con próximo paso, para la alarma de seguimientos ───────────
+  const pendientes = computed(() =>
+    actividades.value
+      .filter(a => !!a.proximoPaso)
+      .sort((a, b) => (a.proximoPasoFecha || '9999-99-99').localeCompare(b.proximoPasoFecha || '9999-99-99'))
+  )
+
   const eliminandoActividad = ref(false)
   const errorEliminarActividad = ref<string | null>(null)
 
@@ -77,7 +99,8 @@ export function useRelacionamiento() {
     actividades, cargando, error,
     filtroTipo, filtroUsuario, buscar,
     actividadesFiltradas, usuarios,
-    crearActividad, guardandoActividad, errorGuardarActividad,
+    crearActividad, actualizarActividad, guardandoActividad, errorGuardarActividad,
     eliminarActividad, eliminandoActividad, errorEliminarActividad,
+    pendientes,
   }
 }

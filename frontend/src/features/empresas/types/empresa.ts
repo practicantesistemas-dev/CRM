@@ -18,6 +18,16 @@ export interface HistorialItem {
   desc: string
   fecha: string
   usuario: string
+  icono: unknown
   color: string
   bg: string
+}
+
+export interface SeguimientoEmpresaDraft {
+  tipo: 'Llamada' | 'Correo' | 'Reunión' | 'WhatsApp' | 'Nota'
+  accion: string
+  proximoPaso: string
+  /** Fecha límite del próximo paso; '' si no se definió una. */
+  proximoPasoFecha: string
+  fecha: string
 }

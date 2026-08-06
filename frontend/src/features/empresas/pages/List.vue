@@ -2,10 +2,11 @@
 import { ref, onMounted } from 'vue'
 import { Search, Plus, Download } from 'lucide-vue-next'
 import type { Empresa, EmpresaDraft } from '../types/empresa'
-import { EMPRESA_DRAFT_VACIO, HISTORIAL_MOCK } from '../constants/empresas.constants'
+import { EMPRESA_DRAFT_VACIO } from '../constants/empresas.constants'
 import { useEmpresas } from '../composables/useEmpresas'
 import EmpresaFormDialog from '../dialogs/EmpresaFormDialog.vue'
 import HistorialDrawer from '../dialogs/HistorialDrawer.vue'
+import SeguimientoDialog from '../dialogs/SeguimientoDialog.vue'
 import EmpresasTable from '../tables/EmpresasTable.vue'
 import ConfirmDialog from '@/shared/components/ConfirmDialog.vue'
 
@@ -15,6 +16,7 @@ const {
   empresasFiltradas, industrias,
   crearEmpresa, actualizarEmpresa, guardandoEmpresa, errorGuardarEmpresa,
   eliminarEmpresa, errorEliminarEmpresa,
+  historialActual, cargandoHistorial, cargarHistorial,
 } = useEmpresas()
 
 onMounted(() => { cargarEmpresas() })
@@ -62,7 +64,12 @@ const confirmarBorrado = async () => {
 
 const drawerVisible = ref(false)
 const empresaHistorial = ref<Empresa | null>(null)
-const abrirHistorial = (e: Empresa) => { empresaHistorial.value = e; drawerVisible.value = true }
+const abrirHistorial = (e: Empresa) => { empresaHistorial.value = e; drawerVisible.value = true; cargarHistorial(e) }
+
+// ─── Registrar actividad (desde el drawer de historial) ────────────────────
+const modalSegVisible = ref(false)
+const abrirSeguimiento = () => { modalSegVisible.value = true }
+const alRegistrarActividad = () => { if (empresaHistorial.value) cargarHistorial(empresaHistorial.value) }
 </script>
 
 <template>
@@ -127,7 +134,15 @@ const abrirHistorial = (e: Empresa) => { empresaHistorial.value = e; drawerVisib
     <HistorialDrawer
       v-model:visible="drawerVisible"
       :empresa="empresaHistorial"
-      :items="HISTORIAL_MOCK"
+      :items="historialActual"
+      :cargando="cargandoHistorial"
+      @registrar="abrirSeguimiento"
+    />
+
+    <SeguimientoDialog
+      v-model:visible="modalSegVisible"
+      :empresa="empresaHistorial"
+      @registrado="alRegistrarActividad"
     />
 
     <ConfirmDialog

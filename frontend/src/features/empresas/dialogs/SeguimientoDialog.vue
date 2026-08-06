@@ -1,64 +1,58 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, watch } from 'vue'
 import { X, ClipboardList, CheckCircle, Loader2 } from 'lucide-vue-next'
-import type { Contacto, SeguimientoDraft, TipoSeguimiento } from '../types/contacto'
-import { TIPOS_SEGUIMIENTO_META } from '../constants/contactos.constants'
-import { seguimientoSchema } from '../schemas/seguimiento.schema'
+import type { Empresa, SeguimientoEmpresaDraft } from '../types/empresa'
+import { seguimientoEmpresaSchema } from '../schemas/seguimiento.schema'
 import { useZodForm } from '@/shared/composables/useZodForm'
 import { fieldStateClass } from '@/shared/utils/fieldStateClass'
 import FieldError from '@/shared/components/FieldError.vue'
 import FechaInput from '@/shared/components/FechaInput.vue'
-import BuscadorEntidad, { type OpcionBuscador } from '@/shared/components/BuscadorEntidad.vue'
-import { getOportunidades } from '@/features/oportunidades/services/oportunidades.api'
+import { TIPO_META } from '@/features/relacionamiento/constants/relacionamiento.constants'
 import { createActividad } from '@/features/relacionamiento/services/relacionamiento.api'
 
-const props = defineProps<{ contacto: Contacto | null }>()
+const props = defineProps<{ empresa: Empresa | null }>()
+const emit = defineEmits<{ registrado: [] }>()
 const visible = defineModel<boolean>('visible', { required: true })
 
 const segGuardado = ref(false)
 const guardando = ref(false)
 const error = ref<string | null>(null)
-const formSeg = ref<SeguimientoDraft>({
-  tipo: 'Nota', accion: '', proximoPaso: '', proximoPasoFecha: '', fecha: new Date().toISOString().split('T')[0], oportunidadId: null,
+const formSeg = ref<SeguimientoEmpresaDraft>({
+  tipo: 'Nota', accion: '', proximoPaso: '', proximoPasoFecha: '', fecha: new Date().toISOString().split('T')[0],
 })
 
-const { errors, tocar, esVisible, onValidSubmit } = useZodForm(seguimientoSchema, formSeg)
-
-const opcionesOportunidades = computed<OpcionBuscador[]>(() =>
-  getOportunidades()
-    .filter(o => o.contactoId === props.contacto?.id)
-    .map(o => ({ id: o.id, label: o.servicio, sublabel: `${o.estado} · ${o.valor}` })),
-)
+const { errors, tocar, esVisible, onValidSubmit } = useZodForm(seguimientoEmpresaSchema, formSeg)
 
 watch(visible, (v) => {
   if (!v) return
-  formSeg.value = { tipo: 'Nota', accion: '', proximoPaso: '', proximoPasoFecha: '', fecha: new Date().toISOString().split('T')[0], oportunidadId: null }
+  formSeg.value = { tipo: 'Nota', accion: '', proximoPaso: '', proximoPasoFecha: '', fecha: new Date().toISOString().split('T')[0] }
   segGuardado.value = false
   error.value = null
 })
 
 const guardarSeguimiento = onValidSubmit(async () => {
-  if (!props.contacto) return
+  if (!props.empresa) return
   guardando.value = true
   error.value = null
   try {
     await createActividad({
       tipo: formSeg.value.tipo,
-      contactoId: props.contacto.id,
-      contactoNombre: props.contacto.nombre,
-      empresaNombre: props.contacto.empresaNombre,
+      contactoId: null,
+      contactoNombre: '',
+      empresaNombre: props.empresa.razonSocial,
       titularId: null,
       titularNombre: '',
       accion: formSeg.value.accion,
       proximoPaso: formSeg.value.proximoPaso,
       proximoPasoFecha: formSeg.value.proximoPasoFecha,
       fecha: formSeg.value.fecha,
-      oportunidadId: formSeg.value.oportunidadId,
+      oportunidadId: null,
     })
     segGuardado.value = true
+    emit('registrado')
     setTimeout(() => { visible.value = false; segGuardado.value = false }, 1200)
   } catch (e) {
-    error.value = e instanceof Error ? e.message : 'No se pudo registrar el seguimiento.'
+    error.value = e instanceof Error ? e.message : 'No se pudo registrar la actividad.'
   } finally {
     guardando.value = false
   }
@@ -75,10 +69,10 @@ const guardarSeguimiento = onValidSubmit(async () => {
       <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-[#F8FAFC]">
         <div>
           <h3 class="text-[14px] font-bold text-[#0F172A] flex items-center gap-2">
-            <ClipboardList :size="15" class="text-[#059669]" />
-            Registrar seguimiento
+            <ClipboardList :size="15" class="text-[#2447F9]" />
+            Registrar actividad
           </h3>
-          <p class="text-[11px] text-slate-400 mt-0.5">{{ props.contacto?.nombre }} · {{ props.contacto?.empresaNombre }}</p>
+          <p class="text-[11px] text-slate-400 mt-0.5">{{ props.empresa?.razonSocial }}</p>
         </div>
         <button @click="visible = false" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500">
           <X :size="14" />
@@ -86,8 +80,8 @@ const guardarSeguimiento = onValidSubmit(async () => {
       </div>
 
       <div v-if="segGuardado" class="p-8 text-center">
-        <CheckCircle :size="36" class="text-[#059669] mx-auto mb-3" />
-        <p class="text-[13px] font-bold text-[#0F172A]">Seguimiento registrado</p>
+        <CheckCircle :size="36" class="text-[#2447F9] mx-auto mb-3" />
+        <p class="text-[13px] font-bold text-[#0F172A]">Actividad registrada</p>
         <p class="text-[11px] text-slate-400 mt-1">Se guardó en la Bitácora de Relacionamiento</p>
       </div>
 
@@ -96,9 +90,9 @@ const guardarSeguimiento = onValidSubmit(async () => {
           <label class="block text-[11px] font-bold text-slate-600 mb-2 uppercase tracking-wide">Tipo de actividad</label>
           <div class="flex flex-wrap gap-2">
             <button
-              v-for="(meta, tipo) in TIPOS_SEGUIMIENTO_META"
+              v-for="(meta, tipo) in TIPO_META"
               :key="tipo"
-              @click="formSeg.tipo = tipo as TipoSeguimiento"
+              @click="formSeg.tipo = tipo as SeguimientoEmpresaDraft['tipo']"
               class="flex items-center gap-1.5 h-8 px-3 rounded-lg border text-[11px] font-semibold transition-all"
               :class="formSeg.tipo === tipo
                 ? 'text-white border-transparent shadow-sm'
@@ -119,7 +113,7 @@ const guardarSeguimiento = onValidSubmit(async () => {
             rows="3"
             placeholder="Describe la actividad realizada..."
             class="w-full px-4 py-2.5 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all resize-none"
-            :class="fieldStateClass(esVisible('accion') && !!errors.accion, esVisible('accion') && !errors.accion && !!formSeg.accion, 'border-slate-200 focus:border-[#059669]')"
+            :class="fieldStateClass(esVisible('accion') && !!errors.accion, esVisible('accion') && !errors.accion && !!formSeg.accion, 'border-slate-200 focus:border-[#2447F9]')"
           />
           <FieldError :message="esVisible('accion') ? errors.accion : undefined" />
         </div>
@@ -129,7 +123,7 @@ const guardarSeguimiento = onValidSubmit(async () => {
           <input
             v-model="formSeg.proximoPaso"
             placeholder="¿Qué sigue? (opcional)"
-            class="w-full h-10 px-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#059669] focus:bg-white transition-all"
+            class="w-full h-10 px-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#2447F9] focus:bg-white transition-all"
           />
         </div>
 
@@ -143,23 +137,13 @@ const guardarSeguimiento = onValidSubmit(async () => {
           <FechaInput v-model="formSeg.fecha" disabled />
         </div>
 
-        <div>
-          <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Oportunidad relacionada (opcional)</label>
-          <BuscadorEntidad
-            v-model="formSeg.oportunidadId"
-            :opciones="opcionesOportunidades"
-            placeholder="Buscar oportunidad de este contacto..."
-            vacio="Este contacto aún no tiene oportunidades asociadas"
-          />
-        </div>
-
         <p v-if="error" class="text-[11px] text-red-600 font-medium">{{ error }}</p>
       </div>
 
       <div v-if="!segGuardado" class="flex items-center justify-end gap-2 px-6 py-4 border-t border-slate-200 bg-[#F8FAFC]">
         <button @click="visible = false" class="h-9 px-5 rounded-lg border border-slate-200 bg-white text-[11px] font-semibold text-slate-600 hover:bg-slate-50 transition-all">Cancelar</button>
         <button @click="guardarSeguimiento" :disabled="guardando"
-          class="flex items-center gap-1.5 h-9 px-6 rounded-lg bg-[#059669] text-white text-[11px] font-bold shadow hover:bg-[#047857] disabled:opacity-60 disabled:cursor-not-allowed transition-all">
+          class="flex items-center gap-1.5 h-9 px-6 rounded-lg bg-[#2447F9] text-white text-[11px] font-bold shadow hover:bg-[#1D3DD9] disabled:opacity-60 disabled:cursor-not-allowed transition-all">
           <Loader2 v-if="guardando" :size="12" class="animate-spin" />
           Guardar en Bitácora
         </button>

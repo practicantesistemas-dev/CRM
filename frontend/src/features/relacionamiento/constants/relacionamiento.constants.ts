@@ -16,6 +16,6 @@ export const ACTIVIDAD_DRAFT_VACIO: ActividadDraft = {
   contactoId: null, contactoNombre: '',
   empresaNombre: '',
   titularId: null, titularNombre: '',
-  accion: '', proximoPaso: '',
-  fecha: new Date().toISOString().split('T')[0], usuario: '', oportunidadId: null,
+  accion: '', proximoPaso: '', proximoPasoFecha: '',
+  fecha: new Date().toISOString().split('T')[0], oportunidadId: null,
 }

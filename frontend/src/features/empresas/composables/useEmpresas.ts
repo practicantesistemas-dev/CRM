@@ -1,7 +1,9 @@
 import { ref, computed } from 'vue'
-import type { Empresa, EmpresaDraft } from '../types/empresa'
+import type { Empresa, EmpresaDraft, HistorialItem } from '../types/empresa'
 import { getEmpresas, createEmpresa, updateEmpresa, deleteEmpresa } from '../services/empresas.api'
 import { getContactos } from '@/features/contactos/services/contactos.api'
+import { getActividades } from '@/features/relacionamiento/services/relacionamiento.api'
+import { TIPO_META } from '@/features/relacionamiento/constants/relacionamiento.constants'
 
 export function useEmpresas() {
   const empresas = ref<Empresa[]>([])
@@ -98,11 +100,45 @@ export function useEmpresas() {
     }
   }
 
+  // ─── Historial (últimas actividades de bitácora) de una empresa ────────────
+  // El backend no expone un endpoint de bitácora por empresa (solo por contacto): se trae
+  // la bitácora general y se filtra en el cliente por nombre_empresa, que es texto libre
+  // pero coincide con razonSocial porque los diálogos de registro lo autocompletan así.
+  const historialActual = ref<HistorialItem[]>([])
+  const cargandoHistorial = ref(false)
+  const errorHistorial = ref<string | null>(null)
+
+  const cargarHistorial = async (empresa: Empresa) => {
+    cargandoHistorial.value = true
+    errorHistorial.value = null
+    try {
+      const todas = await getActividades()
+      const nombre = empresa.razonSocial.trim().toLowerCase()
+      historialActual.value = todas
+        .filter(a => a.empresaNombre.trim().toLowerCase() === nombre)
+        .map(a => ({
+          tipo: a.tipo,
+          desc: a.accion,
+          fecha: a.fecha,
+          usuario: a.usuario,
+          icono: TIPO_META[a.tipo].icono,
+          color: TIPO_META[a.tipo].color,
+          bg: TIPO_META[a.tipo].bg,
+        }))
+    } catch (e) {
+      errorHistorial.value = e instanceof Error ? e.message : 'No se pudo cargar el historial.'
+      historialActual.value = []
+    } finally {
+      cargandoHistorial.value = false
+    }
+  }
+
   return {
     empresas, cargandoEmpresas, errorEmpresas, cargarEmpresas,
     buscar, filtroEstado, filtroIndustria,
     empresasFiltradas, industrias,
     crearEmpresa, actualizarEmpresa, guardandoEmpresa, errorGuardarEmpresa,
     eliminarEmpresa, eliminandoEmpresa, errorEliminarEmpresa,
+    historialActual, cargandoHistorial, errorHistorial, cargarHistorial,
   }
 }
