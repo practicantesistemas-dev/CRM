@@ -1,32 +1,54 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { Plus, Filter, Loader2 } from 'lucide-vue-next'
+import { Plus, Filter, Loader2, AlertCircle, CheckCircle2, X } from 'lucide-vue-next'
 import type { Actividad, ActividadDraft } from '../types/actividad'
 import { ACTIVIDAD_DRAFT_VACIO } from '../constants/relacionamiento.constants'
 import { useRelacionamiento } from '../composables/useRelacionamiento'
 import FiltrosTipo from '../components/FiltrosTipo.vue'
 import TimelineItem from '../components/TimelineItem.vue'
+import PendientesAlerta from '../components/PendientesAlerta.vue'
 import ActividadFormDialog from '../dialogs/ActividadFormDialog.vue'
 import ConfirmarEliminarActividadDialog from '../dialogs/ConfirmarEliminarActividadDialog.vue'
 
 const {
-  actividades, cargando, filtroTipo, filtroUsuario, buscar,
-  actividadesFiltradas, usuarios,
-  crearActividad, guardandoActividad, errorGuardarActividad,
+  actividades, cargando, error, filtroTipo, filtroUsuario, buscar,
+  actividadesFiltradas, usuarios, pendientes,
+  crearActividad, actualizarActividad, guardandoActividad, errorGuardarActividad,
   eliminarActividad, eliminandoActividad, errorEliminarActividad,
+  marcarRealizada, completandoId, errorCompletarActividad,
 } = useRelacionamiento()
 
+const avisoRealizado = ref<string | null>(null)
+const marcarRealizado = async (a: Actividad) => {
+  const ok = await marcarRealizada(a.id)
+  if (ok) avisoRealizado.value = `"${a.proximoPaso}" quedó marcado como realizado y salió de pendientes.`
+}
+
 const modalVisible = ref(false)
+const modalModo = ref<'nuevo' | 'editar'>('nuevo')
 const draft = ref<ActividadDraft>({ ...ACTIVIDAD_DRAFT_VACIO })
+const actividadEditandoId = ref<number | null>(null)
 
 const abrirNuevo = () => {
+  modalModo.value = 'nuevo'
+  actividadEditandoId.value = null
   draft.value = { ...ACTIVIDAD_DRAFT_VACIO, fecha: new Date().toISOString().split('T')[0] }
   errorGuardarActividad.value = null
   modalVisible.value = true
 }
 
+const abrirEditar = (a: Actividad) => {
+  modalModo.value = 'editar'
+  actividadEditandoId.value = a.id
+  draft.value = { ...a }
+  errorGuardarActividad.value = null
+  modalVisible.value = true
+}
+
 const guardar = async () => {
-  const ok = await crearActividad(draft.value)
+  const ok = modalModo.value === 'editar' && actividadEditandoId.value !== null
+    ? await actualizarActividad(actividadEditandoId.value, draft.value)
+    : await crearActividad(draft.value)
   if (ok) modalVisible.value = false
 }
 
@@ -57,6 +79,19 @@ const confirmarEliminar = async () => {
       </button>
     </div>
 
+    <div v-if="avisoRealizado" class="flex items-center gap-2.5 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3">
+      <CheckCircle2 :size="16" class="text-emerald-600 shrink-0" />
+      <p class="text-[12px] font-semibold text-emerald-700">{{ avisoRealizado }}</p>
+      <button @click="avisoRealizado = null" class="ml-auto text-emerald-400 hover:text-emerald-600 shrink-0"><X :size="13" /></button>
+    </div>
+
+    <PendientesAlerta :pendientes="pendientes" :completando="completandoId" @abrir="abrirEditar" @completar="marcarRealizado" />
+
+    <div v-if="errorCompletarActividad" class="flex items-center gap-2.5 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+      <AlertCircle :size="16" class="text-red-500 shrink-0" />
+      <p class="text-[12px] font-semibold text-red-600">{{ errorCompletarActividad }}</p>
+    </div>
+
     <FiltrosTipo :actividades="actividades" :filtro-tipo="filtroTipo" @update:filtro-tipo="filtroTipo = $event" />
 
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm px-4 py-3">
@@ -79,10 +114,14 @@ const confirmarEliminar = async () => {
       <Loader2 :size="16" class="animate-spin" />Cargando bitácora...
     </div>
     <div v-else class="space-y-3">
-      <TimelineItem v-for="a in actividadesFiltradas" :key="a.id" :actividad="a" @eliminar="abrirEliminar(a)" />
+      <TimelineItem v-for="a in actividadesFiltradas" :key="a.id" :actividad="a" @eliminar="abrirEliminar(a)" @editar="abrirEditar(a)" />
+
+      <div v-if="actividadesFiltradas.length === 0" class="bg-white rounded-2xl border border-slate-200 p-16 text-center text-slate-400 text-[12px]">
+        No se encontraron actividades con los filtros aplicados.
+      </div>
     </div>
 
-    <ActividadFormDialog v-model:visible="modalVisible" v-model:draft="draft" :guardando="guardandoActividad" :error="errorGuardarActividad" @submit="guardar" />
+    <ActividadFormDialog v-model:visible="modalVisible" v-model:draft="draft" :modo="modalModo" :guardando="guardandoActividad" :error="errorGuardarActividad" @submit="guardar" />
 
     <ConfirmarEliminarActividadDialog
       :actividad="actividadEliminando"

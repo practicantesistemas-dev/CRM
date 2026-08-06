@@ -97,6 +97,8 @@ export interface SeguimientoDraft {
   tipo: TipoSeguimiento
   accion: string
   proximoPaso: string
+  /** Fecha límite del próximo paso; '' si no se definió una. */
+  proximoPasoFecha: string
   fecha: string
   /** Oportunidad a la que queda ligada la actividad en la bitácora; null si el titular aún no tiene una oportunidad asociada. */
   oportunidadId: number | null

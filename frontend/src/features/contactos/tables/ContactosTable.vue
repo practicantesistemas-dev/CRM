@@ -52,7 +52,7 @@ const emit = defineEmits<{
               <div class="text-[10px] text-slate-400 mt-0.5 whitespace-nowrap">Nac: {{ c.fechaNacimiento }}</div>
             </td>
             <td class="px-3 py-3">
-              <div class="text-[12px] font-semibold text-slate-700 truncate max-w-[120px]">{{ c.empresa }}</div>
+              <div class="text-[12px] font-semibold text-slate-700 truncate max-w-[120px]">{{ c.empresaNombre || '—' }}</div>
               <div class="text-[11px] text-slate-400 flex items-center gap-1 mt-0.5 truncate max-w-[120px]"><Briefcase :size="10" class="shrink-0" />{{ c.cargo }}</div>
             </td>
             <td class="px-3 py-3">

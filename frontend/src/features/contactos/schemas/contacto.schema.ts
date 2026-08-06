@@ -7,7 +7,7 @@ export const contactoSchema = z.object({
   documento: documentoIdentidad({ opcional: true }),
   correo: optionalEmail(),
   telefono: telefonoCO(),
-  empresa: z.string().trim(),
+  empresaId: z.number().nullable(),
   cargo: z.string().trim(),
   ciudad: z.string().trim().min(1, 'La ciudad es obligatoria'),
   departamento: z.string().trim().min(1, 'El departamento es obligatorio'),

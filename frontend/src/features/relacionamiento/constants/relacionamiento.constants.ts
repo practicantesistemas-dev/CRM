@@ -8,7 +8,7 @@ export const TIPO_META: Record<TipoActividad, { icono: unknown; color: string; b
   'Correo':   { icono: Mail,          color: '#EC4899', bg: '#FCE7F3' },
   'Reunión':  { icono: Calendar,      color: '#C9A227', bg: '#FEF9C3' },
   'WhatsApp': { icono: MessageCircle, color: '#059669', bg: '#D1FAE5' },
-  'Nota':     { icono: FileText,      color: '#1A2A6C', bg: '#E8EAF6' },
+  'Nota':     { icono: FileText,      color: '#c06e03', bg: '#E8EAF6' },
 }
 
 export const ACTIVIDAD_DRAFT_VACIO: ActividadDraft = {
@@ -16,6 +16,6 @@ export const ACTIVIDAD_DRAFT_VACIO: ActividadDraft = {
   contactoId: null, contactoNombre: '',
   empresaNombre: '',
   titularId: null, titularNombre: '',
-  accion: '', proximoPaso: '',
-  fecha: new Date().toISOString().split('T')[0], usuario: '', oportunidadId: null,
+  accion: '', proximoPaso: '', proximoPasoFecha: '',
+  fecha: new Date().toISOString().split('T')[0], oportunidadId: null,
 }

@@ -7,10 +7,7 @@ export const empresaSchema = z.object({
   industria: z.string().trim().min(1, 'Ingresa la industria'),
   direccion: z.string().trim().min(3, 'Ingresa la dirección (mín. 3 caracteres)'),
   ciudad: z.string().trim().min(1, 'Ingresa la ciudad'),
-  responsable: z.string().trim().min(1, 'Selecciona un responsable'),
-  estado: z.enum(['Activa', 'Inactiva', 'Prospecto']),
-  contactos: z.number(),
-  servicios: z.array(z.string()),
+  estado: z.boolean(),
 })
 
 export type EmpresaSchema = z.infer<typeof empresaSchema>

@@ -1,6 +1,6 @@
 import { ref, computed, onMounted } from 'vue'
 import type { Actividad, ActividadDraft, TipoActividad } from '../types/actividad'
-import { getActividades, createActividad, deleteActividad } from '../services/relacionamiento.api'
+import { getActividades, createActividad, updateActividad, completarActividad, deleteActividad } from '../services/relacionamiento.api'
 
 export function useRelacionamiento() {
   const actividades = ref<Actividad[]>([])
@@ -55,6 +55,48 @@ export function useRelacionamiento() {
     }
   }
 
+  const actualizarActividad = async (id: number, data: ActividadDraft): Promise<boolean> => {
+    guardandoActividad.value = true
+    errorGuardarActividad.value = null
+    try {
+      await updateActividad(id, data)
+      await cargarActividades()
+      return true
+    } catch (e) {
+      errorGuardarActividad.value = e instanceof Error ? e.message : 'No se pudo actualizar la actividad.'
+      return false
+    } finally {
+      guardandoActividad.value = false
+    }
+  }
+
+  // ─── Pendientes: actividades con próximo paso aún no completado, para la alarma de
+  // seguimientos. "estado" es la fuente de verdad (completarActividad ya no borra el texto
+  // del próximo paso, solo cambia estado a 'realizado'), proximoPaso solo filtra legado.
+  const pendientes = computed(() =>
+    actividades.value
+      .filter(a => !!a.proximoPaso && a.estado === 'pendiente')
+      .sort((a, b) => (a.proximoPasoFecha || '9999-99-99').localeCompare(b.proximoPasoFecha || '9999-99-99'))
+  )
+
+  const completandoId = ref<number | null>(null)
+  const errorCompletarActividad = ref<string | null>(null)
+
+  const marcarRealizada = async (id: number): Promise<boolean> => {
+    completandoId.value = id
+    errorCompletarActividad.value = null
+    try {
+      await completarActividad(id)
+      await cargarActividades()
+      return true
+    } catch (e) {
+      errorCompletarActividad.value = e instanceof Error ? e.message : 'No se pudo marcar la actividad como realizada.'
+      return false
+    } finally {
+      completandoId.value = null
+    }
+  }
+
   const eliminandoActividad = ref(false)
   const errorEliminarActividad = ref<string | null>(null)
 
@@ -77,7 +119,8 @@ export function useRelacionamiento() {
     actividades, cargando, error,
     filtroTipo, filtroUsuario, buscar,
     actividadesFiltradas, usuarios,
-    crearActividad, guardandoActividad, errorGuardarActividad,
+    crearActividad, actualizarActividad, guardandoActividad, errorGuardarActividad,
     eliminarActividad, eliminandoActividad, errorEliminarActividad,
+    pendientes, marcarRealizada, completandoId, errorCompletarActividad,
   }
 }

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import type { ActividadDraft } from '../types/actividad'
 import { TIPOS_ACTIVIDAD, TIPO_META } from '../constants/relacionamiento.constants'
 import { actividadSchema } from '../schemas/actividad.schema'
@@ -14,6 +14,8 @@ import { getContactos } from '@/features/contactos/services/contactos.api'
 import type { Contacto } from '@/features/contactos/types/contacto'
 import { getTitulares } from '@/features/plan-liga/services/plan-liga.api'
 import type { Titular } from '@/features/plan-liga/types/plan-liga'
+import { getEmpresas } from '@/features/empresas/services/empresas.api'
+import type { Empresa } from '@/features/empresas/types/empresa'
 
 const draft = defineModel<ActividadDraft>({ required: true })
 const emit = defineEmits<{ validSubmit: [] }>()
@@ -25,7 +27,7 @@ const contactos = ref<Contacto[]>([])
 onMounted(async () => { contactos.value = await getContactos() })
 
 const opcionesContactos = computed<OpcionBuscador[]>(() =>
-  contactos.value.map(c => ({ id: c.id, label: c.nombre, sublabel: c.empresa })),
+  contactos.value.map(c => ({ id: c.id, label: c.nombre, sublabel: c.empresaNombre })),
 )
 const titulares = ref<Titular[]>([])
 onMounted(async () => { titulares.value = await getTitulares() })
@@ -34,8 +36,30 @@ const opcionesTitulares = computed<OpcionBuscador[]>(() =>
   titulares.value.map(t => ({ id: t.id, label: t.nombre, sublabel: t.empresa })),
 )
 
+// empresaNombre sigue siendo texto libre (el backend no tiene empresa_id en la bitácora),
+// pero se busca contra el catálogo real de empresas en vez de escribirla a mano: reduce
+// typos y mantiene el mismo nombre exacto que usa el resto del CRM para cruzar información
+// (ej. el historial de empresas filtra actividades comparando este texto con razonSocial).
+const empresas = ref<Empresa[]>([])
+onMounted(async () => { empresas.value = await getEmpresas() })
+
+const opcionesEmpresas = computed<OpcionBuscador[]>(() =>
+  empresas.value.map(e => ({ id: e.id, label: e.razonSocial, sublabel: e.ciudad })),
+)
+
+// Al editar una actividad ya guardada, preselecciona la empresa en el buscador si su nombre
+// coincide con una del catálogo (para que no se vea vacío aunque el dato ya exista).
+const empresaSeleccionadaId = ref<number | null>(null)
+watch([empresas, () => draft.value.empresaNombre], ([lista, nombre]) => {
+  const encontrada = nombre ? lista.find(e => e.razonSocial.trim().toLowerCase() === nombre.trim().toLowerCase()) : null
+  empresaSeleccionadaId.value = encontrada?.id ?? null
+}, { immediate: true })
+
 function alSeleccionarContacto(item: OpcionBuscador | null) {
   draft.value.contactoNombre = item?.label ?? ''
+}
+function alSeleccionarEmpresa(item: OpcionBuscador | null) {
+  draft.value.empresaNombre = item?.label ?? ''
 }
 // nombre_empresa ya no depende de un catálogo (no es FK): al elegir un titular Plan Liga
 // se toma su empresa tal cual, sin obligar a buscarla/escribirla de nuevo.
@@ -89,11 +113,13 @@ const opcionesOportunidades = computed<OpcionBuscador[]>(() => {
           @select="alSeleccionarContacto"
           @blur="tocar('contactoId')"
         />
-        <input
-          v-model="draft.empresaNombre"
+        <BuscadorEntidad
+          v-model="empresaSeleccionadaId"
+          :opciones="opcionesEmpresas"
+          placeholder="Buscar empresa..."
+          vacio="No se encontraron empresas"
+          @select="alSeleccionarEmpresa"
           @blur="tocar('empresaNombre')"
-          placeholder="Nombre de la empresa..."
-          class="w-full h-10 px-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#2447F9] focus:bg-white transition-all"
         />
         <BuscadorEntidad
           v-model="draft.titularId"
@@ -112,23 +138,18 @@ const opcionesOportunidades = computed<OpcionBuscador[]>(() => {
       <textarea v-model="draft.accion" @blur="tocar('accion')" placeholder="Describa la actividad realizada..." rows="3" class="w-full px-4 py-3 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all resize-none" :class="fieldStateClass(esVisible('accion') && !!errors.accion, esVisible('accion') && !errors.accion && !!draft.accion, 'border-slate-200 focus:border-[#2447F9]')" />
       <FieldError :message="esVisible('accion') ? errors.accion : undefined" />
     </div>
-    <div class="sm:col-span-2">
+    <div>
       <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Próximo paso</label>
-      <input v-model="draft.proximoPaso" placeholder="¿Cuál es el siguiente paso?" class="w-full h-10 px-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#2447F9] focus:bg-white transition-all" />
+      <input v-model="draft.proximoPaso" @blur="tocar('proximoPaso')" placeholder="¿Cuál es el siguiente paso?" class="w-full h-10 px-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#2447F9] focus:bg-white transition-all" />
+      <FieldError :message="esVisible('proximoPaso') ? errors.proximoPaso : undefined" />
     </div>
-    <div>
-      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Fecha</label>
-      <FechaInput v-model="draft.fecha" />
+    <div v-if="draft.proximoPaso">
+      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Fecha límite del próximo paso</label>
+      <FechaInput v-model="draft.proximoPasoFecha" placeholder="Opcional" />
     </div>
-    <div>
-      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Usuario *</label>
-      <select v-model="draft.usuario" @blur="tocar('usuario')" class="w-full h-10 px-3 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all cursor-pointer" :class="fieldStateClass(esVisible('usuario') && !!errors.usuario, esVisible('usuario') && !errors.usuario && !!draft.usuario, 'border-slate-200 focus:border-[#2447F9]')">
-        <option value="">Seleccionar</option>
-        <option value="María García">María García</option>
-        <option value="Juan López">Juan López</option>
-        <option value="Carlos Torres">Carlos Torres</option>
-      </select>
-      <FieldError :message="esVisible('usuario') ? errors.usuario : undefined" />
+    <div class="sm:col-span-2">
+      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Fecha de creación</label>
+      <FechaInput v-model="draft.fecha" disabled />
     </div>
     <div class="sm:col-span-2">
       <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Oportunidad relacionada (opcional)</label>

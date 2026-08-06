@@ -87,7 +87,7 @@ const FALLBACK: { tipoDocumento: Contacto['tipoDocumento']; estado: Contacto['es
 function mapContactoResponse(
   r: ContactoReadResponse,
   catalogo: { departamentos: Departamento[]; municipios: Municipio[] },
-  fallback: { tipoDocumento?: Contacto['tipoDocumento']; estado?: Contacto['estado']; tipoContacto?: Contacto['tipoContacto']; sexo?: Contacto['sexo']; empresa?: string; responsable?: string } = {},
+  fallback: { tipoDocumento?: Contacto['tipoDocumento']; estado?: Contacto['estado']; tipoContacto?: Contacto['tipoContacto']; sexo?: Contacto['sexo']; responsable?: string } = {},
 ): Contacto {
   // ciudad/departamento viajan como código DIVIPOLA (igual que en Plan Liga), pero hay
   // registros antiguos con el nombre ya escrito de una: si no matchea ningún código del
@@ -112,7 +112,8 @@ function mapContactoResponse(
     documento: r.documento ?? '',
     correo: r.correo ?? '',
     telefono: r.telefono ?? '',
-    empresa: r.empresa?.razon_social ?? fallback.empresa ?? '',
+    empresaId: r.empresa_id,
+    empresaNombre: r.empresa?.razon_social ?? '',
     cargo: r.cargo ?? '',
     ciudad: nombreMunicipio,
     departamento: nombreDepartamento,
@@ -154,8 +155,7 @@ export async function getContactos(): Promise<Contacto[]> {
 }
 
 // Crea el contacto en el backend real (POST /api/contactos/, requiere Bearer token).
-// empresa_id se manda null: el formulario solo tiene texto libre de empresa, sin un id real
-// que resolver (no hay endpoint de búsqueda de empresas todavía).
+// empresa_id viaja tal cual lo eligió el usuario en el selector (o null si lo dejó vacío).
 // responsable_id no se manda: el responsable es quien crea el contacto, y el backend lo
 // resuelve él mismo a partir del Bearer token (mismo patrón que POST /api/bitacora/).
 export async function createContacto(data: ContactoDraft): Promise<Contacto> {
@@ -176,7 +176,7 @@ export async function createContacto(data: ContactoDraft): Promise<Contacto> {
     departamento: data.departamento || null,
     fecha_nacimiento: data.fechaNacimiento || null,
     estado: data.estado || null,
-    empresa_id: null,
+    empresa_id: data.empresaId,
     etiqueta_ids: data.etiquetas.map(e => e.id),
   }
   const response = await fetch(`${API_URL}/api/contactos/`, {
@@ -194,7 +194,6 @@ export async function createContacto(data: ContactoDraft): Promise<Contacto> {
     estado: data.estado,
     tipoContacto: data.tipoContacto,
     sexo: data.sexo,
-    empresa: data.empresa,
     // Respaldo por si la respuesta no trajera "responsable" (no debería pasar): quien
     // crea el contacto queda como responsable, así que se usa el usuario autenticado.
     responsable: useAuth().me.value?.nombres ?? '',
@@ -203,10 +202,9 @@ export async function createContacto(data: ContactoDraft): Promise<Contacto> {
 
 // Actualiza el contacto en el backend real (PUT /api/contactos/{id}, requiere Bearer token).
 // Todos los campos del body son opcionales para el backend (exclude_unset): acá se manda
-// el set completo que ya vive en el draft, EXCEPTO empresa_id y estado.
-// - empresa_id se omite (no se manda ni siquiera null): el formulario no tiene un id real de
-//   empresa que resolver (mismo motivo que en createContacto), y a diferencia de crear, en
-//   edición mandar null sí podría borrar una asociación de empresa que ya existía.
+// el set completo que ya vive en el draft, EXCEPTO estado.
+// - empresa_id ahora sí viaja: el selector es la fuente real de verdad (a diferencia del
+//   viejo campo de texto libre), así que elegir "Sin empresa asociada" debe poder desasociarla.
 // - estado no forma parte del contrato de este PUT (no está en el form tampoco): se deja que
 //   el backend conserve el que ya tenía.
 export async function updateContacto(id: number, data: ContactoDraft): Promise<Contacto> {
@@ -226,6 +224,7 @@ export async function updateContacto(id: number, data: ContactoDraft): Promise<C
     tipo_contacto: data.tipoContacto,
     fecha_nacimiento: data.fechaNacimiento || null,
     sexo: SEXO_API[data.sexo] ?? null,
+    empresa_id: data.empresaId,
     etiqueta_ids: data.etiquetas.map(e => e.id),
   }
   const response = await fetch(`${API_URL}/api/contactos/${id}`, {
@@ -242,7 +241,6 @@ export async function updateContacto(id: number, data: ContactoDraft): Promise<C
     tipoDocumento: data.tipoDocumento,
     tipoContacto: data.tipoContacto,
     sexo: data.sexo,
-    empresa: data.empresa,
   })
 }
 

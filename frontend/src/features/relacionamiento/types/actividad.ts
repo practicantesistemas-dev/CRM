@@ -1,4 +1,5 @@
 export type TipoActividad = 'Llamada' | 'Correo' | 'Reunión' | 'WhatsApp' | 'Nota'
+export type EstadoActividad = 'pendiente' | 'realizado'
 
 export interface Actividad {
   id: number
@@ -12,10 +13,19 @@ export interface Actividad {
   titularNombre: string
   accion: string
   proximoPaso: string
+  /** Fecha límite del próximo paso; '' si no se definió una. No es un campo propio del
+   *  backend (solo tiene "proximo_paso" como texto), se codifica dentro de ese mismo texto. */
+  proximoPasoFecha: string
   fecha: string
+  /** Quien registró la actividad; lo resuelve el backend a partir del usuario autenticado
+   *  (Bearer token), no es un campo que el formulario deje elegir. */
   usuario: string
   /** Oportunidad a la que queda ligada la actividad; null si aún no tiene una oportunidad asociada. */
   oportunidadId: number | null
+  /** Deriva del backend a partir de si hay próximo paso pendiente; no es un campo que el
+   *  formulario deje editar directamente (ver construirBody en relacionamiento.api.ts). Se
+   *  puede cambiar a 'realizado' sin tocar el resto vía completarActividad(). */
+  estado: EstadoActividad
 }
 
-export type ActividadDraft = Omit<Actividad, 'id'>
+export type ActividadDraft = Omit<Actividad, 'id' | 'usuario' | 'estado'>

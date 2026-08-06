@@ -21,9 +21,10 @@ const {
   historialActual, cargandoHistorial, cargarHistorial,
   etiquetas, cargandoEtiquetas, cargarEtiquetas,
   crearEtiqueta, creandoEtiqueta, errorCrearEtiqueta,
+  empresas, cargandoEmpresas, cargarEmpresas,
 } = useContactos()
 
-onMounted(() => { cargarContactos(); cargarEtiquetas() })
+onMounted(() => { cargarContactos(); cargarEtiquetas(); cargarEmpresas() })
 
 // ─── Modal Contacto ─────────────────────────────────────────────────────────
 const modalVisible     = ref(false)
@@ -188,6 +189,8 @@ const exportarContactos = () => exportarContactosExcel(contactosFiltrados.value)
       :creando-etiqueta="creandoEtiqueta"
       :error-crear-etiqueta="errorCrearEtiqueta"
       :crear-etiqueta="crearEtiqueta"
+      :empresas="empresas"
+      :cargando-empresas="cargandoEmpresas"
       @submit="guardarContacto"
     />
 

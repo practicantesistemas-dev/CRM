@@ -582,6 +582,15 @@ const TIPO_SEG_API: Record<TipoSeguimiento, string> = {
   Llamada: 'llamada', Correo: 'correo', Reunión: 'reunion', WhatsApp: 'whatsapp', Nota: 'nota',
 }
 
+// El backend solo tiene "proximo_paso" como texto libre (sin campo propio para su fecha
+// límite): la fecha viaja codificada como prefijo "YYYY-MM-DD::" dentro de ese mismo texto,
+// mismo formato que decodifica relacionamiento.api.ts al leer la bitácora general (no se
+// importa de ahí directo para no crear un ciclo: relacionamiento.api.ts ya importa de este archivo).
+function codificarProximoPaso(texto: string, fechaLimite: string): string | null {
+  if (!texto.trim()) return null
+  return fechaLimite ? `${fechaLimite}::${texto}` : texto
+}
+
 // El endpoint de bitácora no tiene un campo propio para beneficiario_id (solo titular_id),
 // así que cuando el seguimiento es sobre un beneficiario puntual, su nombre queda como
 // prefijo de la descripción para poder identificarlo dentro de la bitácora del titular.
@@ -591,12 +600,12 @@ export async function registrarSeguimiento(titular: Titular, data: SeguimientoDr
   const body = {
     tipo: TIPO_SEG_API[data.tipo],
     descripcion: beneficiarioNombre ? `[Beneficiario: ${beneficiarioNombre}] ${data.accion}` : data.accion,
-    proximo_paso: data.proximoPaso || null,
+    proximo_paso: codificarProximoPaso(data.proximoPaso, data.proximoPasoFecha),
     fecha: data.fecha,
     titular_id: titular.id,
     nombre_empresa: titular.empresa || null,
     oportunidad_id: data.oportunidadId,
-    estado: 'realizado',
+    estado: data.proximoPaso.trim() ? 'pendiente' : 'realizado',
   }
   const response = await fetch(`${API_URL}/api/bitacora/`, {
     method: 'POST',

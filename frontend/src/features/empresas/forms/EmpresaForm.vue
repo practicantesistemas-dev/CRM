@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Building2, Hash, MapPin, User } from 'lucide-vue-next'
+import { Building2, Hash, MapPin } from 'lucide-vue-next'
 import type { EmpresaDraft } from '../types/empresa'
 import { empresaSchema } from '../schemas/empresa.schema'
 import { useZodForm } from '@/shared/composables/useZodForm'
@@ -50,24 +50,10 @@ defineExpose({ submit: onValidSubmit(() => emit('validSubmit')) })
       <FieldError :message="esVisible('ciudad') ? errors.ciudad : undefined" />
     </div>
     <div>
-      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Responsable *</label>
-      <div class="relative">
-        <User :size="13" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-        <select v-model="draft.responsable" @blur="tocar('responsable')" class="w-full h-10 pl-9 pr-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all cursor-pointer" :class="fieldStateClass(esVisible('responsable') && !!errors.responsable, esVisible('responsable') && !errors.responsable && !!draft.responsable, 'border-slate-200 focus:border-[#2447F9]')">
-          <option value="">Seleccionar</option>
-          <option value="María García">María García</option>
-          <option value="Juan López">Juan López</option>
-          <option value="Carlos Torres">Carlos Torres</option>
-        </select>
-      </div>
-      <FieldError :message="esVisible('responsable') ? errors.responsable : undefined" />
-    </div>
-    <div>
       <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Estado *</label>
-      <select v-model="draft.estado" class="w-full h-10 px-3 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#2447F9] focus:bg-white transition-all cursor-pointer">
+      <select :value="draft.estado ? 'Activa' : 'Inactiva'" @change="draft.estado = ($event.target as HTMLSelectElement).value === 'Activa'" class="w-full h-10 px-3 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#2447F9] focus:bg-white transition-all cursor-pointer">
         <option value="Activa">Activa</option>
         <option value="Inactiva">Inactiva</option>
-        <option value="Prospecto">Prospecto</option>
       </select>
     </div>
   </div>

@@ -1,18 +1,25 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { Search, Plus, Download } from 'lucide-vue-next'
 import type { Empresa, EmpresaDraft } from '../types/empresa'
-import { EMPRESA_DRAFT_VACIO, HISTORIAL_MOCK } from '../constants/empresas.constants'
+import { EMPRESA_DRAFT_VACIO } from '../constants/empresas.constants'
 import { useEmpresas } from '../composables/useEmpresas'
 import EmpresaFormDialog from '../dialogs/EmpresaFormDialog.vue'
 import HistorialDrawer from '../dialogs/HistorialDrawer.vue'
+import SeguimientoDialog from '../dialogs/SeguimientoDialog.vue'
 import EmpresasTable from '../tables/EmpresasTable.vue'
+import ConfirmDialog from '@/shared/components/ConfirmDialog.vue'
 
 const {
-  empresas, buscar, filtroEstado, filtroIndustria,
+  empresas, cargandoEmpresas, errorEmpresas, cargarEmpresas,
+  buscar, filtroEstado, filtroIndustria,
   empresasFiltradas, industrias,
-  crearEmpresa, actualizarEmpresa,
+  crearEmpresa, actualizarEmpresa, guardandoEmpresa, errorGuardarEmpresa,
+  eliminarEmpresa, errorEliminarEmpresa,
+  historialActual, cargandoHistorial, cargarHistorial,
 } = useEmpresas()
+
+onMounted(() => { cargarEmpresas() })
 
 const modalVisible = ref(false)
 const modalModo = ref<'nuevo' | 'editar'>('nuevo')
@@ -22,27 +29,47 @@ const draft = ref<EmpresaDraft>({ ...EMPRESA_DRAFT_VACIO })
 const abrirNuevo = () => {
   modalModo.value = 'nuevo'
   empresaEditando.value = null
-  draft.value = { ...EMPRESA_DRAFT_VACIO, servicios: [] }
+  errorGuardarEmpresa.value = null
+  draft.value = { ...EMPRESA_DRAFT_VACIO }
   modalVisible.value = true
 }
 const abrirEditar = (e: Empresa) => {
   modalModo.value = 'editar'
   empresaEditando.value = e
-  draft.value = { ...e, servicios: [...e.servicios] }
+  errorGuardarEmpresa.value = null
+  draft.value = { razonSocial: e.razonSocial, nit: e.nit, industria: e.industria, direccion: e.direccion, ciudad: e.ciudad, estado: e.estado }
   modalVisible.value = true
 }
-const guardar = () => {
+const guardar = async () => {
   if (modalModo.value === 'nuevo') {
-    crearEmpresa(draft.value)
+    const ok = await crearEmpresa(draft.value)
+    if (ok) modalVisible.value = false
   } else if (empresaEditando.value) {
-    actualizarEmpresa(empresaEditando.value.id, draft.value)
+    const ok = await actualizarEmpresa(empresaEditando.value.id, draft.value)
+    if (ok) modalVisible.value = false
   }
-  modalVisible.value = false
+}
+
+const confirmBorrarVisible = ref(false)
+const empresaABorrar = ref<Empresa | null>(null)
+const pedirBorrarEmpresa = (e: Empresa) => {
+  empresaABorrar.value = e
+  errorEliminarEmpresa.value = null
+  confirmBorrarVisible.value = true
+}
+const confirmarBorrado = async () => {
+  if (empresaABorrar.value) await eliminarEmpresa(empresaABorrar.value.id)
+  empresaABorrar.value = null
 }
 
 const drawerVisible = ref(false)
 const empresaHistorial = ref<Empresa | null>(null)
-const abrirHistorial = (e: Empresa) => { empresaHistorial.value = e; drawerVisible.value = true }
+const abrirHistorial = (e: Empresa) => { empresaHistorial.value = e; drawerVisible.value = true; cargarHistorial(e) }
+
+// ─── Registrar actividad (desde el drawer de historial) ────────────────────
+const modalSegVisible = ref(false)
+const abrirSeguimiento = () => { modalSegVisible.value = true }
+const alRegistrarActividad = () => { if (empresaHistorial.value) cargarHistorial(empresaHistorial.value) }
 </script>
 
 <template>
@@ -53,7 +80,7 @@ const abrirHistorial = (e: Empresa) => { empresaHistorial.value = e; drawerVisib
           Gestión de Empresas
           <span class="bg-[#EEF2FF] text-[#2447F9] text-[11px] font-bold px-2.5 py-0.5 rounded-full">{{ empresas.length }}</span>
         </h2>
-        <p class="text-[12px] text-slate-500 mt-0.5">Empresas vinculadas, industrias y servicios asociados</p>
+        <p class="text-[12px] text-slate-500 mt-0.5">Empresas vinculadas e industrias</p>
       </div>
       <div class="flex items-center gap-2">
         <button class="flex items-center gap-1.5 h-9 px-4 rounded-lg border border-slate-200 bg-white text-[11px] font-semibold text-slate-600 hover:bg-slate-50 transition-all">
@@ -76,7 +103,6 @@ const abrirHistorial = (e: Empresa) => { empresaHistorial.value = e; drawerVisib
             <option value="todos">Estado: Todos</option>
             <option value="Activa">Activa</option>
             <option value="Inactiva">Inactiva</option>
-            <option value="Prospecto">Prospecto</option>
           </select>
           <select v-model="filtroIndustria" class="h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer">
             <option value="todas">Industria: Todas</option>
@@ -85,23 +111,45 @@ const abrirHistorial = (e: Empresa) => { empresaHistorial.value = e; drawerVisib
         </div>
       </div>
       <div class="mt-2 text-[11px] text-slate-400">
-        Mostrando <strong class="text-slate-600">{{ empresasFiltradas.length }}</strong> empresas
+        <template v-if="cargandoEmpresas">Cargando empresas...</template>
+        <template v-else>
+          Mostrando <strong class="text-slate-600">{{ empresasFiltradas.length }}</strong> empresas
+        </template>
       </div>
+      <p v-if="errorEmpresas" class="mt-1 text-[11px] font-medium text-red-500">{{ errorEmpresas }}</p>
+      <p v-if="errorEliminarEmpresa" class="mt-1 text-[11px] font-medium text-red-500">{{ errorEliminarEmpresa }}</p>
     </div>
 
-    <EmpresasTable :rows="empresasFiltradas" @editar="abrirEditar" @historial="abrirHistorial" />
+    <EmpresasTable :rows="empresasFiltradas" @editar="abrirEditar" @historial="abrirHistorial" @borrar="pedirBorrarEmpresa" />
 
     <EmpresaFormDialog
       v-model:visible="modalVisible"
       v-model:draft="draft"
       :modo="modalModo"
+      :guardando="guardandoEmpresa"
+      :error="errorGuardarEmpresa"
       @submit="guardar"
     />
 
     <HistorialDrawer
       v-model:visible="drawerVisible"
       :empresa="empresaHistorial"
-      :items="HISTORIAL_MOCK"
+      :items="historialActual"
+      :cargando="cargandoHistorial"
+      @registrar="abrirSeguimiento"
+    />
+
+    <SeguimientoDialog
+      v-model:visible="modalSegVisible"
+      :empresa="empresaHistorial"
+      @registrado="alRegistrarActividad"
+    />
+
+    <ConfirmDialog
+      v-model:visible="confirmBorrarVisible"
+      titulo="Eliminar empresa"
+      :mensaje="`¿Eliminar a ${empresaABorrar?.razonSocial}? Esta acción no se puede deshacer.`"
+      @confirmar="confirmarBorrado"
     />
   </div>
 </template>

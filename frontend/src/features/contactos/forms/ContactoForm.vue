@@ -3,6 +3,7 @@ import { ref, computed, watch } from 'vue'
 import Select from 'primevue/select'
 import { User, Mail, Phone, Building2, Briefcase, Tag, X, Loader2, Plus, AlertCircle } from 'lucide-vue-next'
 import type { ContactoDraft, Etiqueta, EtiquetaDraft } from '../types/contacto'
+import type { Empresa } from '@/features/empresas/types/empresa'
 import { TIPO_CONTACTO_OPTIONS } from '../constants/contactos.constants'
 import { contactoSchema } from '../schemas/contacto.schema'
 import { useZodForm } from '@/shared/composables/useZodForm'
@@ -19,6 +20,8 @@ const props = defineProps<{
   creandoEtiqueta?: boolean
   errorCrearEtiqueta?: string | null
   crearEtiqueta: (data: EtiquetaDraft) => Promise<Etiqueta | null>
+  empresas: Empresa[]
+  cargandoEmpresas?: boolean
 }>()
 
 const draft = defineModel<ContactoDraft>({ required: true })
@@ -109,9 +112,14 @@ const crearYSeleccionarEtiqueta = async () => {
       <FieldError :message="esVisible('telefono') ? errors.telefono : undefined" />
     </div>
     <div>
-      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Empresa</label>
-      <div class="relative"><Building2 :size="13" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-        <input v-model="draft.empresa" placeholder="Nombre de la empresa" class="w-full h-10 pl-9 pr-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#2447F9] focus:bg-white transition-all" /></div>
+      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Empresa <span class="font-normal normal-case text-slate-400">(opcional)</span></label>
+      <div class="relative">
+        <Building2 :size="13" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 z-10" />
+        <Select v-model="draft.empresaId" :options="empresas" option-label="razonSocial" option-value="id"
+          :loading="cargandoEmpresas" show-clear filter filter-placeholder="Buscar empresa..."
+          placeholder="Sin empresa asociada" empty-filter-message="Sin resultados" empty-message="Sin empresas"
+          class="w-full" input-class="h-10 text-[12px] flex items-center pl-6" />
+      </div>
     </div>
     <div>
       <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Cargo</label>

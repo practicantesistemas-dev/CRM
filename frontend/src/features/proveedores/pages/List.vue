@@ -4,6 +4,7 @@ import { Search, Plus, Download } from 'lucide-vue-next'
 import type { Proveedor, ProveedorDraft } from '../types/proveedor'
 import { PROVEEDOR_DRAFT_VACIO } from '../constants/proveedores.constants'
 import { useProveedores } from '../composables/useProveedores'
+import { exportarProveedoresExcel } from '../utils/exportarProveedoresExcel'
 import ProveedorFormDialog from '../dialogs/ProveedorFormDialog.vue'
 import ProveedoresTable from '../tables/ProveedoresTable.vue'
 import ProveedorServiciosDrawer from '../dialogs/ProveedorServiciosDrawer.vue'
@@ -60,6 +61,13 @@ const abrirServicios = (p: Proveedor) => {
   proveedorServicios.value = p
   serviciosDrawerVisible.value = true
 }
+
+const exportar = () => exportarProveedoresExcel(
+  proveedoresFiltrados.value,
+  buscar.value,
+  filtroEstado.value,
+  filtroCategoria.value,
+)
 </script>
 
 <template>
@@ -73,7 +81,7 @@ const abrirServicios = (p: Proveedor) => {
         <p class="text-[12px] text-slate-500 mt-0.5">Proveedores registrados por categoría y estado</p>
       </div>
       <div class="flex items-center gap-2">
-        <button class="flex items-center gap-1.5 h-9 px-4 rounded-lg border border-slate-200 bg-white text-[11px] font-semibold text-slate-600 hover:bg-slate-50 transition-all">
+        <button @click="exportar" class="flex items-center gap-1.5 h-9 px-4 rounded-lg border border-slate-200 bg-white text-[11px] font-semibold text-slate-600 hover:bg-slate-50 transition-all">
           <Download :size="13" /> Exportar
         </button>
         <button @click="abrirNuevo" class="flex items-center gap-1.5 h-9 px-4 rounded-lg bg-[#2447F9] text-white text-[11px] font-bold shadow hover:bg-[#1D3DD9] transition-all">
