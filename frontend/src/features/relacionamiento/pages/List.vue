@@ -110,11 +110,6 @@ const confirmarEliminar = async () => {
       </div>
     </div>
 
-    <div v-if="error" class="flex items-center gap-2.5 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
-      <AlertCircle :size="16" class="text-red-500 shrink-0" />
-      <p class="text-[12px] font-semibold text-red-600">{{ error }}</p>
-    </div>
-
     <div v-if="cargando" class="flex items-center justify-center gap-2 bg-white rounded-2xl border border-slate-200 p-16 text-slate-400 text-[12px]">
       <Loader2 :size="16" class="animate-spin" />Cargando bitácora...
     </div>
