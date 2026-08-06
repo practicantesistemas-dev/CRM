@@ -3,7 +3,7 @@ import type { Contacto, ContactoDraft, TipoSeguimiento } from '../types/contacto
 
 export const CONTACTO_DRAFT_VACIO: ContactoDraft = {
   nombre: '', tipoDocumento: 'CC', documento: '', correo: '',
-  telefono: '', empresa: '', cargo: '', ciudad: '', departamento: '', estado: 'Activo',
+  telefono: '', empresaId: null, cargo: '', ciudad: '', departamento: '', estado: 'Activo',
   tipoContacto: 'Prospecto', fechaNacimiento: '', sexo: '', etiquetas: []
 }
 

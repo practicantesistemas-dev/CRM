@@ -5,13 +5,13 @@ export interface Empresa {
   industria: string
   direccion: string
   ciudad: string
-  responsable: string
-  estado: 'Activa' | 'Inactiva' | 'Prospecto'
+  estado: boolean
+  responsableId: number | null
+  /** Derivado en el cliente contando contactos por empresaId; no lo devuelve el backend. */
   contactos: number
-  servicios: string[]
 }
 
-export type EmpresaDraft = Omit<Empresa, 'id'>
+export type EmpresaDraft = Omit<Empresa, 'id' | 'responsableId' | 'contactos'>
 
 export interface HistorialItem {
   tipo: string

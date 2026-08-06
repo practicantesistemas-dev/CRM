@@ -4,6 +4,8 @@ import {
   getContactos, createContacto, updateContacto, deleteContacto, getBitacoraContacto,
   getEtiquetas, createEtiqueta,
 } from '../services/contactos.api'
+import type { Empresa } from '@/features/empresas/types/empresa'
+import { getEmpresas } from '@/features/empresas/services/empresas.api'
 
 const PAGE_SIZE = 6
 
@@ -44,7 +46,7 @@ export function useContactos() {
   const contactosFiltrados = computed(() =>
     contactos.value.filter(c => {
       const q = buscar.value.toLowerCase()
-      return (!q || [c.nombre, c.correo, c.empresa, c.documento].some(f => f.toLowerCase().includes(q)))
+      return (!q || [c.nombre, c.correo, c.empresaNombre, c.documento].some(f => f.toLowerCase().includes(q)))
         && (filtroEstado.value       === 'todos'  || c.estado === filtroEstado.value)
         && (filtroCiudad.value       === 'todas'  || c.ciudad === filtroCiudad.value)
         && (filtroDepartamento.value === 'todos'  || c.departamento === filtroDepartamento.value)
@@ -192,6 +194,23 @@ export function useContactos() {
     }
   }
 
+  // ─── Empresas (catálogo real para el selector opcional del formulario) ──────
+  const empresas = ref<Empresa[]>([])
+  const cargandoEmpresas = ref(false)
+  const errorEmpresas = ref<string | null>(null)
+
+  const cargarEmpresas = async () => {
+    cargandoEmpresas.value = true
+    errorEmpresas.value = null
+    try {
+      empresas.value = await getEmpresas()
+    } catch (e) {
+      errorEmpresas.value = e instanceof Error ? e.message : 'No se pudieron cargar las empresas.'
+    } finally {
+      cargandoEmpresas.value = false
+    }
+  }
+
   return {
     contactos, cargandoContactos, errorContactos, cargarContactos,
     buscar, filtroEstado, filtroCiudad, filtroDepartamento, filtroResponsable, filtroSexo, filtroEdad,
@@ -202,5 +221,6 @@ export function useContactos() {
     historialActual, cargandoHistorial, errorHistorial, cargarHistorial,
     etiquetas, cargandoEtiquetas, errorEtiquetas, cargarEtiquetas,
     crearEtiqueta, creandoEtiqueta, errorCrearEtiqueta,
+    empresas, cargandoEmpresas, errorEmpresas, cargarEmpresas,
   }
 }

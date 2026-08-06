@@ -14,7 +14,10 @@ export interface Contacto {
   documento: string
   correo: string
   telefono: string
-  empresa: string
+  /** FK opcional hacia la tabla real de empresas; null = contacto sin empresa asociada. */
+  empresaId: number | null
+  /** Nombre de la empresa asociada, resuelto por el backend; solo lectura. */
+  empresaNombre: string
   cargo: string
   /** Nombre legible (ej. "Pereira"), para tabla/filtros. */
   ciudad: string
@@ -37,7 +40,7 @@ export interface Contacto {
 // a partir del usuario autenticado (Bearer token) al crear el contacto.
 // 'ciudadCodigo'/'departamentoCodigo' quedan fuera: en el draft, 'ciudad'/'departamento' YA
 // son el código (los Select del formulario usan option-value="codigo" directamente).
-export type ContactoDraft = Omit<Contacto, 'id' | 'responsable' | 'ciudadCodigo' | 'departamentoCodigo'>
+export type ContactoDraft = Omit<Contacto, 'id' | 'responsable' | 'ciudadCodigo' | 'departamentoCodigo' | 'empresaNombre'>
 
 export type TipoSeguimiento = 'Llamada' | 'Correo' | 'Reunión' | 'WhatsApp' | 'Nota'
 

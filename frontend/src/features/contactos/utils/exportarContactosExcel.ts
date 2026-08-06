@@ -10,7 +10,7 @@ export function exportarContactosExcel(contactos: Contacto[]): void {
     'Nombre': c.nombre,
     'Teléfono': c.telefono,
     'Correo': c.correo,
-    'Empresa': c.empresa,
+    'Empresa': c.empresaNombre,
     'Cargo': c.cargo,
     'Tipo de documento': c.tipoDocumento,
     'Número de documento': c.documento,

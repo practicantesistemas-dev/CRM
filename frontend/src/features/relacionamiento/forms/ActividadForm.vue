@@ -25,7 +25,7 @@ const contactos = ref<Contacto[]>([])
 onMounted(async () => { contactos.value = await getContactos() })
 
 const opcionesContactos = computed<OpcionBuscador[]>(() =>
-  contactos.value.map(c => ({ id: c.id, label: c.nombre, sublabel: c.empresa })),
+  contactos.value.map(c => ({ id: c.id, label: c.nombre, sublabel: c.empresaNombre })),
 )
 const titulares = ref<Titular[]>([])
 onMounted(async () => { titulares.value = await getTitulares() })

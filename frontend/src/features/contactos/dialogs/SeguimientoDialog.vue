@@ -46,7 +46,7 @@ const guardarSeguimiento = onValidSubmit(async () => {
       tipo: formSeg.value.tipo,
       contactoId: props.contacto.id,
       contactoNombre: props.contacto.nombre,
-      empresaNombre: props.contacto.empresa,
+      empresaNombre: props.contacto.empresaNombre,
       titularId: null,
       titularNombre: '',
       accion: formSeg.value.accion,
@@ -78,7 +78,7 @@ const guardarSeguimiento = onValidSubmit(async () => {
             <ClipboardList :size="15" class="text-[#059669]" />
             Registrar seguimiento
           </h3>
-          <p class="text-[11px] text-slate-400 mt-0.5">{{ props.contacto?.nombre }} · {{ props.contacto?.empresa }}</p>
+          <p class="text-[11px] text-slate-400 mt-0.5">{{ props.contacto?.nombre }} · {{ props.contacto?.empresaNombre }}</p>
         </div>
         <button @click="visible = false" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500">
           <X :size="14" />

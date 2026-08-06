@@ -2,6 +2,7 @@
 import { ref, watch, nextTick } from 'vue'
 import { X, Loader2, AlertCircle } from 'lucide-vue-next'
 import type { ContactoDraft, Etiqueta, EtiquetaDraft } from '../types/contacto'
+import type { Empresa } from '@/features/empresas/types/empresa'
 import ContactoForm from '../forms/ContactoForm.vue'
 
 const props = defineProps<{
@@ -15,6 +16,8 @@ const props = defineProps<{
   // Función (no evento) porque el formulario necesita el Etiqueta recién creado de vuelta
   // para seleccionarlo automáticamente; un emit no puede devolver el resultado del await.
   crearEtiqueta: (data: EtiquetaDraft) => Promise<Etiqueta | null>
+  empresas: Empresa[]
+  cargandoEmpresas?: boolean
 }>()
 const emit = defineEmits<{ submit: [] }>()
 
@@ -55,6 +58,8 @@ watch(() => props.error, (nuevo) => {
           :creando-etiqueta="creandoEtiqueta"
           :error-crear-etiqueta="errorCrearEtiqueta"
           :crear-etiqueta="crearEtiqueta"
+          :empresas="empresas"
+          :cargando-empresas="cargandoEmpresas"
           @valid-submit="emit('submit')"
         />
       </div>
