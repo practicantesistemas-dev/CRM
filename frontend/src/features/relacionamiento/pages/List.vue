@@ -11,7 +11,7 @@ import ActividadFormDialog from '../dialogs/ActividadFormDialog.vue'
 import ConfirmarEliminarActividadDialog from '../dialogs/ConfirmarEliminarActividadDialog.vue'
 
 const {
-  actividades, cargando, error, filtroTipo, filtroUsuario, buscar,
+  actividades, cargando, filtroTipo, filtroUsuario, buscar,
   actividadesFiltradas, usuarios, pendientes,
   crearActividad, actualizarActividad, guardandoActividad, errorGuardarActividad,
   eliminarActividad, eliminandoActividad, errorEliminarActividad,
