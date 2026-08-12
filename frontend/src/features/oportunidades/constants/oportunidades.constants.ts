@@ -37,13 +37,13 @@ export const clienteLabel = (o: Pick<Oportunidad, 'tipoCliente' | 'empresaNombre
 
 export const estadoStyle = (e: EtapaOportunidad) => {
   const map: Record<EtapaOportunidad, string> = {
-    'Lead':           'text-slate-400',
-    'Primer Contacto':'text-[#1E3A8A]',
-    'Reunión':        'text-[#9D174D]',
-    'Cotización':     'text-amber-600',
-    'Negociación':    'text-[#1A2A6C]',
-    'Ganada':         'text-emerald-600',
-    'Perdida':        'text-red-500',
+    'Lead':           'text-slate-400 dark:text-slate-500',
+    'Primer Contacto':'text-[#1E3A8A] dark:text-blue-300',
+    'Reunión':        'text-[#9D174D] dark:text-pink-300',
+    'Cotización':     'text-amber-600 dark:text-amber-400',
+    'Negociación':    'text-[#1A2A6C] dark:text-indigo-300',
+    'Ganada':         'text-emerald-600 dark:text-emerald-400',
+    'Perdida':        'text-red-500 dark:text-red-400',
   }
-  return map[e] ?? 'bg-slate-100 text-slate-500 border-slate-200'
+  return map[e] ?? 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700'
 }

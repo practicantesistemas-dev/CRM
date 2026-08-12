@@ -122,9 +122,9 @@ export const ACCION_META: Record<TipoAccion, { icono: unknown; color: string }> 
 }
 
 export const ESTADO_STYLE: Record<EstadoAutomatizacion, string> = {
-  'Activa':  'text-emerald-600',
-  'Pausada': 'text-amber-600',
-  'Error':   'text-red-500',
+  'Activa':  'text-emerald-600 dark:text-emerald-400',
+  'Pausada': 'text-amber-600 dark:text-amber-400',
+  'Error':   'text-red-500 dark:text-red-400',
 }
 
 export const TRIGGERS: TipoTrigger[] = [

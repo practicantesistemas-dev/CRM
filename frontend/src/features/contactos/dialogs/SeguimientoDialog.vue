@@ -71,29 +71,29 @@ const guardarSeguimiento = onValidSubmit(async () => {
     class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
     @click.self="visible = false"
   >
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden">
-      <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-[#F8FAFC]">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700 bg-[#F8FAFC] dark:bg-slate-900">
         <div>
-          <h3 class="text-[14px] font-bold text-[#0F172A] flex items-center gap-2">
+          <h3 class="text-[14px] font-bold text-[#0F172A] dark:text-slate-100 flex items-center gap-2">
             <ClipboardList :size="15" class="text-[#059669]" />
             Registrar seguimiento
           </h3>
-          <p class="text-[11px] text-slate-400 mt-0.5">{{ props.contacto?.nombre }} · {{ props.contacto?.empresaNombre }}</p>
+          <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">{{ props.contacto?.nombre }} · {{ props.contacto?.empresaNombre }}</p>
         </div>
-        <button @click="visible = false" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500">
+        <button @click="visible = false" class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 flex items-center justify-center text-slate-500 dark:text-slate-400">
           <X :size="14" />
         </button>
       </div>
 
       <div v-if="segGuardado" class="p-8 text-center">
         <CheckCircle :size="36" class="text-[#059669] mx-auto mb-3" />
-        <p class="text-[13px] font-bold text-[#0F172A]">Seguimiento registrado</p>
-        <p class="text-[11px] text-slate-400 mt-1">Se guardó en la Bitácora de Relacionamiento</p>
+        <p class="text-[13px] font-bold text-[#0F172A] dark:text-slate-100">Seguimiento registrado</p>
+        <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-1">Se guardó en la Bitácora de Relacionamiento</p>
       </div>
 
       <div v-else class="overflow-y-auto flex-1 p-6 space-y-4">
         <div>
-          <label class="block text-[11px] font-bold text-slate-600 mb-2 uppercase tracking-wide">Tipo de actividad</label>
+          <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-2 uppercase tracking-wide">Tipo de actividad</label>
           <div class="flex flex-wrap gap-2">
             <button
               v-for="(meta, tipo) in TIPOS_SEGUIMIENTO_META"
@@ -102,7 +102,7 @@ const guardarSeguimiento = onValidSubmit(async () => {
               class="flex items-center gap-1.5 h-8 px-3 rounded-lg border text-[11px] font-semibold transition-all"
               :class="formSeg.tipo === tipo
                 ? 'text-white border-transparent shadow-sm'
-                : 'bg-white text-slate-500 border-slate-200 hover:border-slate-300'"
+                : 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500'"
               :style="formSeg.tipo === tipo ? { backgroundColor: meta.color, borderColor: meta.color } : {}"
             >
               <component :is="meta.icono" :size="12" />
@@ -112,39 +112,39 @@ const guardarSeguimiento = onValidSubmit(async () => {
         </div>
 
         <div>
-          <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">¿Qué se hizo? *</label>
+          <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1.5 uppercase tracking-wide">¿Qué se hizo? *</label>
           <textarea
             v-model="formSeg.accion"
             @blur="tocar('accion')"
             rows="3"
             placeholder="Describe la actividad realizada..."
-            class="w-full px-4 py-2.5 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all resize-none"
-            :class="fieldStateClass(esVisible('accion') && !!errors.accion, esVisible('accion') && !errors.accion && !!formSeg.accion, 'border-slate-200 focus:border-[#059669]')"
+            class="w-full px-4 py-2.5 rounded-lg border bg-slate-50 dark:bg-slate-900 text-[12px] text-slate-900 dark:text-slate-100 outline-none focus:bg-white dark:focus:bg-slate-800 transition-all resize-none"
+            :class="fieldStateClass(esVisible('accion') && !!errors.accion, esVisible('accion') && !errors.accion && !!formSeg.accion, 'border-slate-200 dark:border-slate-600 focus:border-[#059669]')"
           />
           <FieldError :message="esVisible('accion') ? errors.accion : undefined" />
         </div>
 
         <div>
-          <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Próximo paso</label>
+          <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1.5 uppercase tracking-wide">Próximo paso</label>
           <input
             v-model="formSeg.proximoPaso"
             placeholder="¿Qué sigue? (opcional)"
-            class="w-full h-10 px-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#059669] focus:bg-white transition-all"
+            class="w-full h-10 px-4 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-[12px] text-slate-900 dark:text-slate-100 outline-none focus:border-[#059669] focus:bg-white dark:focus:bg-slate-800 transition-all"
           />
         </div>
 
         <div v-if="formSeg.proximoPaso">
-          <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Fecha límite del próximo paso</label>
+          <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1.5 uppercase tracking-wide">Fecha límite del próximo paso</label>
           <FechaInput v-model="formSeg.proximoPasoFecha" placeholder="Opcional" />
         </div>
 
         <div>
-          <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Fecha de creación</label>
+          <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1.5 uppercase tracking-wide">Fecha de creación</label>
           <FechaInput v-model="formSeg.fecha" disabled />
         </div>
 
         <div>
-          <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Oportunidad relacionada (opcional)</label>
+          <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1.5 uppercase tracking-wide">Oportunidad relacionada (opcional)</label>
           <BuscadorEntidad
             v-model="formSeg.oportunidadId"
             :opciones="opcionesOportunidades"
@@ -153,11 +153,11 @@ const guardarSeguimiento = onValidSubmit(async () => {
           />
         </div>
 
-        <p v-if="error" class="text-[11px] text-red-600 font-medium">{{ error }}</p>
+        <p v-if="error" class="text-[11px] text-red-600 dark:text-red-400 font-medium">{{ error }}</p>
       </div>
 
-      <div v-if="!segGuardado" class="flex items-center justify-end gap-2 px-6 py-4 border-t border-slate-200 bg-[#F8FAFC]">
-        <button @click="visible = false" class="h-9 px-5 rounded-lg border border-slate-200 bg-white text-[11px] font-semibold text-slate-600 hover:bg-slate-50 transition-all">Cancelar</button>
+      <div v-if="!segGuardado" class="flex items-center justify-end gap-2 px-6 py-4 border-t border-slate-200 dark:border-slate-700 bg-[#F8FAFC] dark:bg-slate-900">
+        <button @click="visible = false" class="h-9 px-5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-[11px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all">Cancelar</button>
         <button @click="guardarSeguimiento" :disabled="guardando"
           class="flex items-center gap-1.5 h-9 px-6 rounded-lg bg-[#059669] text-white text-[11px] font-bold shadow hover:bg-[#047857] disabled:opacity-60 disabled:cursor-not-allowed transition-all">
           <Loader2 v-if="guardando" :size="12" class="animate-spin" />

@@ -8,12 +8,12 @@ const puestoColor = (idx: number) =>
 </script>
 
 <template>
-  <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+  <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-5">
     <div class="flex items-center justify-between mb-4">
-      <h3 class="text-[12px] font-bold text-[#0F172A]">Top Planes</h3>
-      <span class="text-[10px] text-slate-400">Por solicitudes</span>
+      <h3 class="text-[12px] font-bold text-[#0F172A] dark:text-slate-100">Top Planes</h3>
+      <span class="text-[10px] text-slate-400 dark:text-slate-500">Por solicitudes</span>
     </div>
-    <p v-if="error" class="text-[11px] text-red-500">{{ error }}</p>
+    <p v-if="error" class="text-[11px] text-red-500 dark:text-red-400">{{ error }}</p>
     <div v-else class="space-y-3">
       <div v-for="(plan, idx) in planes" :key="plan.planId ?? plan.nombre" class="flex items-center gap-3">
         <span
@@ -21,10 +21,10 @@ const puestoColor = (idx: number) =>
           :style="{ backgroundColor: puestoColor(idx) }"
         >{{ idx + 1 }}</span>
         <div class="flex-1 min-w-0">
-          <p class="text-[11px] font-semibold text-slate-700 truncate">{{ plan.nombre }}</p>
-          <p class="text-[10px] text-slate-400">{{ plan.solicitudes }} solicitudes</p>
+          <p class="text-[11px] font-semibold text-slate-700 dark:text-slate-300 truncate">{{ plan.nombre }}</p>
+          <p class="text-[10px] text-slate-400 dark:text-slate-500">{{ plan.solicitudes }} solicitudes</p>
         </div>
-        <span class="text-[11px] font-bold text-emerald-600 flex-shrink-0">{{ plan.conversion }}</span>
+        <span class="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 flex-shrink-0">{{ plan.conversion }}</span>
       </div>
     </div>
   </div>

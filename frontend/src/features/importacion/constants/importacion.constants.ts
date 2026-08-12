@@ -10,7 +10,7 @@ export const HISTORIAL_MOCK: RegistroImportacion[] = [
 export const TIPOS_IMPORTACION = ['contactos', 'empresas', 'proveedores'] as const
 
 export const estadoStyle = (e: EstadoImportacion) => {
-  if (e === 'Completado')  return 'text-emerald-600'
-  if (e === 'Con errores') return 'text-amber-600'
-  return 'text-[#1E3A8A]'
+  if (e === 'Completado')  return 'text-emerald-600 dark:text-emerald-400'
+  if (e === 'Con errores') return 'text-amber-600 dark:text-amber-400'
+  return 'text-[#1E3A8A] dark:text-blue-300'
 }

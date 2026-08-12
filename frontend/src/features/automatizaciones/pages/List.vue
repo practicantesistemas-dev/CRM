@@ -53,11 +53,11 @@ const eliminarConfirmado = () => {
 
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div>
-        <h2 class="text-[18px] font-bold text-[#0F172A] flex items-center gap-2">
+        <h2 class="text-[18px] font-bold text-heading flex items-center gap-2">
           <Zap :size="20" class="text-[#C9A227]" />
           Automatizaciones
         </h2>
-        <p class="text-[12px] text-slate-500 mt-0.5">
+        <p class="text-[12px] text-body mt-0.5">
           Reglas de automatización de procesos comerciales y de marketing
         </p>
       </div>
@@ -70,42 +70,42 @@ const eliminarConfirmado = () => {
     </div>
 
     <div class="grid grid-cols-3 gap-4">
-      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
-        <div class="w-9 h-9 rounded-xl bg-[#D1FAE5] flex items-center justify-center mb-3">
-          <CheckCircle :size="17" class="text-[#059669]" />
+      <div class="surface-card rounded-2xl shadow-sm p-5">
+        <div class="w-9 h-9 rounded-xl bg-[#D1FAE5] dark:bg-emerald-950/50 flex items-center justify-center mb-3">
+          <CheckCircle :size="17" class="text-[#059669] dark:text-emerald-400" />
         </div>
-        <div class="text-[28px] font-bold text-[#0F172A] leading-none">{{ totalActivas }}</div>
-        <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wide mt-1">Activas</div>
+        <div class="text-[28px] font-bold text-heading leading-none">{{ totalActivas }}</div>
+        <div class="text-[11px] font-semibold text-subtle uppercase tracking-wide mt-1">Activas</div>
       </div>
-      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
-        <div class="w-9 h-9 rounded-xl bg-[#EEF2FF] flex items-center justify-center mb-3">
-          <Zap :size="17" class="text-[#2447F9]" />
+      <div class="surface-card rounded-2xl shadow-sm p-5">
+        <div class="w-9 h-9 rounded-xl bg-[#EEF2FF] dark:bg-blue-950/50 flex items-center justify-center mb-3">
+          <Zap :size="17" class="text-[#2447F9] dark:text-blue-400" />
         </div>
-        <div class="text-[28px] font-bold text-[#0F172A] leading-none">{{ totalEjecuciones.toLocaleString('es-CO') }}</div>
-        <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wide mt-1">Ejecuciones totales</div>
+        <div class="text-[28px] font-bold text-heading leading-none">{{ totalEjecuciones.toLocaleString('es-CO') }}</div>
+        <div class="text-[11px] font-semibold text-subtle uppercase tracking-wide mt-1">Ejecuciones totales</div>
       </div>
-      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
-        <div class="w-9 h-9 rounded-xl bg-red-50 flex items-center justify-center mb-3">
-          <XCircle :size="17" class="text-red-500" />
+      <div class="surface-card rounded-2xl shadow-sm p-5">
+        <div class="w-9 h-9 rounded-xl bg-red-50 dark:bg-red-950/40 flex items-center justify-center mb-3">
+          <XCircle :size="17" class="text-red-500 dark:text-red-400" />
         </div>
-        <div class="text-[28px] font-bold text-[#0F172A] leading-none">{{ totalError }}</div>
-        <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wide mt-1">Con errores</div>
+        <div class="text-[28px] font-bold text-heading leading-none">{{ totalError }}</div>
+        <div class="text-[11px] font-semibold text-subtle uppercase tracking-wide mt-1">Con errores</div>
       </div>
     </div>
 
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm px-4 py-3">
+    <div class="surface-card rounded-2xl shadow-sm px-4 py-3">
       <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
         <div class="relative flex-1 min-w-0">
-          <Search :size="14" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search :size="14" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
           <input
             v-model="buscar"
             placeholder="Buscar por nombre, trigger o acción..."
-            class="w-full h-9 pl-9 pr-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#2447F9] focus:bg-white transition-all"
+            class="w-full h-9 pl-9 pr-4 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-[12px] outline-none focus:border-[#2447F9] dark:focus:border-[#2447F9] focus:bg-white dark:focus:bg-slate-800 transition-all"
           />
         </div>
         <select
           v-model="filtroEstado"
-          class="h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer"
+          class="h-9 px-3 rounded-lg input-surface text-[11px] font-medium outline-none cursor-pointer"
         >
           <option value="todos">Estado: Todos</option>
           <option value="Activa">Activa</option>
@@ -113,8 +113,8 @@ const eliminarConfirmado = () => {
           <option value="Error">Error</option>
         </select>
       </div>
-      <div class="mt-2 text-[11px] text-slate-400">
-        Mostrando <strong class="text-slate-600">{{ filtradas.length }}</strong> automatizaciones
+      <div class="mt-2 text-[11px] text-muted">
+        Mostrando <strong class="text-body">{{ filtradas.length }}</strong> automatizaciones
       </div>
     </div>
 
@@ -128,10 +128,10 @@ const eliminarConfirmado = () => {
         @eliminar="confirmarEliminar = auto"
       />
 
-      <div v-if="filtradas.length === 0" class="bg-white rounded-2xl border border-slate-200 shadow-sm text-center py-16">
-        <Zap :size="32" class="text-slate-300 mx-auto mb-3" />
-        <p class="text-[13px] font-semibold text-slate-500">No hay automatizaciones</p>
-        <p class="text-[11px] text-slate-400 mt-1">Crea una nueva para automatizar tus procesos.</p>
+      <div v-if="filtradas.length === 0" class="surface-card rounded-2xl shadow-sm text-center py-16">
+        <Zap :size="32" class="text-slate-300 dark:text-slate-600 mx-auto mb-3" />
+        <p class="text-[13px] font-semibold text-subtle">No hay automatizaciones</p>
+        <p class="text-[11px] text-muted mt-1">Crea una nueva para automatizar tus procesos.</p>
         <button
           @click="abrirNueva"
           class="mt-4 flex items-center gap-1.5 h-9 px-5 rounded-lg bg-[#2447F9] text-white text-[11px] font-bold shadow hover:bg-[#1D3DD9] transition-all mx-auto"

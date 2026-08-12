@@ -49,16 +49,16 @@ const guardar = () => {
   <div class="space-y-5 font-[Inter,system-ui,sans-serif]">
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div>
-        <h2 class="text-[18px] font-bold text-[#0F172A] flex items-center gap-2">
+        <h2 class="text-[18px] font-bold text-heading flex items-center gap-2">
           Servicios Plan Liga
-          <span class="bg-[#EEF2FF] text-[#2447F9] text-[11px] font-bold px-2.5 py-0.5 rounded-full">{{ servicios.length }}</span>
+          <span class="bg-[#EEF2FF] dark:bg-blue-950/40 text-[#2447F9] dark:text-blue-300 text-[11px] font-bold px-2.5 py-0.5 rounded-full">{{ servicios.length }}</span>
         </h2>
-        <p class="text-[12px] text-slate-500 mt-0.5">Administra servicios institucionales, indicadores y asociaciones</p>
+        <p class="text-[12px] text-muted mt-0.5">Administra servicios institucionales, indicadores y asociaciones</p>
       </div>
       <div class="flex items-center gap-2">
-        <div class="flex rounded-lg border border-slate-200 overflow-hidden bg-white">
-          <button @click="vistaActiva = 'lista'" class="px-3 py-1.5 text-[11px] font-semibold transition-all" :class="vistaActiva === 'lista' ? 'bg-[#2447F9] text-white' : 'text-slate-500 hover:bg-slate-50'">Lista</button>
-          <button @click="vistaActiva = 'indicadores'" class="px-3 py-1.5 text-[11px] font-semibold transition-all" :class="vistaActiva === 'indicadores' ? 'bg-[#2447F9] text-white' : 'text-slate-500 hover:bg-slate-50'">Indicadores</button>
+        <div class="flex rounded-lg border-default overflow-hidden surface-card">
+          <button @click="vistaActiva = 'lista'" class="px-3 py-1.5 text-[11px] font-semibold transition-all" :class="vistaActiva === 'lista' ? 'bg-[#2447F9] text-white' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'">Lista</button>
+          <button @click="vistaActiva = 'indicadores'" class="px-3 py-1.5 text-[11px] font-semibold transition-all" :class="vistaActiva === 'indicadores' ? 'bg-[#2447F9] text-white' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'">Indicadores</button>
         </div>
         <button @click="abrirNuevo" class="flex items-center gap-1.5 h-9 px-4 rounded-lg bg-[#2447F9] text-white text-[11px] font-bold shadow hover:bg-[#1D3DD9] transition-all">
           <Plus :size="14" /> Nuevo servicio
@@ -67,20 +67,20 @@ const guardar = () => {
     </div>
 
     <template v-if="vistaActiva === 'lista'">
-      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm px-4 py-3">
+      <div class="surface-card rounded-2xl shadow-sm px-4 py-3">
         <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
           <div class="relative flex-1 min-w-0">
-            <Search :size="14" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input v-model="buscar" placeholder="Buscar por nombre, código o categoría..." class="w-full h-9 pl-9 pr-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#2447F9] focus:bg-white transition-all" />
+            <Search :size="14" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+            <input v-model="buscar" placeholder="Buscar por nombre, código o categoría..." class="w-full h-9 pl-9 pr-4 rounded-lg input-surface text-[12px] outline-none focus:border-[#2447F9] focus:bg-white dark:focus:bg-slate-800 transition-all" />
           </div>
           <div class="flex items-center gap-2">
-            <select v-model="filtroEstado" class="h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer">
+            <select v-model="filtroEstado" class="h-9 px-3 rounded-lg input-surface text-[11px] font-medium text-body outline-none cursor-pointer">
               <option value="todos">Estado: Todos</option>
               <option value="Activo">Activo</option>
               <option value="Inactivo">Inactivo</option>
               <option value="En revisión">En revisión</option>
             </select>
-            <select v-model="filtroTipo" class="h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer">
+            <select v-model="filtroTipo" class="h-9 px-3 rounded-lg input-surface text-[11px] font-medium text-body outline-none cursor-pointer">
               <option value="todos">Tipo: Todos</option>
               <option value="Empresarial">Empresarial</option>
               <option value="Individual">Individual</option>

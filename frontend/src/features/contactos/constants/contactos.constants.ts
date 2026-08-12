@@ -20,10 +20,10 @@ export const TIPOS_SEGUIMIENTO_META: Record<TipoSeguimiento, { icono: unknown; c
 
 export const estadoStyle = (e: Contacto['estado']) => {
   switch (e) {
-    case 'Activo':     return 'text-emerald-600'
-    case 'Inactivo':   return 'text-slate-400'
-    case 'Prospecto':  return 'text-amber-600'
-    case 'En proceso': return 'text-[#1E3A8A]'
-    default:           return 'text-slate-400'
+    case 'Activo':     return 'text-emerald-600 dark:text-emerald-400'
+    case 'Inactivo':   return 'text-slate-400 dark:text-slate-500'
+    case 'Prospecto':  return 'text-amber-600 dark:text-amber-400'
+    case 'En proceso': return 'text-[#1E3A8A] dark:text-blue-300'
+    default:           return 'text-slate-400 dark:text-slate-500'
   }
 }

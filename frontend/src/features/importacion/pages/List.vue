@@ -19,14 +19,14 @@ const downloadPlantilla = (tipo: string) => {
   <div class="space-y-5 font-[Inter,system-ui,sans-serif]">
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div>
-        <h2 class="text-[18px] font-bold text-[#0F172A]">Importación Masiva</h2>
-        <p class="text-[12px] text-slate-500 mt-0.5">Carga contactos, empresas o proveedores desde Excel o CSV</p>
+        <h2 class="text-[18px] font-bold text-heading">Importación Masiva</h2>
+        <p class="text-[12px] text-body mt-0.5">Carga contactos, empresas o proveedores desde Excel o CSV</p>
       </div>
       <div class="flex items-center gap-2">
-        <button @click="downloadPlantilla('Contactos')" class="flex items-center gap-1.5 h-9 px-4 rounded-lg border border-slate-200 bg-white text-[11px] font-semibold text-slate-600 hover:bg-slate-50 transition-all">
+        <button @click="downloadPlantilla('Contactos')" class="flex items-center gap-1.5 h-9 px-4 rounded-lg border border-default bg-white dark:bg-slate-800 text-[11px] font-semibold text-body hover:bg-slate-50 dark:hover:bg-slate-700 transition-all">
           <Download :size="13" /> Plantilla Excel
         </button>
-        <button @click="downloadPlantilla('CSV')" class="flex items-center gap-1.5 h-9 px-4 rounded-lg border border-slate-200 bg-white text-[11px] font-semibold text-slate-600 hover:bg-slate-50 transition-all">
+        <button @click="downloadPlantilla('CSV')" class="flex items-center gap-1.5 h-9 px-4 rounded-lg border border-default bg-white dark:bg-slate-800 text-[11px] font-semibold text-body hover:bg-slate-50 dark:hover:bg-slate-700 transition-all">
           <Download :size="13" /> Plantilla CSV
         </button>
       </div>
@@ -44,7 +44,7 @@ const downloadPlantilla = (tipo: string) => {
     <ResultadoImportacionPanel v-if="resultadoVisible" :resultado="resultadoMock" />
 
     <div>
-      <h3 class="text-[12px] font-bold text-slate-500 uppercase tracking-wider mb-3">Historial de importaciones</h3>
+      <h3 class="text-[12px] font-bold text-subtle uppercase tracking-wider mb-3">Historial de importaciones</h3>
       <HistorialImportacionesTable :rows="historial" />
     </div>
   </div>

@@ -4,22 +4,22 @@
 
     <!-- KPIs -->   
     <div class="grid grid-cols-2 gap-2 text-center">
-      <div class="bg-slate-50 border p-2.5 rounded-xl">
-        <span class="font-black text-base">
+      <div class="surface-sunken border border-default p-2.5 rounded-xl">
+        <span class="font-black text-base text-heading">
           {{ contactoLocal.cantidadLlamadas }}
         </span>
 
-        <span class="text-[8px] uppercase block">
+        <span class="text-[8px] uppercase block text-muted">
           Llamadas
         </span>
       </div>
 
-      <div class="bg-slate-50 border p-2.5 rounded-xl">
-        <span class="font-black text-base">
+      <div class="surface-sunken border border-default p-2.5 rounded-xl">
+        <span class="font-black text-base text-heading">
           {{ contactoLocal.cantidadEmails }}
         </span>
 
-        <span class="text-[8px] uppercase block">
+        <span class="text-[8px] uppercase block text-muted">
           Emails
         </span>
       </div>
@@ -27,28 +27,28 @@
 
     <!-- Próximo seguimiento -->
     <div>
-      <label class="text-[9px] font-black uppercase">
+      <label class="text-[9px] font-black uppercase text-body">
         Próximo seguimiento
       </label>
 
       <input
         type="date"
         v-model="contactoLocal.proximoContacto"
-        class="w-full border p-2 rounded-lg text-xs"
+        class="w-full input-surface p-2 rounded-lg text-xs"
       />
     </div>
 
     <!-- AGREGAR SEGUIMIENTO -->
-    <div class="border-t pt-3 space-y-2">
+    <div class="border-t border-default pt-3 space-y-2">
 
-      <label class="text-[9px] font-black uppercase">
+      <label class="text-[9px] font-black uppercase text-body">
         Agregar seguimiento
       </label>
 
       <!-- LISTA DESPLEGABLE -->
       <select
         v-model="nuevoSeguimiento.tipo"
-        class="w-full border p-2 rounded-lg text-xs"
+        class="w-full input-surface p-2 rounded-lg text-xs"
       >
         <option value="llamada">Llamada</option>
         <option value="correo">Correo</option>
@@ -61,14 +61,14 @@
       <input
         type="date"
         v-model="nuevoSeguimiento.fecha"
-        class="w-full border p-2 rounded-lg text-xs"
+        class="w-full input-surface p-2 rounded-lg text-xs"
       />
 
       <!-- HORA -->
       <input
         type="time"
         v-model="nuevoSeguimiento.hora"
-        class="w-full border p-2 rounded-lg text-xs"
+        class="w-full input-surface p-2 rounded-lg text-xs"
       />
 
       <!-- DESCRIPCIÓN -->
@@ -76,7 +76,7 @@
         v-model="nuevoSeguimiento.descripcion"
         rows="3"
         placeholder="Descripción..."
-        class="w-full border p-2 rounded-lg text-xs"
+        class="w-full input-surface p-2 rounded-lg text-xs"
       />
 
       <button
@@ -92,16 +92,16 @@
       v-if="contactoLocal.seguimientos?.length"
       class="space-y-2"
     >
-      <label class="text-[9px] font-black uppercase">
+      <label class="text-[9px] font-black uppercase text-body">
         Historial
       </label>
 
       <div
         v-for="(s, i) in contactoLocal.seguimientos"
         :key="i"
-        class="p-2 bg-slate-50 border rounded-lg text-xs"
+        class="p-2 surface-sunken border border-default rounded-lg text-xs"
       >
-        <div class="flex justify-between text-[9px] text-slate-400">
+        <div class="flex justify-between text-[9px] text-muted">
           <span>
             {{ s.fecha }} - {{ s.hora }}
           </span>
@@ -111,7 +111,7 @@
           </span>
         </div>
 
-        <div class="mt-1 text-slate-700">
+        <div class="mt-1 text-body">
           {{ s.descripcion }}
         </div>
       </div>
@@ -119,7 +119,7 @@
 
   </div>
 
-  <div v-else class="text-slate-400 text-xs">
+  <div v-else class="text-muted text-xs">
   Selecciona un contacto para ver la bitácora
 </div>
 </template>

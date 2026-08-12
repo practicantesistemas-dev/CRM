@@ -21,41 +21,41 @@ const vencidos = computed(() => props.pendientes.filter(a => estadoDe(a) === 've
 </script>
 
 <template>
-  <div v-if="pendientes.length > 0" class="bg-white rounded-2xl border border-amber-200 shadow-sm overflow-hidden">
-    <button @click="abierto = !abierto" class="w-full flex items-center justify-between gap-3 px-4 py-3 bg-amber-50 hover:bg-amber-100/60 transition-colors">
+  <div v-if="pendientes.length > 0" class="bg-white dark:bg-slate-800 rounded-2xl border border-amber-200 dark:border-amber-800 shadow-sm overflow-hidden">
+    <button @click="abierto = !abierto" class="w-full flex items-center justify-between gap-3 px-4 py-3 bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100/60 dark:hover:bg-amber-900/40 transition-colors">
       <div class="flex items-center gap-2">
-        <div class="w-8 h-8 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0">
-          <AlarmClock :size="15" class="text-amber-600" />
+        <div class="w-8 h-8 rounded-xl bg-amber-100 dark:bg-amber-900/60 flex items-center justify-center flex-shrink-0">
+          <AlarmClock :size="15" class="text-amber-600 dark:text-amber-400" />
         </div>
         <div class="text-left">
-          <p class="text-[12px] font-bold text-[#0F172A]">Pendientes por seguimiento</p>
-          <p class="text-[10px] text-slate-500">
+          <p class="text-[12px] font-bold text-heading">Pendientes por seguimiento</p>
+          <p class="text-[10px] text-subtle">
             {{ pendientes.length }} próximo{{ pendientes.length === 1 ? ' paso' : 's pasos' }}
-            <span v-if="vencidos > 0" class="text-red-600 font-semibold"> · {{ vencidos }} vencido{{ vencidos === 1 ? '' : 's' }}</span>
+            <span v-if="vencidos > 0" class="text-red-600 dark:text-red-400 font-semibold"> · {{ vencidos }} vencido{{ vencidos === 1 ? '' : 's' }}</span>
           </p>
         </div>
       </div>
-      <component :is="abierto ? ChevronUp : ChevronDown" :size="15" class="text-slate-400 flex-shrink-0" />
+      <component :is="abierto ? ChevronUp : ChevronDown" :size="15" class="text-slate-400 dark:text-slate-500 flex-shrink-0" />
     </button>
 
-    <div v-if="abierto" class="divide-y divide-slate-100 max-h-64 overflow-y-auto">
+    <div v-if="abierto" class="divide-y divide-slate-100 dark:divide-slate-700 max-h-64 overflow-y-auto">
       <div v-for="a in pendientes" :key="a.id"
-        class="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 transition-colors">
+        class="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
         <button type="button" title="Marcar como realizado" :disabled="completando === a.id"
           @click="emit('completar', a)"
-          class="w-5 h-5 rounded-full border border-slate-300 flex items-center justify-center flex-shrink-0 text-transparent hover:text-emerald-600 hover:border-emerald-500 transition-colors disabled:opacity-50">
-          <Loader2 v-if="completando === a.id" :size="11" class="animate-spin text-slate-400" />
+          class="w-5 h-5 rounded-full border border-slate-300 dark:border-slate-600 flex items-center justify-center flex-shrink-0 text-transparent hover:text-emerald-600 dark:hover:text-emerald-400 hover:border-emerald-500 dark:hover:border-emerald-500 transition-colors disabled:opacity-50">
+          <Loader2 v-if="completando === a.id" :size="11" class="animate-spin text-slate-400 dark:text-slate-500" />
           <Check v-else :size="11" />
         </button>
         <button type="button" @click="emit('abrir', a)" class="flex-1 min-w-0 flex items-center gap-3 text-left">
           <span class="w-1.5 h-1.5 rounded-full flex-shrink-0"
-            :class="estadoDe(a) === 'vencido' ? 'bg-red-500' : estadoDe(a) === 'hoy' ? 'bg-amber-500' : 'bg-slate-300'" />
+            :class="estadoDe(a) === 'vencido' ? 'bg-red-500' : estadoDe(a) === 'hoy' ? 'bg-amber-500' : 'bg-slate-300 dark:bg-slate-600'" />
           <div class="flex-1 min-w-0">
-            <p class="text-[11px] font-semibold text-[#0F172A] truncate">{{ a.proximoPaso }}</p>
-            <p class="text-[10px] text-slate-400 truncate">{{ sujetoDe(a) }}</p>
+            <p class="text-[11px] font-semibold text-heading truncate">{{ a.proximoPaso }}</p>
+            <p class="text-[10px] text-muted truncate">{{ sujetoDe(a) }}</p>
           </div>
           <span class="text-[10px] font-semibold flex-shrink-0"
-            :class="estadoDe(a) === 'vencido' ? 'text-red-500' : estadoDe(a) === 'hoy' ? 'text-amber-600' : 'text-slate-400'">
+            :class="estadoDe(a) === 'vencido' ? 'text-red-500 dark:text-red-400' : estadoDe(a) === 'hoy' ? 'text-amber-600 dark:text-amber-400' : 'text-muted'">
             {{ a.proximoPasoFecha ? (estadoDe(a) === 'vencido' ? 'Venció ' : 'Para ') + a.proximoPasoFecha : 'Registrada ' + a.fecha }}
           </span>
         </button>

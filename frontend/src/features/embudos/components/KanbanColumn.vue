@@ -43,12 +43,12 @@ const emit = defineEmits<{
           {{ tarjetas.length }}
         </span>
       </div>
-      <div class="text-[9px] font-bold text-slate-400">{{ valor }}</div>
+      <div class="text-[9px] font-bold text-slate-400 dark:text-slate-500">{{ valor }}</div>
     </div>
 
     <div
       v-if="isDropTarget && draggingId !== null"
-      class="flex-shrink-0 h-14 rounded-xl border-2 border-dashed border-[#2447F9] bg-[#EEF2FF]/60 flex items-center justify-center"
+      class="flex-shrink-0 h-14 rounded-xl border-2 border-dashed border-[#2447F9] bg-[#EEF2FF]/60 dark:bg-blue-950/40 flex items-center justify-center"
     >
       <span class="text-[11px] text-[#2447F9] font-semibold">Soltar aquí</span>
     </div>
@@ -68,7 +68,7 @@ const emit = defineEmits<{
 
       <button
         @click="emit('add')"
-        class="flex items-center justify-center gap-1 w-full py-2 rounded-xl border border-dashed border-slate-300 text-slate-400 text-[11px] hover:border-[#2447F9] hover:text-[#2447F9] transition-all"
+        class="flex items-center justify-center gap-1 w-full py-2 rounded-xl border border-dashed border-slate-300 dark:border-slate-600 text-slate-400 dark:text-slate-500 text-[11px] hover:border-[#2447F9] hover:text-[#2447F9] transition-all"
       >
         <Plus :size="12" /> Agregar
       </button>

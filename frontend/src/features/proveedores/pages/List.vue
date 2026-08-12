@@ -74,14 +74,14 @@ const exportar = () => exportarProveedoresExcel(
   <div class="space-y-5 font-[Inter,system-ui,sans-serif]">
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div>
-        <h2 class="text-[18px] font-bold text-[#0F172A] flex items-center gap-2">
+        <h2 class="text-[18px] font-bold text-heading flex items-center gap-2">
           Gestión de Proveedores
-          <span class="bg-[#EEF2FF] text-[#2447F9] text-[11px] font-bold px-2.5 py-0.5 rounded-full">{{ proveedores.length }}</span>
+          <span class="bg-[#EEF2FF] dark:bg-blue-950/40 text-[#2447F9] dark:text-blue-300 text-[11px] font-bold px-2.5 py-0.5 rounded-full">{{ proveedores.length }}</span>
         </h2>
-        <p class="text-[12px] text-slate-500 mt-0.5">Proveedores registrados por categoría y estado</p>
+        <p class="text-[12px] text-muted mt-0.5">Proveedores registrados por categoría y estado</p>
       </div>
       <div class="flex items-center gap-2">
-        <button @click="exportar" class="flex items-center gap-1.5 h-9 px-4 rounded-lg border border-slate-200 bg-white text-[11px] font-semibold text-slate-600 hover:bg-slate-50 transition-all">
+        <button @click="exportar" class="flex items-center gap-1.5 h-9 px-4 rounded-lg border-default surface-card text-[11px] font-semibold text-body surface-hover transition-all">
           <Download :size="13" /> Exportar
         </button>
         <button @click="abrirNuevo" class="flex items-center gap-1.5 h-9 px-4 rounded-lg bg-[#2447F9] text-white text-[11px] font-bold shadow hover:bg-[#1D3DD9] transition-all">
@@ -90,30 +90,30 @@ const exportar = () => exportarProveedoresExcel(
       </div>
     </div>
 
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm px-4 py-3">
+    <div class="surface-card rounded-2xl shadow-sm px-4 py-3">
       <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
         <div class="relative flex-1 min-w-0">
-          <Search :size="14" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input v-model="buscar" placeholder="Buscar por nombre, NIT, correo o categoría..." class="w-full h-9 pl-9 pr-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#2447F9] focus:bg-white transition-all" />
+          <Search :size="14" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+          <input v-model="buscar" placeholder="Buscar por nombre, NIT, correo o categoría..." class="w-full h-9 pl-9 pr-4 rounded-lg input-surface text-[12px] outline-none focus:border-[#2447F9] focus:bg-white dark:focus:bg-slate-800 transition-all" />
         </div>
         <div class="flex items-center gap-2">
-          <select v-model="filtroEstado" class="h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer">
+          <select v-model="filtroEstado" class="h-9 px-3 rounded-lg input-surface text-[11px] font-medium text-body outline-none cursor-pointer">
             <option value="todos">Estado: Todos</option>
             <option value="Activo">Activo</option>
             <option value="Inactivo">Inactivo</option>
           </select>
-          <select v-model="filtroCategoria" class="h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer">
+          <select v-model="filtroCategoria" class="h-9 px-3 rounded-lg input-surface text-[11px] font-medium text-body outline-none cursor-pointer">
             <option value="todas">Categoría: Todas</option>
             <option v-for="cat in categorias" :key="cat" :value="cat">{{ cat }}</option>
           </select>
         </div>
       </div>
-      <div class="mt-2 text-[11px] text-slate-400">
+      <div class="mt-2 text-[11px] text-muted">
         <template v-if="cargandoProveedores">Cargando proveedores...</template>
-        <template v-else>Mostrando <strong class="text-slate-600">{{ proveedoresFiltrados.length }}</strong> proveedores</template>
+        <template v-else>Mostrando <strong class="text-body">{{ proveedoresFiltrados.length }}</strong> proveedores</template>
       </div>
-      <p v-if="errorProveedores" class="mt-1 text-[11px] font-medium text-red-500">{{ errorProveedores }}</p>
-      <p v-if="errorEliminarProveedor" class="mt-1 text-[11px] font-medium text-red-500">{{ errorEliminarProveedor }}</p>
+      <p v-if="errorProveedores" class="mt-1 text-[11px] font-medium text-red-500 dark:text-red-400">{{ errorProveedores }}</p>
+      <p v-if="errorEliminarProveedor" class="mt-1 text-[11px] font-medium text-red-500 dark:text-red-400">{{ errorEliminarProveedor }}</p>
     </div>
 
     <ProveedoresTable :rows="proveedoresFiltrados" @editar="abrirEditar" @borrar="pedirBorrarProveedor" @servicios="abrirServicios" />

@@ -42,28 +42,28 @@ const resetZoom = () => { zoom.value = 1 }
 
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div>
-        <h2 class="text-[18px] font-bold text-[#0F172A] flex items-center gap-2">
+        <h2 class="text-[18px] font-bold text-heading flex items-center gap-2">
           Tablero
-          <span class="bg-[#EEF2FF] text-[#2447F9] text-[11px] font-bold px-2.5 py-0.5 rounded-full">{{ totalOportunidades }}</span>
+          <span class="bg-[#EEF2FF] dark:bg-blue-950/40 text-[#2447F9] dark:text-blue-300 text-[11px] font-bold px-2.5 py-0.5 rounded-full">{{ totalOportunidades }}</span>
         </h2>
-        <p class="text-[12px] text-slate-500 mt-0.5">
+        <p class="text-[12px] text-muted mt-0.5">
           Pipeline Kanban · arrastra las tarjetas para cambiar etapa · valor total:
-          <strong class="text-[#0F172A]">{{ totalValor }}</strong>
+          <strong class="text-heading">{{ totalValor }}</strong>
         </p>
       </div>
       <div class="flex items-center gap-2">
-        <div class="flex items-center gap-0.5 border border-slate-200 rounded-lg p-1 bg-white shrink-0">
+        <div class="flex items-center gap-0.5 border-default rounded-lg p-1 surface-card shrink-0">
           <button
             @click="zoomOut"
             :disabled="zoom <= ZOOM_MIN"
-            class="w-7 h-7 rounded-md flex items-center justify-center text-slate-500 hover:bg-slate-100 disabled:opacity-30 disabled:hover:bg-transparent transition-all"
+            class="w-7 h-7 rounded-md flex items-center justify-center text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-30 disabled:hover:bg-transparent transition-all"
             title="Alejar"
           >
             <ZoomOut :size="13" />
           </button>
           <button
             @click="resetZoom"
-            class="text-[11px] font-bold text-slate-500 w-11 text-center hover:text-[#2447F9] transition-all"
+            class="text-[11px] font-bold text-slate-500 dark:text-slate-400 w-11 text-center hover:text-[#2447F9] transition-all"
             title="Restablecer zoom"
           >
             {{ Math.round(zoom * 100) }}%
@@ -71,7 +71,7 @@ const resetZoom = () => { zoom.value = 1 }
           <button
             @click="zoomIn"
             :disabled="zoom >= ZOOM_MAX"
-            class="w-7 h-7 rounded-md flex items-center justify-center text-slate-500 hover:bg-slate-100 disabled:opacity-30 disabled:hover:bg-transparent transition-all"
+            class="w-7 h-7 rounded-md flex items-center justify-center text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-30 disabled:hover:bg-transparent transition-all"
             title="Acercar"
           >
             <ZoomIn :size="13" />
@@ -86,7 +86,7 @@ const resetZoom = () => { zoom.value = 1 }
       </div>
     </div>
 
-    <div class="rounded-xl border border-slate-200 bg-slate-50/40 overflow-auto" style="height: 65vh; min-height: 420px">
+    <div class="rounded-xl border border-default bg-slate-50/40 dark:bg-slate-900/60 overflow-auto" style="height: 65vh; min-height: 420px">
       <div class="flex gap-4 p-4" :style="{ zoom, minHeight: '560px' }">
         <KanbanColumn
           v-for="etapa in ETAPAS"

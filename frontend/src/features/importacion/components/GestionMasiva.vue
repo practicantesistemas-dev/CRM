@@ -90,24 +90,24 @@ const ejecutarVinculacion = () => {
 
 <template>
   <div
-    class="space-y-3 animate-fadeIn font-semibold text-xs text-slate-700 max-w-sm mx-auto"
+    class="space-y-3 animate-fadeIn font-semibold text-xs text-slate-700 dark:text-slate-300 max-w-sm mx-auto"
   >
     <!-- CONTROL ESTADO -->
     <div
-      class="border border-slate-200/80 rounded-xl overflow-hidden bg-white shadow-2xs"
+      class="border border-slate-200/80 dark:border-slate-700 rounded-xl overflow-hidden bg-white dark:bg-slate-800 shadow-2xs"
     >
       <button
         @click="des_control_estado = !des_control_estado"
-        class="w-full flex items-center justify-between p-3 bg-slate-50 hover:bg-slate-100/70 transition-colors text-left cursor-pointer"
+        class="w-full flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900 hover:bg-slate-100/70 dark:hover:bg-slate-700/70 transition-colors text-left cursor-pointer"
       >
         <span
-          class="text-[10px] font-black text-slate-500 uppercase tracking-wider"
+          class="text-[10px] font-black text-subtle uppercase tracking-wider"
         >
           Control de Estado Operativo
         </span>
 
         <span
-          class="text-slate-400 text-[10px] transform transition-transform duration-200"
+          class="text-slate-400 dark:text-slate-500 text-[10px] transform transition-transform duration-200"
           :class="des_control_estado ? 'rotate-180' : ''"
         >
           ▼
@@ -116,20 +116,20 @@ const ejecutarVinculacion = () => {
 
       <div
         v-show="des_control_estado"
-        class="p-2.5 border-t border-slate-100 max-h-60 overflow-y-auto scrollbar-thin space-y-3"
+        class="p-2.5 border-t border-slate-100 dark:border-slate-700 max-h-60 overflow-y-auto scrollbar-thin space-y-3"
       >
         <!-- TITULAR -->
         <div
-          class="flex items-center justify-between pb-2.5 border-b border-slate-100"
+          class="flex items-center justify-between pb-2.5 border-b border-slate-100 dark:border-slate-700"
         >
           <div class="min-w-0 pr-2">
             <span
-              class="text-[8px] uppercase bg-blue-100 text-blue-800 border border-blue-200 px-1.5 py-0.5 rounded font-black tracking-wider"
+              class="text-[8px] uppercase bg-blue-100 dark:bg-blue-900/60 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-800 px-1.5 py-0.5 rounded font-black tracking-wider"
             >
               Titular de Cuenta
             </span>
 
-            <p class="text-xs font-black text-slate-900 truncate mt-1">
+            <p class="text-xs font-black text-heading truncate mt-1">
               {{ props.contacto.nombreCompleto }}
             </p>
           </div>
@@ -143,7 +143,7 @@ const ejecutarVinculacion = () => {
               />
 
               <div
-                class="w-8 h-4.5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-emerald-500"
+                class="w-8 h-4.5 bg-slate-300 dark:bg-slate-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 dark:after:border-slate-600 after:border after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-emerald-500"
               ></div>
             </label>
 
@@ -151,8 +151,8 @@ const ejecutarVinculacion = () => {
               class="text-[8px] font-black tracking-tight uppercase"
               :class="
                 props.contacto.activo
-                  ? 'text-emerald-600'
-                  : 'text-slate-400'
+                  ? 'text-emerald-600 dark:text-emerald-400'
+                  : 'text-slate-400 dark:text-slate-500'
               "
             >
               {{ props.contacto.activo ? 'Activo' : 'Desactivado' }}
@@ -169,7 +169,7 @@ const ejecutarVinculacion = () => {
           class="space-y-1.5"
         >
           <span
-            class="text-[8px] uppercase font-black tracking-widest text-slate-400 block mb-1"
+            class="text-[8px] uppercase font-black tracking-widest text-muted block mb-1"
           >
             Beneficiarios del Núcleo
           </span>
@@ -177,14 +177,14 @@ const ejecutarVinculacion = () => {
           <div
             v-for="(benefic, idx) in props.contacto.beneficiariosAsociados"
             :key="idx"
-            class="flex items-center justify-between bg-slate-50 p-2 border border-slate-200/60 rounded-lg shadow-3xs"
+            class="flex items-center justify-between surface-sunken p-2 border border-slate-200/60 dark:border-slate-700 rounded-lg shadow-3xs"
           >
             <div class="min-w-0 pr-2">
-              <p class="text-[10px] font-black text-slate-800 truncate">
+              <p class="text-[10px] font-black text-body truncate">
                 {{ benefic.nombreCompleto }}
               </p>
 
-              <span class="text-[8px] text-slate-400 font-medium">
+              <span class="text-[8px] text-muted font-medium">
                 {{ benefic.parentesco }}
               </span>
             </div>
@@ -198,7 +198,7 @@ const ejecutarVinculacion = () => {
                 />
 
                 <div
-                  class="w-7 h-4 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-emerald-500"
+                  class="w-7 h-4 bg-slate-300 dark:bg-slate-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 dark:after:border-slate-600 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-emerald-500"
                 ></div>
               </label>
 
@@ -206,8 +206,8 @@ const ejecutarVinculacion = () => {
                 class="text-[7px] font-black tracking-tight uppercase"
                 :class="
                   benefic.activo
-                    ? 'text-emerald-600'
-                    : 'text-slate-400'
+                    ? 'text-emerald-600 dark:text-emerald-400'
+                    : 'text-slate-400 dark:text-slate-500'
                 "
               >
                 {{ benefic.activo ? 'Activo' : 'Desactivado' }}
@@ -218,7 +218,7 @@ const ejecutarVinculacion = () => {
 
         <div
           v-else
-          class="text-[10px] text-slate-400 italic text-center py-2 font-medium"
+          class="text-[10px] text-muted italic text-center py-2 font-medium"
         >
           No hay beneficiarios asignados a esta cuenta.
         </div>
@@ -228,28 +228,28 @@ const ejecutarVinculacion = () => {
     <!-- VINCULACIÓN EXPRESS -->
     <div
       v-if="props.contacto.rol === 'titular'"
-      class="border border-slate-200/80 rounded-xl overflow-hidden bg-white shadow-2xs"
+      class="border border-slate-200/80 dark:border-slate-700 rounded-xl overflow-hidden bg-white dark:bg-slate-800 shadow-2xs"
     >
       <button
         @click="des_vinculacion = !des_vinculacion"
-        class="w-full flex items-center justify-between p-3 bg-slate-50 hover:bg-slate-100/70 transition-colors text-left cursor-pointer"
+        class="w-full flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900 hover:bg-slate-100/70 dark:hover:bg-slate-700/70 transition-colors text-left cursor-pointer"
       >
         <div class="flex items-center gap-2">
           <span
-            class="text-[10px] font-black text-slate-500 uppercase tracking-wider"
+            class="text-[10px] font-black text-subtle uppercase tracking-wider"
           >
             Vinculación Express
           </span>
 
           <span
-            class="text-[8px] font-mono bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded font-black"
+            class="text-[8px] font-mono bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 px-1.5 py-0.5 rounded font-black"
           >
             {{ totalMiembros }}/5 Cupos
           </span>
         </div>
 
         <span
-          class="text-slate-400 text-[10px] transform transition-transform duration-200"
+          class="text-slate-400 dark:text-slate-500 text-[10px] transform transition-transform duration-200"
           :class="des_vinculacion ? 'rotate-180' : ''"
         >
           ▼
@@ -258,7 +258,7 @@ const ejecutarVinculacion = () => {
 
       <div
         v-show="des_vinculacion"
-        class="p-2.5 border-t border-slate-100 max-h-60 overflow-y-auto scrollbar-thin space-y-2"
+        class="p-2.5 border-t border-slate-100 dark:border-slate-700 max-h-60 overflow-y-auto scrollbar-thin space-y-2"
       >
         <div v-if="totalMiembros < 5" class="space-y-2">
           <div>
@@ -266,7 +266,7 @@ const ejecutarVinculacion = () => {
               type="text"
               v-model="nuevoBeneficiario.nombreCompleto"
               placeholder="Nombre Completo *"
-              class="w-full bg-slate-50 text-slate-800 placeholder-slate-400 rounded-lg border border-slate-200 px-2 py-1.5 text-[11px] focus:outline-none focus:ring-1 focus:ring-blue-600 transition-all font-semibold"
+              class="w-full bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 rounded-lg border border-slate-200 dark:border-slate-600 px-2 py-1.5 text-[11px] focus:outline-none focus:ring-1 focus:ring-blue-600 transition-all font-semibold"
             />
           </div>
 
@@ -274,7 +274,7 @@ const ejecutarVinculacion = () => {
             <div>
               <select
                 v-model="nuevoBeneficiario.tipoDocumento"
-                class="w-full bg-slate-50 border border-slate-200 rounded-lg p-1.5 font-semibold text-slate-700 outline-none text-[11px]"
+                class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-lg p-1.5 font-semibold text-slate-700 dark:text-slate-300 outline-none text-[11px]"
               >
                 <option value="CC">CC</option>
                 <option value="TI">TI</option>
@@ -288,7 +288,7 @@ const ejecutarVinculacion = () => {
                 type="text"
                 v-model="nuevoBeneficiario.documento"
                 placeholder="N° Documento *"
-                class="w-full bg-slate-50 text-slate-800 placeholder-slate-400 rounded-lg border border-slate-200 px-2 py-1.5 text-[11px] focus:outline-none focus:ring-1 focus:ring-blue-600 transition-all font-mono font-bold"
+                class="w-full bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 rounded-lg border border-slate-200 dark:border-slate-600 px-2 py-1.5 text-[11px] focus:outline-none focus:ring-1 focus:ring-blue-600 transition-all font-mono font-bold"
               />
             </div>
           </div>
@@ -300,14 +300,14 @@ const ejecutarVinculacion = () => {
                 v-model="nuevoBeneficiario.edad"
                 placeholder="Edad"
                 min="0"
-                class="w-full bg-slate-50 text-slate-800 rounded-lg border border-slate-200 px-2 py-1.5 text-[11px] font-mono font-bold"
+                class="w-full bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 rounded-lg border border-slate-200 dark:border-slate-600 px-2 py-1.5 text-[11px] font-mono font-bold"
               />
             </div>
 
             <div>
               <select
                 v-model="nuevoBeneficiario.genero"
-                class="w-full bg-slate-50 border border-slate-200 rounded-lg p-1.5 font-semibold text-slate-700 outline-none text-[11px]"
+                class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-lg p-1.5 font-semibold text-slate-700 dark:text-slate-300 outline-none text-[11px]"
               >
                 <option value="Masculino">Masculino</option>
                 <option value="Femenino">Femenino</option>
@@ -319,7 +319,7 @@ const ejecutarVinculacion = () => {
           <div>
             <select
               v-model="nuevoBeneficiario.parentesco"
-              class="w-full bg-slate-50 border border-slate-200 rounded-lg p-1.5 font-semibold text-slate-700 outline-none text-[11px]"
+              class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-lg p-1.5 font-semibold text-slate-700 dark:text-slate-300 outline-none text-[11px]"
             >
               <option value="Hijo(a)">Hijo(a)</option>
               <option value="Cónyuge">Cónyuge</option>
@@ -339,7 +339,7 @@ const ejecutarVinculacion = () => {
 
         <div
           v-else
-          class="text-[9px] text-slate-400 italic text-center p-2 bg-slate-50 rounded-lg border border-dashed border-slate-200 font-medium"
+          class="text-[9px] text-muted italic text-center p-2 surface-sunken rounded-lg border border-dashed border-slate-200 dark:border-slate-600 font-medium"
         >
           Límite familiar alcanzado (Máximo 5 miembros).
         </div>

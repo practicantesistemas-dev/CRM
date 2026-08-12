@@ -13,6 +13,12 @@
 @source "../../**/*.vue";
 @source "../../**/*.ts";
 
+/* Modo oscuro manual (toggle en el menu del avatar, no sigue el SO): habilita
+   la utilidad dark: cuando <html> tiene la clase .dark. Mismo selector que
+   darkModeSelector en app/plugins/primevue.ts, para que PrimeVue y Tailwind
+   cambien de tema juntos (ver shared/composables/useTema.ts). */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   /* La Liga - Colores institucionales */
   --color-liga-blue: #2447F9;
@@ -35,11 +41,15 @@
     background-color: var(--color-liga-bg);
     color: var(--color-liga-text);
   }
+
+  .dark html, .dark body, html.dark, html.dark body {
+    background-color: #0B1120;
+    color: #E2E8F0;
+  }
 }
 
 /* Override Ant Design primary color */
 :root {
-
   color-scheme: light;
 
   --ant-color-primary: #2447F9;
@@ -47,6 +57,45 @@
   --ant-color-primary-active: #1A2A6C;
   --ant-border-radius: 8px;
   --ant-font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+.dark {
+  color-scheme: dark;
+}
+
+/* ── Modo oscuro: superficies/texto reutilizables ─────────────────────
+   Usar estas utilidades en vez de bg-white/border-slate-200/text-slate-*
+   sueltos, para que cualquier componente (tarjetas, tablas, modales,
+   dropdowns) funcione en modo oscuro sin tener que repetir dark: cada vez. */
+@utility surface-card {
+  @apply bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700;
+}
+@utility surface-sunken {
+  @apply bg-slate-50 dark:bg-slate-900;
+}
+@utility surface-header {
+  @apply bg-[#F8FAFC] dark:bg-slate-900;
+}
+@utility surface-hover {
+  @apply hover:bg-slate-50 dark:hover:bg-slate-700;
+}
+@utility text-heading {
+  @apply text-[#0F172A] dark:text-slate-100;
+}
+@utility text-body {
+  @apply text-slate-600 dark:text-slate-300;
+}
+@utility text-muted {
+  @apply text-slate-400 dark:text-slate-500;
+}
+@utility text-subtle {
+  @apply text-slate-500 dark:text-slate-400;
+}
+@utility border-default {
+  @apply border-slate-200 dark:border-slate-700;
+}
+@utility input-surface {
+  @apply bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-600 text-slate-900 dark:text-slate-100;
 }
 
 @utility btn-filtro-rol {

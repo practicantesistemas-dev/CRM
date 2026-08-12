@@ -22,19 +22,19 @@ const {
 
     <div class="flex items-center justify-between">
       <div>
-        <h1 class="text-[20px] font-bold text-[#0F172A] leading-tight">Dashboard</h1>
-        <p class="text-[13px] text-slate-500 mt-0.5">Resumen general · Fundación La Liga Ama Salvar Vidas</p>
+        <h1 class="text-[20px] font-bold text-[#0F172A] dark:text-slate-100 leading-tight">Dashboard</h1>
+        <p class="text-[13px] text-slate-500 dark:text-slate-400 mt-0.5">Resumen general · Fundación La Liga Ama Salvar Vidas</p>
       </div>
       <select
         v-model="periodo"
         :disabled="cargandoKpis"
-        class="h-8 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+        class="h-8 px-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-[11px] font-medium text-slate-600 dark:text-slate-300 outline-none cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
       >
         <option v-for="o in periodoOptions" :key="o.value" :value="o.value">{{ o.label }}</option>
       </select>
     </div>
 
-    <p v-if="errorKpis" class="text-[12px] text-red-600 bg-red-50 rounded-lg px-3 py-2">{{ errorKpis }}</p>
+    <p v-if="errorKpis" class="text-[12px] text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/40 rounded-lg px-3 py-2">{{ errorKpis }}</p>
 
     <KpiCards :kpis="kpis" />
 

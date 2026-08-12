@@ -26,11 +26,11 @@ const confirmarGuardado = () => {
   <div class="space-y-5 font-[Inter,system-ui,sans-serif]">
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div>
-        <h2 class="text-[18px] font-bold text-[#0F172A]">Segmentación</h2>
-        <p class="text-[12px] text-slate-500 mt-0.5">Filtra, guarda y exporta segmentos de contactos</p>
+        <h2 class="text-[18px] font-bold text-heading">Segmentación</h2>
+        <p class="text-[12px] text-body mt-0.5">Filtra, guarda y exporta segmentos de contactos</p>
       </div>
       <div class="flex items-center gap-2">
-        <button class="flex items-center gap-1.5 h-9 px-4 rounded-lg border border-slate-200 bg-white text-[11px] font-semibold text-slate-600 hover:bg-slate-50 transition-all">
+        <button class="flex items-center gap-1.5 h-9 px-4 rounded-lg border border-default bg-white dark:bg-slate-800 text-[11px] font-semibold text-body hover:bg-slate-50 dark:hover:bg-slate-700 transition-all">
           <Download :size="13" /> Exportar
         </button>
         <button @click="mostrarGuardar = true" class="flex items-center gap-1.5 h-9 px-4 rounded-lg bg-[#2447F9] text-white text-[11px] font-bold shadow hover:bg-[#1D3DD9] transition-all">
@@ -54,7 +54,7 @@ const confirmarGuardado = () => {
     />
 
     <div>
-      <h3 class="text-[12px] font-bold text-slate-500 uppercase tracking-wider mb-3">Segmentos guardados ({{ segmentosGuardados.length }})</h3>
+      <h3 class="text-[12px] font-bold text-subtle uppercase tracking-wider mb-3">Segmentos guardados ({{ segmentosGuardados.length }})</h3>
       <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
         <SegmentoCard
           v-for="s in segmentosGuardados"

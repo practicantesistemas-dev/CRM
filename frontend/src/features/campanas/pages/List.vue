@@ -41,11 +41,11 @@ const abrirEditor = (c: Campana) => {
   <div class="space-y-5 font-[Inter,system-ui,sans-serif]">
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div>
-        <h2 class="text-[18px] font-bold text-[#0F172A] flex items-center gap-2">
+        <h2 class="text-[18px] font-bold text-heading flex items-center gap-2">
           Campañas Masivas
-          <span class="bg-[#EEF2FF] text-[#2447F9] text-[11px] font-bold px-2.5 py-0.5 rounded-full">{{ campanas.length }}</span>
+          <span class="bg-[#EEF2FF] dark:bg-blue-950/50 text-[#2447F9] dark:text-blue-300 text-[11px] font-bold px-2.5 py-0.5 rounded-full">{{ campanas.length }}</span>
         </h2>
-        <p class="text-[12px] text-slate-500 mt-0.5">Envíos masivos por segmento · métricas de apertura y clics</p>
+        <p class="text-[12px] text-body mt-0.5">Envíos masivos por segmento · métricas de apertura y clics</p>
       </div>
       <button @click="abrirNuevo" class="flex items-center gap-1.5 h-9 px-4 rounded-lg bg-[#2447F9] text-white text-[11px] font-bold shadow hover:bg-[#1D3DD9] transition-all">
         <Plus :size="14" /> Nueva campaña
@@ -59,11 +59,11 @@ const abrirEditor = (c: Campana) => {
       :total-rebotes="totalRebotes"
     />
 
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-      <div class="px-5 py-4 border-b border-slate-100">
-        <h3 class="text-[13px] font-bold text-[#0F172A]">Todas las campañas</h3>
+    <div class="surface-card rounded-2xl shadow-sm overflow-hidden">
+      <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-700">
+        <h3 class="text-[13px] font-bold text-heading">Todas las campañas</h3>
       </div>
-      <div class="divide-y divide-slate-100">
+      <div class="divide-y divide-slate-100 dark:divide-slate-700">
         <CampanaListItem
           v-for="c in campanas"
           :key="c.id"

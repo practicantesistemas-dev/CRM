@@ -257,20 +257,20 @@ const modalImportVisible = ref(false)
 
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div>
-        <h2 class="text-[18px] font-bold text-[#0F172A] flex items-center gap-2">
+        <h2 class="text-[18px] font-bold text-[#0F172A] dark:text-slate-100 flex items-center gap-2">
           <Heart :size="20" class="text-[#EC4899]" />
           Plan Liga · Afiliaciones
         </h2>
-        <p class="text-[12px] text-slate-500 mt-0.5">Gestión de titulares y beneficiarios del programa Plan Liga Ama Salvar Vidas</p>
-        <p v-if="errorExportar" class="text-[11px] text-red-600 mt-1">{{ errorExportar }}</p>
+        <p class="text-[12px] text-slate-500 dark:text-slate-400 mt-0.5">Gestión de titulares y beneficiarios del programa Plan Liga Ama Salvar Vidas</p>
+        <p v-if="errorExportar" class="text-[11px] text-red-600 dark:text-red-400 mt-1">{{ errorExportar }}</p>
       </div>
       <div class="flex items-center gap-2 flex-wrap">
         <button @click="modalImportVisible = true"
-          class="flex items-center gap-1.5 h-9 px-4 rounded-lg border border-slate-200 bg-white text-[11px] font-semibold text-slate-600 hover:bg-slate-50 transition-all">
+          class="flex items-center gap-1.5 h-9 px-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-[11px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all">
           <Upload :size="13" /> Importar Excel
         </button>
         <button @click="exportarListado" :disabled="exportando"
-          class="flex items-center gap-1.5 h-9 px-4 rounded-lg border border-slate-200 bg-white text-[11px] font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-60 disabled:cursor-not-allowed transition-all">
+          class="flex items-center gap-1.5 h-9 px-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-[11px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-60 disabled:cursor-not-allowed transition-all">
           <Loader2 v-if="exportando" :size="13" class="animate-spin" />
           <Download v-else :size="13" />
           {{ exportando ? 'Exportando...' : 'Exportar' }}
@@ -282,53 +282,53 @@ const modalImportVisible = ref(false)
       </div>
     </div>
 
-    <div v-if="exportando" class="flex items-center gap-2.5 bg-[#EEF2FF] border border-[#C7D2FE] rounded-xl px-4 py-3">
-      <Loader2 :size="16" class="animate-spin text-[#2447F9] shrink-0" />
-      <p class="text-[12px] font-semibold text-[#2447F9]">Generando el archivo, esto puede tardar unos segundos...</p>
+    <div v-if="exportando" class="flex items-center gap-2.5 bg-[#EEF2FF] dark:bg-blue-950/40 border border-[#C7D2FE] dark:border-blue-800 rounded-xl px-4 py-3">
+      <Loader2 :size="16" class="animate-spin text-[#2447F9] dark:text-blue-400 shrink-0" />
+      <p class="text-[12px] font-semibold text-[#2447F9] dark:text-blue-300">Generando el archivo, esto puede tardar unos segundos...</p>
     </div>
 
-    <div v-if="avisoReemplazo" class="flex items-center gap-2.5 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3">
-      <CheckCircle2 :size="16" class="text-emerald-600 shrink-0" />
-      <p class="text-[12px] font-semibold text-emerald-700">{{ avisoReemplazo }}</p>
-      <button @click="avisoReemplazo = null" class="ml-auto text-emerald-400 hover:text-emerald-600 shrink-0"><X :size="13" /></button>
+    <div v-if="avisoReemplazo" class="flex items-center gap-2.5 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-xl px-4 py-3">
+      <CheckCircle2 :size="16" class="text-emerald-600 dark:text-emerald-400 shrink-0" />
+      <p class="text-[12px] font-semibold text-emerald-700 dark:text-emerald-300">{{ avisoReemplazo }}</p>
+      <button @click="avisoReemplazo = null" class="ml-auto text-emerald-400 hover:text-emerald-600 dark:hover:text-emerald-300 shrink-0"><X :size="13" /></button>
     </div>
 
     <div class="grid grid-cols-2 gap-4">
-      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
-        <div class="w-9 h-9 rounded-xl bg-[#FCE7F3] flex items-center justify-center mb-3"><Heart :size="17" class="text-[#EC4899]" /></div>
-        <div class="text-[28px] font-bold text-[#0F172A] leading-none">{{ totalActivos }}</div>
-        <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wide mt-1">Titulares activos</div>
+      <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-5">
+        <div class="w-9 h-9 rounded-xl bg-[#FCE7F3] dark:bg-pink-950/50 flex items-center justify-center mb-3"><Heart :size="17" class="text-[#EC4899]" /></div>
+        <div class="text-[28px] font-bold text-[#0F172A] dark:text-slate-100 leading-none">{{ totalActivos }}</div>
+        <div class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mt-1">Titulares activos</div>
       </div>
-      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
-        <div class="w-9 h-9 rounded-xl bg-[#EEF2FF] flex items-center justify-center mb-3"><Users :size="17" class="text-[#2447F9]" /></div>
-        <div class="text-[28px] font-bold text-[#0F172A] leading-none">{{ totalBeneficiarios }}</div>
-        <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wide mt-1">Beneficiarios activos</div>
+      <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-5">
+        <div class="w-9 h-9 rounded-xl bg-[#EEF2FF] dark:bg-blue-950/50 flex items-center justify-center mb-3"><Users :size="17" class="text-[#2447F9]" /></div>
+        <div class="text-[28px] font-bold text-[#0F172A] dark:text-slate-100 leading-none">{{ totalBeneficiarios }}</div>
+        <div class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mt-1">Beneficiarios activos</div>
       </div>
     </div>
 
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm px-4 py-3">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm px-4 py-3">
       <div class="flex flex-wrap gap-2 items-center">
         <div class="relative flex-1 min-w-[220px] max-w-[350px]">
           <Search :size="14" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input v-model="buscar" placeholder="(cédula,nombre,empresa)..." title="Buscar por nombre, documento, empresa o correo"
-            class="w-full h-9 pl-9 pr-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white transition-all truncate" />
+            class="w-full h-9 pl-9 pr-4 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-[12px] text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none focus:border-[#EC4899] focus:bg-white dark:focus:bg-slate-800 transition-all truncate" />
         </div>
-        <select v-model="filtroEstado" class="h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer flex-1 min-w-[165px] max-w-[240px]">
+        <select v-model="filtroEstado" class="h-9 px-3 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-[11px] font-medium text-slate-600 dark:text-slate-300 outline-none cursor-pointer flex-1 min-w-[165px] max-w-[240px]">
           <option value="todos">Estado: Todos</option>
           <option value="Activo">Activo</option>
           <option value="Inactivo">Inactivo</option>
         </select>
-        <select v-model="filtroPlan" class="h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer flex-1 min-w-[130px] max-w-[210px]">
+        <select v-model="filtroPlan" class="h-9 px-3 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-[11px] font-medium text-slate-600 dark:text-slate-300 outline-none cursor-pointer flex-1 min-w-[130px] max-w-[210px]">
           <option value="todos">Plan: Todos</option>
           <option value="estandar">Estándar</option>
           <option v-for="p in planesServicio" :key="p.id" :value="p.id">{{ p.nombre }}</option>
         </select>
-        <select v-model="filtroSexo" class="h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer flex-1 min-w-[210px] max-w-[280px]">
+        <select v-model="filtroSexo" class="h-9 px-3 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-[11px] font-medium text-slate-600 dark:text-slate-300 outline-none cursor-pointer flex-1 min-w-[210px] max-w-[280px]">
           <option value="todos">Sexo biológico: Todos</option>
           <option value="Masculino">Masculino</option>
           <option value="Femenino">Femenino</option>
         </select>
-        <select v-model="filtroEdad" class="h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer flex-1 min-w-[130px] max-w-[210px]">
+        <select v-model="filtroEdad" class="h-9 px-3 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-[11px] font-medium text-slate-600 dark:text-slate-300 outline-none cursor-pointer flex-1 min-w-[130px] max-w-[210px]">
           <option value="todos">Edad: Todos</option>
           <option value="0-17">0 – 17 años</option>
           <option value="18-35">18 – 35 años</option>
@@ -336,8 +336,8 @@ const modalImportVisible = ref(false)
           <option value="51+">51+ años</option>
         </select>
       </div>
-      <div class="mt-2 text-[11px] text-slate-400">
-        Mostrando <strong class="text-slate-600">{{ titulares.length }}</strong> de <strong class="text-slate-600">{{ totalTitulares }}</strong> titulares
+      <div class="mt-2 text-[11px] text-slate-400 dark:text-slate-500">
+        Mostrando <strong class="text-slate-600 dark:text-slate-300">{{ titulares.length }}</strong> de <strong class="text-slate-600 dark:text-slate-300">{{ totalTitulares }}</strong> titulares
       </div>
     </div>
 
@@ -354,13 +354,13 @@ const modalImportVisible = ref(false)
 
     <div v-if="totalTitulares > 0" class="flex items-center justify-center gap-3 px-1">
       <button @click="paginaAnterior" :disabled="!hayPaginaAnterior"
-        class="w-8 h-8 rounded-lg border border-slate-200 bg-white text-slate-500 flex items-center justify-center hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+        class="w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
         title="Página anterior">
         <ChevronLeft :size="15" />
       </button>
-      <span class="text-[11px] text-slate-400">Página <strong class="text-slate-600">{{ paginaActual }}</strong> de <strong class="text-slate-600">{{ totalPaginas }}</strong></span>
+      <span class="text-[11px] text-slate-400 dark:text-slate-500">Página <strong class="text-slate-600 dark:text-slate-300">{{ paginaActual }}</strong> de <strong class="text-slate-600 dark:text-slate-300">{{ totalPaginas }}</strong></span>
       <button @click="paginaSiguiente" :disabled="!hayPaginaSiguiente"
-        class="w-8 h-8 rounded-lg border border-slate-200 bg-white text-slate-500 flex items-center justify-center hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+        class="w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
         title="Página siguiente">
         <ChevronRight :size="15" />
       </button>

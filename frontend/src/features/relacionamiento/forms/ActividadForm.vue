@@ -88,13 +88,13 @@ const opcionesOportunidades = computed<OpcionBuscador[]>(() => {
 <template>
   <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
     <div class="sm:col-span-2">
-      <label class="block text-[11px] font-bold text-slate-600 mb-2 uppercase tracking-wide">Tipo de actividad</label>
+      <label class="block text-[11px] font-bold text-body mb-2 uppercase tracking-wide">Tipo de actividad</label>
       <div class="flex gap-2 flex-wrap">
         <button
           v-for="tipo in TIPOS_ACTIVIDAD" :key="tipo"
           @click="draft.tipo = tipo"
           class="flex items-center gap-1.5 h-8 px-3 rounded-xl text-[11px] font-bold border transition-all"
-          :class="draft.tipo === tipo ? 'text-white border-transparent shadow' : 'bg-white border-slate-200 text-slate-500'"
+          :class="draft.tipo === tipo ? 'text-white border-transparent shadow' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400'"
           :style="draft.tipo === tipo ? { backgroundColor: TIPO_META[tipo].color } : {}"
         >
           <component :is="TIPO_META[tipo].icono" :size="11" /> {{ tipo }}
@@ -103,7 +103,7 @@ const opcionesOportunidades = computed<OpcionBuscador[]>(() => {
     </div>
 
     <div class="sm:col-span-2">
-      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Contacto, empresa o titular Plan Liga (selecciona al menos uno) *</label>
+      <label class="block text-[11px] font-bold text-body mb-1.5 uppercase tracking-wide">Contacto, empresa o titular Plan Liga (selecciona al menos uno) *</label>
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <BuscadorEntidad
           v-model="draft.contactoId"
@@ -134,25 +134,25 @@ const opcionesOportunidades = computed<OpcionBuscador[]>(() => {
     </div>
 
     <div class="sm:col-span-2">
-      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Acción realizada *</label>
-      <textarea v-model="draft.accion" @blur="tocar('accion')" placeholder="Describa la actividad realizada..." rows="3" class="w-full px-4 py-3 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all resize-none" :class="fieldStateClass(esVisible('accion') && !!errors.accion, esVisible('accion') && !errors.accion && !!draft.accion, 'border-slate-200 focus:border-[#2447F9]')" />
+      <label class="block text-[11px] font-bold text-body mb-1.5 uppercase tracking-wide">Acción realizada *</label>
+      <textarea v-model="draft.accion" @blur="tocar('accion')" placeholder="Describa la actividad realizada..." rows="3" class="w-full px-4 py-3 rounded-lg border bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-[12px] outline-none focus:bg-white dark:focus:bg-slate-800 transition-all resize-none" :class="fieldStateClass(esVisible('accion') && !!errors.accion, esVisible('accion') && !errors.accion && !!draft.accion, 'border-slate-200 dark:border-slate-600 focus:border-[#2447F9] dark:focus:border-[#2447F9]')" />
       <FieldError :message="esVisible('accion') ? errors.accion : undefined" />
     </div>
     <div>
-      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Próximo paso</label>
-      <input v-model="draft.proximoPaso" @blur="tocar('proximoPaso')" placeholder="¿Cuál es el siguiente paso?" class="w-full h-10 px-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#2447F9] focus:bg-white transition-all" />
+      <label class="block text-[11px] font-bold text-body mb-1.5 uppercase tracking-wide">Próximo paso</label>
+      <input v-model="draft.proximoPaso" @blur="tocar('proximoPaso')" placeholder="¿Cuál es el siguiente paso?" class="w-full h-10 px-4 rounded-lg input-surface text-[12px] outline-none focus:border-[#2447F9] dark:focus:border-[#2447F9] focus:bg-white dark:focus:bg-slate-800 transition-all" />
       <FieldError :message="esVisible('proximoPaso') ? errors.proximoPaso : undefined" />
     </div>
     <div v-if="draft.proximoPaso">
-      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Fecha límite del próximo paso</label>
+      <label class="block text-[11px] font-bold text-body mb-1.5 uppercase tracking-wide">Fecha límite del próximo paso</label>
       <FechaInput v-model="draft.proximoPasoFecha" placeholder="Opcional" />
     </div>
     <div class="sm:col-span-2">
-      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Fecha de creación</label>
+      <label class="block text-[11px] font-bold text-body mb-1.5 uppercase tracking-wide">Fecha de creación</label>
       <FechaInput v-model="draft.fecha" disabled />
     </div>
     <div class="sm:col-span-2">
-      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Oportunidad relacionada (opcional)</label>
+      <label class="block text-[11px] font-bold text-body mb-1.5 uppercase tracking-wide">Oportunidad relacionada (opcional)</label>
       <BuscadorEntidad
         v-model="draft.oportunidadId"
         :opciones="opcionesOportunidades"

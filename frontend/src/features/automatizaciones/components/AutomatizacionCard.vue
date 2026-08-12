@@ -13,12 +13,12 @@ const emit = defineEmits<{
 
 <template>
   <div
-    class="bg-white rounded-2xl border shadow-sm overflow-hidden transition-all hover:shadow-md group"
-    :class="automatizacion.estado === 'Error' ? 'border-red-200' : 'border-slate-200'"
+    class="bg-white dark:bg-slate-800 rounded-2xl border shadow-sm overflow-hidden transition-all hover:shadow-md group"
+    :class="automatizacion.estado === 'Error' ? 'border-red-200 dark:border-red-800' : 'border-slate-200 dark:border-slate-700'"
   >
-    <div v-if="automatizacion.estado === 'Error'" class="flex items-center gap-2 px-5 py-2 bg-red-50 border-b border-red-200">
-      <AlertTriangle :size="12" class="text-red-500 shrink-0" />
-      <p class="text-[11px] text-red-600 font-medium">
+    <div v-if="automatizacion.estado === 'Error'" class="flex items-center gap-2 px-5 py-2 bg-red-50 dark:bg-red-950/40 border-b border-red-200 dark:border-red-800">
+      <AlertTriangle :size="12" class="text-red-500 dark:text-red-400 shrink-0" />
+      <p class="text-[11px] text-red-600 dark:text-red-400 font-medium">
         Esta automatización tiene errores y se ha detenido. Revisa la configuración.
       </p>
     </div>
@@ -35,12 +35,12 @@ const emit = defineEmits<{
         <div class="flex items-start justify-between gap-3 flex-wrap">
           <div class="min-w-0">
             <div class="flex items-center gap-2 flex-wrap">
-              <h3 class="text-[13px] font-bold text-[#0F172A] truncate">{{ automatizacion.nombre }}</h3>
+              <h3 class="text-[13px] font-bold text-heading truncate">{{ automatizacion.nombre }}</h3>
               <span class="inline-flex items-center gap-1 text-[10px] font-semibold" :class="ESTADO_STYLE[automatizacion.estado]">
                 {{ automatizacion.estado }}
               </span>
             </div>
-            <p class="text-[11px] text-slate-500 mt-0.5 line-clamp-1">{{ automatizacion.descripcion }}</p>
+            <p class="text-[11px] text-body mt-0.5 line-clamp-1">{{ automatizacion.descripcion }}</p>
           </div>
 
           <div class="flex items-center gap-1 shrink-0">
@@ -48,22 +48,22 @@ const emit = defineEmits<{
               @click="emit('toggle-activo')"
               class="w-8 h-8 rounded-lg flex items-center justify-center transition-all"
               :class="automatizacion.activo
-                ? 'bg-amber-50 text-amber-600 hover:bg-amber-100'
-                : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100'"
+                ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/40'
+                : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/40'"
               :title="automatizacion.activo ? 'Pausar' : 'Activar'"
             >
               <component :is="automatizacion.activo ? Pause : Play" :size="13" />
             </button>
             <button
               @click="emit('editar')"
-              class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-[#EEF2FF] hover:text-[#2447F9] text-slate-500 flex items-center justify-center transition-all"
+              class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-[#EEF2FF] dark:hover:bg-blue-950/40 hover:text-[#2447F9] dark:hover:text-blue-400 text-slate-500 dark:text-slate-400 flex items-center justify-center transition-all"
               title="Editar"
             >
               <Edit2 :size="12" />
             </button>
             <button
               @click="emit('eliminar')"
-              class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-red-50 hover:text-red-500 text-slate-500 flex items-center justify-center transition-all"
+              class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-red-500 dark:hover:text-red-400 text-slate-500 dark:text-slate-400 flex items-center justify-center transition-all"
               title="Eliminar"
             >
               <Trash2 :size="12" />
@@ -72,28 +72,28 @@ const emit = defineEmits<{
         </div>
 
         <div class="flex items-center gap-2 mt-3 flex-wrap">
-          <div class="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1">
+          <div class="flex items-center gap-1.5 surface-sunken border border-default rounded-lg px-2.5 py-1">
             <component :is="TRIGGER_META[automatizacion.trigger].icono" :size="11" :style="{ color: TRIGGER_META[automatizacion.trigger].color }" />
-            <span class="text-[10px] font-semibold text-slate-600">{{ automatizacion.trigger }}</span>
+            <span class="text-[10px] font-semibold text-body">{{ automatizacion.trigger }}</span>
           </div>
-          <div class="text-[10px] text-slate-400 font-bold">→</div>
-          <div class="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1">
+          <div class="text-[10px] text-muted font-bold">→</div>
+          <div class="flex items-center gap-1.5 surface-sunken border border-default rounded-lg px-2.5 py-1">
             <component :is="ACCION_META[automatizacion.accion].icono" :size="11" :style="{ color: ACCION_META[automatizacion.accion].color }" />
-            <span class="text-[10px] font-semibold text-slate-600">{{ automatizacion.accion }}</span>
+            <span class="text-[10px] font-semibold text-body">{{ automatizacion.accion }}</span>
           </div>
         </div>
 
         <div class="flex items-center gap-4 mt-3 flex-wrap">
-          <div class="flex items-center gap-1.5 text-[10px] text-slate-400">
+          <div class="flex items-center gap-1.5 text-[10px] text-muted">
             <Zap :size="10" class="text-[#C9A227]" />
-            <span><strong class="text-slate-600">{{ automatizacion.ejecuciones }}</strong> ejecuciones</span>
+            <span><strong class="text-body">{{ automatizacion.ejecuciones }}</strong> ejecuciones</span>
           </div>
-          <div class="flex items-center gap-1.5 text-[10px] text-slate-400">
+          <div class="flex items-center gap-1.5 text-[10px] text-muted">
             <Clock :size="10" />
-            <span>Última: <strong class="text-slate-600">{{ formatDate(automatizacion.ultimaEjecucion) }}</strong></span>
+            <span>Última: <strong class="text-body">{{ formatDate(automatizacion.ultimaEjecucion) }}</strong></span>
           </div>
-          <div class="flex items-center gap-1.5 text-[10px] text-slate-400">
-            <span>Creado por <strong class="text-slate-600">{{ automatizacion.creadoPor }}</strong> el {{ automatizacion.creadoEn }}</span>
+          <div class="flex items-center gap-1.5 text-[10px] text-muted">
+            <span>Creado por <strong class="text-body">{{ automatizacion.creadoPor }}</strong> el {{ automatizacion.creadoEn }}</span>
           </div>
         </div>
       </div>

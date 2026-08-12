@@ -11,6 +11,10 @@ export function installPrimeVue(app: App) {
           name: 'primevue',
           order: 'tailwind-base, primevue, tailwind-utilities',
         },
+        // Mismo selector que el @custom-variant dark de app/styles/style.css:
+        // al togglear .dark en <html> (ver shared/composables/useTema.ts),
+        // PrimeVue y Tailwind cambian de tema juntos.
+        darkModeSelector: '.dark',
       },
     },
     // Los diálogos de la app usan z-[99999] o z-[999999] (Tailwind, ej. BeneficiarioFormDialog
