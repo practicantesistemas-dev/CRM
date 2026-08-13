@@ -1,0 +1,134 @@
+from datetime import datetime
+
+from app.models import Bitacora, Contacto, Oportunidad, PlanLiga, PlanLigaTipoPlan, Usuario
+from app.modules.administracion.bitacora.exceptions import BitacoraNotFoundError
+from app.modules.administracion.bitacora.repository import BitacoraRepository
+from app.modules.administracion.bitacora.schemas import (
+    BitacoraCreate,
+    BitacoraItem,
+    BitacoraListado,
+    BitacoraUpdate,
+)
+from app.shared.enums import EstadoBitacora, TipoActividadBitacora
+from sqlalchemy.orm import Session
+
+
+def _nombre_contacto(contacto: Contacto | None) -> str | None:
+    if contacto is None:
+        return None
+    partes = [contacto.nombre1, contacto.apellido1]
+    return " ".join(parte for parte in partes if parte)
+
+
+def _estado_seguro(valor: str | None) -> EstadoBitacora | None:
+    """Tolera filas legacy con `estado` nulo o con un valor fuera de
+    {pendiente, realizado} (mayusculas, espacios, datos historicos invalidos),
+    en vez de romper la serializacion de todo el listado por una sola fila."""
+    if valor is None:
+        return None
+    try:
+        return EstadoBitacora(valor.strip().lower())
+    except ValueError:
+        return None
+
+
+def _item(
+    bitacora: Bitacora,
+    contacto: Contacto | None,
+    usuario: Usuario | None,
+    oportunidad: Oportunidad | None,
+    servicio_oportunidad: PlanLigaTipoPlan | None,
+    titular: PlanLiga | None,
+    tipo_plan_titular: PlanLigaTipoPlan | None,
+) -> BitacoraItem:
+    plan_nombre = servicio_oportunidad.nombre if servicio_oportunidad else None
+    if plan_nombre is None and tipo_plan_titular is not None:
+        plan_nombre = tipo_plan_titular.nombre
+
+    return BitacoraItem(
+        id=bitacora.id,
+        tipo=bitacora.tipo,
+        descripcion=bitacora.descripcion,
+        proximo_paso=bitacora.proximo_paso,
+        fecha=bitacora.fecha,
+        estado=_estado_seguro(bitacora.estado),
+        usuario_id=bitacora.usuario_id,
+        usuario_nombre=usuario.nombres if usuario else None,
+        contacto_id=bitacora.contacto_id,
+        contacto_nombre=_nombre_contacto(contacto),
+        nombre_empresa=bitacora.nombre_empresa,
+        oportunidad_id=bitacora.oportunidad_id,
+        titular_id=bitacora.titular_id,
+        plan_nombre=plan_nombre,
+    )
+
+
+class BitacoraService:
+    def __init__(self, db: Session) -> None:
+        self.repository = BitacoraRepository(db)
+
+    def create(self, data: BitacoraCreate, username: str) -> Bitacora:
+        campos = data.model_dump(exclude={"fecha"})
+        bitacora = Bitacora(
+            **campos,
+            fecha=datetime.now(),
+            usuario_id=self.repository.obtener_usuario_id(username),
+        )
+        return self.repository.create(bitacora)
+
+    def update(self, id_bitacora: int, data: BitacoraUpdate) -> Bitacora:
+        bitacora = self.repository.get(id_bitacora)
+        if bitacora is None:
+            raise BitacoraNotFoundError(id_bitacora)
+
+        changes = data.model_dump(exclude_unset=True)
+        if changes:
+            bitacora = self.repository.update(bitacora, changes)
+        return bitacora
+
+    def completar(self, id_bitacora: int) -> Bitacora:
+        bitacora = self.repository.get(id_bitacora)
+        if bitacora is None:
+            raise BitacoraNotFoundError(id_bitacora)
+        return self.repository.update(bitacora, {"estado": EstadoBitacora.REALIZADO})
+
+    def historial_contacto(self, contacto_id: int, limit: int = 4) -> list[BitacoraItem]:
+        filas = self.repository.ultimos_por_contacto(contacto_id, limit=limit)
+        return [_item(*fila) for fila in filas]
+
+    def delete(self, id_bitacora: int) -> None:
+        bitacora = self.repository.get(id_bitacora)
+        if bitacora is None:
+            raise BitacoraNotFoundError(id_bitacora)
+        self.repository.delete(bitacora)
+
+    def listar(
+        self,
+        tipo: TipoActividadBitacora | None = None,
+        q: str | None = None,
+        contacto_id: int | None = None,
+        oportunidad_id: int | None = None,
+        titular_id: int | None = None,
+        skip: int = 0,
+        limit: int = 100,
+    ) -> BitacoraListado:
+        filas, total = self.repository.listar(
+            tipo=tipo.value if tipo else None,
+            q=q,
+            contacto_id=contacto_id,
+            oportunidad_id=oportunidad_id,
+            titular_id=titular_id,
+            skip=skip,
+            limit=limit,
+        )
+        conteo = self.repository.conteo_por_tipo(
+            contacto_id=contacto_id,
+            oportunidad_id=oportunidad_id,
+            titular_id=titular_id,
+        )
+
+        return BitacoraListado(
+            items=[_item(*fila) for fila in filas],
+            total=total,
+            conteo_por_tipo={tipo_valor: cantidad for tipo_valor, cantidad in conteo if tipo_valor},
+        )
