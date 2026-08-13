@@ -6,8 +6,7 @@ import { useTema } from '@/shared/composables/useTema'
 
 import {
   LayoutDashboard, Heart, Users, Building2, Truck,
-  Target, GitBranch, Layers, SlidersHorizontal, Megaphone,
-  BookOpen, Upload, Zap,
+  BookOpen,
   ChevronLeft, ChevronRight, LogOut, Settings,
   RefreshCw, X, Menu, Moon, Sun
 } from 'lucide-vue-next'
@@ -48,6 +47,8 @@ interface Tab { key: Vista; label: string; icono: any }
 // ── Menu ──────────────────────────────────────────────────────────
 interface MenuGroup { label?: string; items: Tab[] }
 
+// Temporalmente solo se muestran estos módulos en el menú (a pedido del negocio); el resto
+// de las vistas/rutas siguen existiendo y accesibles por URL directa, solo quedan ocultas acá.
 const menuGroups: MenuGroup[] = [
   { items: [
     { key: 'dashboard',        label: 'Dashboard',                 icono: LayoutDashboard },
@@ -59,18 +60,9 @@ const menuGroups: MenuGroup[] = [
     { key: 'contactos',        label: 'Contactos',                 icono: Users           },
     { key: 'empresas',         label: 'Empresas',                  icono: Building2       },
     { key: 'proveedores',      label: 'Proveedores',               icono: Truck           },
-    { key: 'oportunidades',    label: 'Oportunidades',             icono: Target          },
-    { key: 'embudos',          label: 'Tablero',       icono: GitBranch       },
-  ]},
-  { label: 'Marketing', items: [
-    { key: 'servicios',        label: 'Servicios',       icono: Layers          },
-    { key: 'segmentacion',     label: 'Segmentación',              icono: SlidersHorizontal},
-    { key: 'campanas',         label: 'Campañas Masivas',          icono: Megaphone       },
   ]},
   { label: 'Operaciones', items: [
     { key: 'relacionamiento',  label: 'Bitácora',                  icono: BookOpen        },
-    { key: 'importacion',      label: 'Importación Masiva',        icono: Upload          },
-    { key: 'automatizaciones', label: 'Automatizaciones',          icono: Zap             },
   ]},
 ]
 

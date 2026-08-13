@@ -1,0 +1,34 @@
+# Nombre de proyecto fijo: Compose prefija todos los contenedores/redes/volúmenes con esto
+# (crm_mercadeo-backend-1, crm_mercadeo-frontend-1, red crm_mercadeo_default...), así que no
+# choca con nombres genéricos ("backend", "frontend") que ya pueda tener otro proyecto en el
+# mismo servidor Docker. Cada proyecto de Compose además vive en su propia red aislada por
+# defecto: esto no toca contenedores, redes ni volúmenes de otros proyectos que ya corran ahí.
+name: crm_mercadeo
+
+services:
+  backend:
+    build:
+      context: ./backend_crm_mercadeo
+    restart: unless-stopped
+    env_file:
+      - ./backend_crm_mercadeo/.env
+    # Puerto expuesto solo para acceso directo/depuración (ej. http://SERVIDOR:8100/docs).
+    # El frontend NO lo usa: le llega por la red interna del proyecto (nginx -> backend:8000).
+    ports:
+      - "${CRM_BACKEND_PORT:-8100}:8000"
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_CRM_API_URL: ""
+        VITE_PORTAL_PRINCIPAL_URL: ${VITE_PORTAL_PRINCIPAL_URL:?falta VITE_PORTAL_PRINCIPAL_URL en .env}
+        VITE_TABLEAU_CLIENT_ID: ${VITE_TABLEAU_CLIENT_ID:-}
+        VITE_TABLEAU_SECRET_ID: ${VITE_TABLEAU_SECRET_ID:-}
+        VITE_TABLEAU_SECRET_VALUE: ${VITE_TABLEAU_SECRET_VALUE:-}
+        VITE_TABLEAU_USERNAME: ${VITE_TABLEAU_USERNAME:-}
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "${CRM_FRONTEND_PORT:-8090}:80"

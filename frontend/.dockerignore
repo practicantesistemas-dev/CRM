@@ -1,0 +1,12 @@
+node_modules
+dist
+dist-ssr
+.env
+.env.*
+!.env.example
+*.log
+vite-*.log
+output.txt
+.git
+.vscode
+.vite/
