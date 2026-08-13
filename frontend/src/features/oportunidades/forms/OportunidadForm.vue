@@ -77,13 +77,13 @@ function alSeleccionarTitular(item: OpcionBuscador | null) {
 <template>
   <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
     <div class="sm:col-span-2">
-      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Tipo de cliente *</label>
-      <div class="grid grid-cols-3 gap-1.5 p-1 bg-slate-100 rounded-lg">
+      <label class="block text-[11px] font-bold text-body mb-1.5 uppercase tracking-wide">Tipo de cliente *</label>
+      <div class="grid grid-cols-3 gap-1.5 p-1 bg-slate-100 dark:bg-slate-900 rounded-lg">
         <button
           v-for="t in TIPOS_CLIENTE" :key="t.value" type="button"
           @click="cambiarTipoCliente(t.value)"
           class="h-9 rounded-md text-[11px] font-bold flex items-center justify-center gap-1.5 transition-all"
-          :class="draft.tipoCliente === t.value ? 'bg-white text-[#2447F9] shadow-sm' : 'text-slate-500 hover:text-slate-700'"
+          :class="draft.tipoCliente === t.value ? 'bg-white dark:bg-slate-700 text-[#2447F9] dark:text-blue-400 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'"
         >
           <component :is="t.icono" :size="13" />
           <span class="truncate">{{ t.label }}</span>
@@ -93,7 +93,7 @@ function alSeleccionarTitular(item: OpcionBuscador | null) {
 
     <template v-if="draft.tipoCliente === 'empresa'">
       <div class="sm:col-span-2">
-        <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Empresa *</label>
+        <label class="block text-[11px] font-bold text-body mb-1.5 uppercase tracking-wide">Empresa *</label>
         <BuscadorEntidad
           v-model="draft.empresaId"
           :opciones="opcionesEmpresas"
@@ -105,7 +105,7 @@ function alSeleccionarTitular(item: OpcionBuscador | null) {
         <FieldError :message="esVisible('empresaId') ? errors.empresaId : undefined" />
       </div>
       <div class="sm:col-span-2">
-        <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Contacto (opcional)</label>
+        <label class="block text-[11px] font-bold text-body mb-1.5 uppercase tracking-wide">Contacto (opcional)</label>
         <BuscadorEntidad
           v-model="draft.contactoId"
           :opciones="opcionesContactosDeEmpresa"
@@ -119,7 +119,7 @@ function alSeleccionarTitular(item: OpcionBuscador | null) {
 
     <template v-else-if="draft.tipoCliente === 'contacto'">
       <div class="sm:col-span-2">
-        <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Contacto *</label>
+        <label class="block text-[11px] font-bold text-body mb-1.5 uppercase tracking-wide">Contacto *</label>
         <BuscadorEntidad
           v-model="draft.contactoId"
           :opciones="opcionesContactos"
@@ -134,7 +134,7 @@ function alSeleccionarTitular(item: OpcionBuscador | null) {
 
     <template v-else-if="draft.tipoCliente === 'titular'">
       <div class="sm:col-span-2">
-        <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Titular Plan Liga *</label>
+        <label class="block text-[11px] font-bold text-body mb-1.5 uppercase tracking-wide">Titular Plan Liga *</label>
         <BuscadorEntidad
           v-model="draft.planLigaTitularId"
           :opciones="opcionesTitulares"
@@ -148,8 +148,8 @@ function alSeleccionarTitular(item: OpcionBuscador | null) {
     </template>
 
     <div class="sm:col-span-2">
-      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Servicio *</label>
-      <select v-model="draft.servicio" @blur="tocar('servicio')" class="w-full h-10 px-3 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all cursor-pointer" :class="fieldStateClass(esVisible('servicio') && !!errors.servicio, esVisible('servicio') && !errors.servicio && !!draft.servicio, 'border-slate-200 focus:border-[#2447F9]')">
+      <label class="block text-[11px] font-bold text-body mb-1.5 uppercase tracking-wide">Servicio *</label>
+      <select v-model="draft.servicio" @blur="tocar('servicio')" class="w-full h-10 px-3 rounded-lg border bg-slate-50 dark:bg-slate-900 text-[12px] text-slate-900 dark:text-slate-100 outline-none focus:bg-white dark:focus:bg-slate-800 transition-all cursor-pointer" :class="fieldStateClass(esVisible('servicio') && !!errors.servicio, esVisible('servicio') && !errors.servicio && !!draft.servicio, 'border-slate-200 dark:border-slate-600 focus:border-[#2447F9]')">
         <option value="">Seleccionar servicio</option>
         <option value="Plan Liga Empresarial">Plan Liga Empresarial</option>
         <option value="Plan Liga Individual">Plan Liga Individual</option>
@@ -161,22 +161,22 @@ function alSeleccionarTitular(item: OpcionBuscador | null) {
       <FieldError :message="esVisible('servicio') ? errors.servicio : undefined" />
     </div>
     <div>
-      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Valor</label>
-      <input v-model="draft.valor" placeholder="$0" class="w-full h-10 px-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#2447F9] focus:bg-white transition-all" />
+      <label class="block text-[11px] font-bold text-body mb-1.5 uppercase tracking-wide">Valor</label>
+      <input v-model="draft.valor" placeholder="$0" class="w-full h-10 px-4 rounded-lg input-surface text-[12px] outline-none focus:border-[#2447F9] focus:bg-white dark:focus:bg-slate-800 transition-all" />
     </div>
     <div>
-      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Probabilidad ({{ draft.probabilidad }}%)</label>
+      <label class="block text-[11px] font-bold text-body mb-1.5 uppercase tracking-wide">Probabilidad ({{ draft.probabilidad }}%)</label>
       <input v-model.number="draft.probabilidad" type="range" min="0" max="100" step="5" class="w-full h-2 rounded-lg appearance-none cursor-pointer mt-3" />
     </div>
     <div>
-      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Etapa</label>
-      <select v-model="draft.estado" class="w-full h-10 px-3 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#2447F9] focus:bg-white transition-all cursor-pointer">
+      <label class="block text-[11px] font-bold text-body mb-1.5 uppercase tracking-wide">Etapa</label>
+      <select v-model="draft.estado" class="w-full h-10 px-3 rounded-lg input-surface text-[12px] outline-none focus:border-[#2447F9] focus:bg-white dark:focus:bg-slate-800 transition-all cursor-pointer">
         <option v-for="e in ETAPAS" :key="e" :value="e">{{ e }}</option>
       </select>
     </div>
     <div>
-      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Responsable</label>
-      <select v-model="draft.responsable" class="w-full h-10 px-3 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#2447F9] focus:bg-white transition-all cursor-pointer">
+      <label class="block text-[11px] font-bold text-body mb-1.5 uppercase tracking-wide">Responsable</label>
+      <select v-model="draft.responsable" class="w-full h-10 px-3 rounded-lg input-surface text-[12px] outline-none focus:border-[#2447F9] focus:bg-white dark:focus:bg-slate-800 transition-all cursor-pointer">
         <option value="">Seleccionar</option>
         <option value="María García">María García</option>
         <option value="Juan López">Juan López</option>

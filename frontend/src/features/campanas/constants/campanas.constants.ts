@@ -19,9 +19,9 @@ export const HTML_EDITOR_DEFAULT = `<h2 style="color:#2447F9;font-family:Inter,s
 export const VARIABLES_DINAMICAS = ['{{nombre}}', '{{empresa}}', '{{cargo}}', '{{ciudad}}', '{{servicio}}']
 
 export const estadoStyle = (e: Campana['estado']) => {
-  if (e === 'Enviada')    return 'text-emerald-600'
-  if (e === 'Programada') return 'text-[#1E3A8A]'
-  return 'text-slate-400'
+  if (e === 'Enviada')    return 'text-emerald-600 dark:text-emerald-400'
+  if (e === 'Programada') return 'text-[#1E3A8A] dark:text-blue-300'
+  return 'text-slate-400 dark:text-slate-500'
 }
 
 export const tasaApertura = (c: Campana) => c.enviados > 0 ? Math.round(c.aperturas / c.enviados * 100) + '%' : '—'

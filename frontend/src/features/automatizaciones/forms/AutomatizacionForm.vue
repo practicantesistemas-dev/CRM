@@ -16,54 +16,54 @@ defineExpose({ submit: onValidSubmit(() => emit('validSubmit')) })
 <template>
   <div class="space-y-4">
     <div>
-      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Nombre *</label>
+      <label class="block text-[11px] font-bold text-body mb-1.5 uppercase tracking-wide">Nombre *</label>
       <input
         v-model="draft.nombre"
         @blur="tocar('nombre')"
         placeholder="Ej: Bienvenida nuevo contacto"
-        class="w-full h-10 px-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all"
-        :class="fieldStateClass(esVisible('nombre') && !!errors.nombre, esVisible('nombre') && !errors.nombre && !!draft.nombre, 'border-slate-200 focus:border-[#2447F9]')"
+        class="w-full h-10 px-4 rounded-lg border bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-[12px] outline-none focus:bg-white dark:focus:bg-slate-800 transition-all"
+        :class="fieldStateClass(esVisible('nombre') && !!errors.nombre, esVisible('nombre') && !errors.nombre && !!draft.nombre, 'border-slate-200 dark:border-slate-600 focus:border-[#2447F9] dark:focus:border-[#2447F9]')"
       />
       <FieldError :message="esVisible('nombre') ? errors.nombre : undefined" />
     </div>
 
     <div>
-      <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Descripción</label>
+      <label class="block text-[11px] font-bold text-body mb-1.5 uppercase tracking-wide">Descripción</label>
       <textarea
         v-model="draft.descripcion"
         placeholder="¿Qué hace esta automatización?"
         rows="2"
-        class="w-full px-4 py-2.5 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#2447F9] focus:bg-white transition-all resize-none"
+        class="w-full px-4 py-2.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-[12px] outline-none focus:border-[#2447F9] dark:focus:border-[#2447F9] focus:bg-white dark:focus:bg-slate-800 transition-all resize-none"
       />
     </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <div>
-        <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Disparador (trigger)</label>
+        <label class="block text-[11px] font-bold text-body mb-1.5 uppercase tracking-wide">Disparador (trigger)</label>
         <select
           v-model="draft.trigger"
-          class="w-full h-10 px-3 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#2447F9] focus:bg-white transition-all cursor-pointer"
+          class="w-full h-10 px-3 rounded-lg input-surface text-[12px] outline-none focus:border-[#2447F9] dark:focus:border-[#2447F9] focus:bg-white dark:focus:bg-slate-800 transition-all cursor-pointer"
         >
           <option v-for="t in TRIGGERS" :key="t" :value="t">{{ t }}</option>
         </select>
       </div>
       <div>
-        <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Acción</label>
+        <label class="block text-[11px] font-bold text-body mb-1.5 uppercase tracking-wide">Acción</label>
         <select
           v-model="draft.accion"
-          class="w-full h-10 px-3 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#2447F9] focus:bg-white transition-all cursor-pointer"
+          class="w-full h-10 px-3 rounded-lg input-surface text-[12px] outline-none focus:border-[#2447F9] dark:focus:border-[#2447F9] focus:bg-white dark:focus:bg-slate-800 transition-all cursor-pointer"
         >
           <option v-for="a in ACCIONES" :key="a" :value="a">{{ a }}</option>
         </select>
       </div>
     </div>
 
-    <div class="bg-[#F8FAFC] border border-slate-200 rounded-xl px-4 py-3 flex items-center gap-3">
+    <div class="surface-header border border-default rounded-xl px-4 py-3 flex items-center gap-3">
       <div class="flex items-center gap-1.5 text-[11px] font-semibold" :style="{ color: TRIGGER_META[draft.trigger].color }">
         <component :is="TRIGGER_META[draft.trigger].icono" :size="13" />
         {{ draft.trigger }}
       </div>
-      <div class="text-[11px] text-slate-400 font-bold">→</div>
+      <div class="text-[11px] text-muted font-bold">→</div>
       <div class="flex items-center gap-1.5 text-[11px] font-semibold" :style="{ color: ACCION_META[draft.accion].color }">
         <component :is="ACCION_META[draft.accion].icono" :size="13" />
         {{ draft.accion }}

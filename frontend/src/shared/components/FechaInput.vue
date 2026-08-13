@@ -36,8 +36,8 @@ const maxDate = computed(() => (props.max ? aFecha(props.max) ?? undefined : und
 
 // Mismo formato visual que ActivarFechaDialog.vue (el diálogo de "Activar titular/beneficiario").
 const inputClass = computed(() =>
-  `w-full h-10 pl-4 pr-10 rounded-lg border bg-slate-50 text-[12px] font-medium text-slate-700 outline-none focus:bg-white transition-all `
-  + fieldStateClass(!!props.invalid, !!props.valid, 'border-slate-200 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-50'),
+  `w-full h-10 pl-4 pr-10 rounded-lg border bg-slate-50 dark:bg-slate-900 text-[12px] font-medium text-slate-700 dark:text-slate-100 outline-none focus:bg-white dark:focus:bg-slate-800 transition-all `
+  + fieldStateClass(!!props.invalid, !!props.valid, 'border-slate-200 dark:border-slate-600 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-50 dark:focus:ring-emerald-900/40'),
 )
 </script>
 

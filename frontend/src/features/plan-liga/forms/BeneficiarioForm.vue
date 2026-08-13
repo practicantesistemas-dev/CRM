@@ -40,21 +40,21 @@ const soloLecturaEnEdicion = computed(() => props.modo === 'editar')
 <template>
   <div class="space-y-6">
     <div>
-      <h4 class="text-[10px] font-bold text-[#EC4899] uppercase tracking-wider pb-2 mb-1 border-b border-slate-100">Identificación</h4>
+      <h4 class="text-[10px] font-bold text-[#EC4899] uppercase tracking-wider pb-2 mb-1 border-b border-slate-100 dark:border-slate-700">Identificación</h4>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3">
         <div class="sm:col-span-2">
-          <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Nombre completo *</label>
+          <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1.5 uppercase tracking-wide">Nombre completo *</label>
           <div class="grid grid-cols-2 gap-3">
-            <input v-model="nombre.nombre1" @blur="tocar('nombre')" placeholder="Primer nombre" class="w-full h-10 px-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all" :class="fieldStateClass(esVisible('nombre') && (!!errors.nombre || apellidoFaltante), esVisible('nombre') && !errors.nombre && !apellidoFaltante && !!draft.nombre, 'border-slate-200 focus:border-[#EC4899]')" />
-            <input v-model="nombre.nombre2" @blur="tocar('nombre')" placeholder="Segundo nombre" class="w-full h-10 px-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all" :class="fieldStateClass(esVisible('nombre') && (!!errors.nombre || apellidoFaltante), esVisible('nombre') && !errors.nombre && !apellidoFaltante && !!draft.nombre, 'border-slate-200 focus:border-[#EC4899]')" />
-            <input v-model="nombre.apellido1" @blur="tocar('nombre')" placeholder="Primer apellido" class="w-full h-10 px-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all" :class="fieldStateClass(esVisible('nombre') && (!!errors.nombre || apellidoFaltante), esVisible('nombre') && !errors.nombre && !apellidoFaltante && !!draft.nombre, 'border-slate-200 focus:border-[#EC4899]')" />
-            <input v-model="nombre.apellido2" @blur="tocar('nombre')" placeholder="Segundo apellido" class="w-full h-10 px-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all" :class="fieldStateClass(esVisible('nombre') && (!!errors.nombre || apellidoFaltante), esVisible('nombre') && !errors.nombre && !apellidoFaltante && !!draft.nombre, 'border-slate-200 focus:border-[#EC4899]')" />
+            <input v-model="nombre.nombre1" @blur="tocar('nombre')" placeholder="Primer nombre" class="w-full h-10 px-4 rounded-lg border bg-slate-50 dark:bg-slate-900 text-[12px] outline-none focus:bg-white dark:focus:bg-slate-800 transition-all" :class="fieldStateClass(esVisible('nombre') && (!!errors.nombre || apellidoFaltante), esVisible('nombre') && !errors.nombre && !apellidoFaltante && !!draft.nombre, 'border-slate-200 dark:border-slate-600 focus:border-[#EC4899]')" />
+            <input v-model="nombre.nombre2" @blur="tocar('nombre')" placeholder="Segundo nombre" class="w-full h-10 px-4 rounded-lg border bg-slate-50 dark:bg-slate-900 text-[12px] outline-none focus:bg-white dark:focus:bg-slate-800 transition-all" :class="fieldStateClass(esVisible('nombre') && (!!errors.nombre || apellidoFaltante), esVisible('nombre') && !errors.nombre && !apellidoFaltante && !!draft.nombre, 'border-slate-200 dark:border-slate-600 focus:border-[#EC4899]')" />
+            <input v-model="nombre.apellido1" @blur="tocar('nombre')" placeholder="Primer apellido" class="w-full h-10 px-4 rounded-lg border bg-slate-50 dark:bg-slate-900 text-[12px] outline-none focus:bg-white dark:focus:bg-slate-800 transition-all" :class="fieldStateClass(esVisible('nombre') && (!!errors.nombre || apellidoFaltante), esVisible('nombre') && !errors.nombre && !apellidoFaltante && !!draft.nombre, 'border-slate-200 dark:border-slate-600 focus:border-[#EC4899]')" />
+            <input v-model="nombre.apellido2" @blur="tocar('nombre')" placeholder="Segundo apellido" class="w-full h-10 px-4 rounded-lg border bg-slate-50 dark:bg-slate-900 text-[12px] outline-none focus:bg-white dark:focus:bg-slate-800 transition-all" :class="fieldStateClass(esVisible('nombre') && (!!errors.nombre || apellidoFaltante), esVisible('nombre') && !errors.nombre && !apellidoFaltante && !!draft.nombre, 'border-slate-200 dark:border-slate-600 focus:border-[#EC4899]')" />
           </div>
           <FieldError :message="esVisible('nombre') ? (apellidoFaltante ? 'Falta el apellido: mínimo un nombre y un apellido' : errors.nombre) : undefined" />
         </div>
         <div>
-          <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Tipo de documento *</label>
-          <select v-model="draft.tipoDocumento" @change="tocar('tipoDocumento')" class="w-full h-10 px-3 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all cursor-pointer" :class="fieldStateClass(esVisible('tipoDocumento') && !!errors.tipoDocumento, esVisible('tipoDocumento') && !errors.tipoDocumento && !!draft.tipoDocumento, 'border-slate-200 focus:border-[#EC4899]')">
+          <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1.5 uppercase tracking-wide">Tipo de documento *</label>
+          <select v-model="draft.tipoDocumento" @change="tocar('tipoDocumento')" class="w-full h-10 px-3 rounded-lg border bg-slate-50 dark:bg-slate-900 text-[12px] outline-none focus:bg-white dark:focus:bg-slate-800 transition-all cursor-pointer" :class="fieldStateClass(esVisible('tipoDocumento') && !!errors.tipoDocumento, esVisible('tipoDocumento') && !errors.tipoDocumento && !!draft.tipoDocumento, 'border-slate-200 dark:border-slate-600 focus:border-[#EC4899]')">
             <option value="CC">Cédula de Ciudadanía (CC)</option>
             <option value="CE">Cédula de Extranjería (CE)</option>
             <option value="TI">Tarjeta de Identidad (TI)</option>
@@ -64,20 +64,20 @@ const soloLecturaEnEdicion = computed(() => props.modo === 'editar')
           <FieldError :message="esVisible('tipoDocumento') ? errors.tipoDocumento : undefined" />
         </div>
         <div>
-          <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Documento *</label>
-          <input v-model="draft.documento" @blur="tocar('documento')" placeholder="Número documento" class="w-full h-10 px-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all" :class="fieldStateClass(esVisible('documento') && !!errors.documento, esVisible('documento') && !errors.documento && !!draft.documento, 'border-slate-200 focus:border-[#EC4899]')" />
+          <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1.5 uppercase tracking-wide">Documento *</label>
+          <input v-model="draft.documento" @blur="tocar('documento')" placeholder="Número documento" class="w-full h-10 px-4 rounded-lg border bg-slate-50 dark:bg-slate-900 text-[12px] outline-none focus:bg-white dark:focus:bg-slate-800 transition-all" :class="fieldStateClass(esVisible('documento') && !!errors.documento, esVisible('documento') && !errors.documento && !!draft.documento, 'border-slate-200 dark:border-slate-600 focus:border-[#EC4899]')" />
           <FieldError :message="esVisible('documento') ? errors.documento : undefined" />
         </div>
         <div>
-          <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Fecha nacimiento *</label>
+          <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1.5 uppercase tracking-wide">Fecha nacimiento *</label>
           <FechaInput v-model="draft.fechaNacimiento" @blur="tocar('fechaNacimiento')"
             :invalid="esVisible('fechaNacimiento') && !!errors.fechaNacimiento"
             :valid="esVisible('fechaNacimiento') && !errors.fechaNacimiento && !!draft.fechaNacimiento" />
           <FieldError :message="esVisible('fechaNacimiento') ? errors.fechaNacimiento : undefined" />
         </div>
         <div>
-          <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Sexo biológico</label>
-          <select v-model="draft.sexo" class="w-full h-10 px-3 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white transition-all cursor-pointer">
+          <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1.5 uppercase tracking-wide">Sexo biológico</label>
+          <select v-model="draft.sexo" class="w-full h-10 px-3 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white dark:focus:bg-slate-800 transition-all cursor-pointer">
             <option value="">Sin especificar</option>
             <option value="Masculino">Masculino</option>
             <option value="Femenino">Femenino</option>
@@ -87,30 +87,30 @@ const soloLecturaEnEdicion = computed(() => props.modo === 'editar')
     </div>
 
     <div>
-      <h4 class="text-[10px] font-bold text-[#EC4899] uppercase tracking-wider pb-2 mb-4 border-b border-slate-100">Contacto</h4>
+      <h4 class="text-[10px] font-bold text-[#EC4899] uppercase tracking-wider pb-2 mb-4 border-b border-slate-100 dark:border-slate-700">Contacto</h4>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Correo</label>
-          <input v-model="draft.correo" @blur="tocar('correo')" type="email" placeholder="correo@ejemplo.com" class="w-full h-10 px-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all" :class="fieldStateClass(esVisible('correo') && !!errors.correo, esVisible('correo') && !errors.correo && !!draft.correo, 'border-slate-200 focus:border-[#EC4899]')" />
+          <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1.5 uppercase tracking-wide">Correo</label>
+          <input v-model="draft.correo" @blur="tocar('correo')" type="email" placeholder="correo@ejemplo.com" class="w-full h-10 px-4 rounded-lg border bg-slate-50 dark:bg-slate-900 text-[12px] outline-none focus:bg-white dark:focus:bg-slate-800 transition-all" :class="fieldStateClass(esVisible('correo') && !!errors.correo, esVisible('correo') && !errors.correo && !!draft.correo, 'border-slate-200 dark:border-slate-600 focus:border-[#EC4899]')" />
           <FieldError :message="esVisible('correo') ? errors.correo : undefined" />
         </div>
         <div>
-          <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Teléfono</label>
-          <input v-model="draft.telefono" @blur="tocar('telefono')" placeholder="300-000-0000" class="w-full h-10 px-4 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all" :class="fieldStateClass(esVisible('telefono') && !!errors.telefono, esVisible('telefono') && !errors.telefono && !!draft.telefono, 'border-slate-200 focus:border-[#EC4899]')" />
+          <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1.5 uppercase tracking-wide">Teléfono</label>
+          <input v-model="draft.telefono" @blur="tocar('telefono')" placeholder="300-000-0000" class="w-full h-10 px-4 rounded-lg border bg-slate-50 dark:bg-slate-900 text-[12px] outline-none focus:bg-white dark:focus:bg-slate-800 transition-all" :class="fieldStateClass(esVisible('telefono') && !!errors.telefono, esVisible('telefono') && !errors.telefono && !!draft.telefono, 'border-slate-200 dark:border-slate-600 focus:border-[#EC4899]')" />
           <FieldError :message="esVisible('telefono') ? errors.telefono : undefined" />
         </div>
       </div>
     </div>
 
     <div>
-      <h4 class="text-[10px] font-bold text-[#EC4899] uppercase tracking-wider pb-2 mb-4 border-b border-slate-100">Ubicación</h4>
+      <h4 class="text-[10px] font-bold text-[#EC4899] uppercase tracking-wider pb-2 mb-4 border-b border-slate-100 dark:border-slate-700">Ubicación</h4>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div class="sm:col-span-2">
-          <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Dirección</label>
-          <input v-model="draft.direccion" placeholder="Dirección de residencia" class="w-full h-10 px-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white transition-all" />
+          <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1.5 uppercase tracking-wide">Dirección</label>
+          <input v-model="draft.direccion" placeholder="Dirección de residencia" class="w-full h-10 px-4 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white dark:focus:bg-slate-800 transition-all" />
         </div>
         <div>
-          <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Departamento *</label>
+          <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1.5 uppercase tracking-wide">Departamento *</label>
           <Select v-model="draft.departamento" @change="tocar('departamento')" :options="departamentos" option-label="nombre" option-value="codigo"
             filter filter-placeholder="Buscar departamento..." :loading="cargandoUbicaciones" placeholder="Selecciona un departamento"
             empty-filter-message="Sin resultados" empty-message="Sin departamentos" class="w-full" input-class="h-10 text-[12px] flex items-center"
@@ -118,7 +118,7 @@ const soloLecturaEnEdicion = computed(() => props.modo === 'editar')
           <FieldError :message="esVisible('departamento') ? errors.departamento : undefined" />
         </div>
         <div>
-          <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Ciudad *</label>
+          <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1.5 uppercase tracking-wide">Ciudad *</label>
           <Select v-model="draft.ciudad" @change="tocar('ciudad')" :options="municipiosDisponibles" option-label="nombre" option-value="codigo"
             filter filter-placeholder="Buscar municipio..." :disabled="!draft.departamento" :loading="cargandoUbicaciones"
             :placeholder="draft.departamento ? 'Selecciona un municipio' : 'Elige primero un departamento'"
@@ -127,44 +127,44 @@ const soloLecturaEnEdicion = computed(() => props.modo === 'editar')
           <FieldError :message="esVisible('ciudad') ? errors.ciudad : undefined" />
         </div>
         <div class="sm:col-span-2">
-          <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Empresa</label>
-          <input v-model="draft.empresa" placeholder="Nombre empresa (si aplica)" class="w-full h-10 px-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white transition-all" />
+          <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1.5 uppercase tracking-wide">Empresa</label>
+          <input v-model="draft.empresa" placeholder="Nombre empresa (si aplica)" class="w-full h-10 px-4 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white dark:focus:bg-slate-800 transition-all" />
         </div>
       </div>
     </div>
 
     <div>
-      <h4 class="text-[10px] font-bold text-[#EC4899] uppercase tracking-wider pb-2 mb-4 border-b border-slate-100">Plan</h4>
+      <h4 class="text-[10px] font-bold text-[#EC4899] uppercase tracking-wider pb-2 mb-4 border-b border-slate-100 dark:border-slate-700">Plan</h4>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Tipo de plan</label>
-          <input v-model="draft.tipoPlan" placeholder="Tipo de plan" class="w-full h-10 px-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white transition-all" />
+          <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1.5 uppercase tracking-wide">Tipo de plan</label>
+          <input v-model="draft.tipoPlan" placeholder="Tipo de plan" class="w-full h-10 px-4 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white dark:focus:bg-slate-800 transition-all" />
         </div>
         <div>
-          <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">EPS</label>
-          <input v-model="draft.eps" placeholder="EPS" class="w-full h-10 px-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white transition-all" />
+          <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1.5 uppercase tracking-wide">EPS</label>
+          <input v-model="draft.eps" placeholder="EPS" class="w-full h-10 px-4 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white dark:focus:bg-slate-800 transition-all" />
         </div>
         <div>
-          <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Otra EPS</label>
-          <input v-model="draft.otraEps" placeholder="Solo si la EPS no está en la lista" class="w-full h-10 px-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white transition-all" />
+          <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1.5 uppercase tracking-wide">Otra EPS</label>
+          <input v-model="draft.otraEps" placeholder="Solo si la EPS no está en la lista" class="w-full h-10 px-4 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white dark:focus:bg-slate-800 transition-all" />
         </div>
         <div>
-          <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Plan de salud</label>
-          <input v-model="draft.planSalud" placeholder="Plan de salud" class="w-full h-10 px-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white transition-all" />
+          <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1.5 uppercase tracking-wide">Plan de salud</label>
+          <input v-model="draft.planSalud" placeholder="Plan de salud" class="w-full h-10 px-4 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white dark:focus:bg-slate-800 transition-all" />
         </div>
         <div class="sm:col-span-2">
-          <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Nombre del plan</label>
-          <input v-model="draft.planNombre" placeholder="Nombre comercial del plan" class="w-full h-10 px-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white transition-all" />
+          <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1.5 uppercase tracking-wide">Nombre del plan</label>
+          <input v-model="draft.planNombre" placeholder="Nombre comercial del plan" class="w-full h-10 px-4 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white dark:focus:bg-slate-800 transition-all" />
         </div>
       </div>
     </div>
 
     <div>
-      <h4 class="text-[10px] font-bold text-[#EC4899] uppercase tracking-wider pb-2 mb-4 border-b border-slate-100">Estado</h4>
+      <h4 class="text-[10px] font-bold text-[#EC4899] uppercase tracking-wider pb-2 mb-4 border-b border-slate-100 dark:border-slate-700">Estado</h4>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Estado</label>
-          <select v-model="draft.estado" :disabled="soloLecturaEnEdicion" title="Usa el botón de desactivar en la lista de beneficiarios para cambiar el estado" class="w-full h-10 px-3 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white transition-all cursor-pointer disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed">
+          <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1.5 uppercase tracking-wide">Estado</label>
+          <select v-model="draft.estado" :disabled="soloLecturaEnEdicion" title="Usa el botón de desactivar en la lista de beneficiarios para cambiar el estado" class="w-full h-10 px-3 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-[12px] outline-none focus:border-[#EC4899] focus:bg-white dark:focus:bg-slate-800 transition-all cursor-pointer disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:text-slate-400 dark:disabled:text-slate-500 disabled:cursor-not-allowed">
             <option value="Activo">Activo</option>
             <option value="Inactivo">Inactivo</option>
             <option value="Reemplazado">Reemplazado</option>
@@ -172,7 +172,7 @@ const soloLecturaEnEdicion = computed(() => props.modo === 'editar')
           </select>
         </div>
         <div>
-          <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Fecha inscripción</label>
+          <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1.5 uppercase tracking-wide">Fecha inscripción</label>
           <FechaInput v-model="draft.fechaInscripcion" disabled placeholder="Se hereda del titular" title="Se hereda automáticamente de la fecha de ingreso del titular" />
         </div>
       </div>

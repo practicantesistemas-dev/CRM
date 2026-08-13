@@ -93,14 +93,14 @@ const exportarContactos = () => exportarContactosExcel(contactosFiltrados.value)
     <!-- ── Page Header ──────────────────────────────────────────── -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div>
-        <h2 class="text-[18px] font-bold text-[#0F172A] flex items-center gap-2">
+        <h2 class="text-[18px] font-bold text-[#0F172A] dark:text-slate-100 flex items-center gap-2">
           Gestión de Contactos
-          <span class="bg-[#EEF2FF] text-[#2447F9] text-[11px] font-bold px-2.5 py-0.5 rounded-full">{{ contactos.length }}</span>
+          <span class="bg-[#EEF2FF] dark:bg-blue-950/50 text-[#2447F9] dark:text-blue-300 text-[11px] font-bold px-2.5 py-0.5 rounded-full">{{ contactos.length }}</span>
         </h2>
-        <p class="text-[12px] text-slate-500 mt-0.5">Administra contactos, cargos, etiquetas y seguimientos</p>
+        <p class="text-[12px] text-slate-500 dark:text-slate-400 mt-0.5">Administra contactos, cargos, etiquetas y seguimientos</p>
       </div>
       <div class="flex items-center gap-2">
-        <button @click="exportarContactos" class="flex items-center gap-1.5 h-9 px-4 rounded-lg border border-slate-200 bg-white text-[11px] font-semibold text-slate-600 hover:bg-slate-50 transition-all">
+        <button @click="exportarContactos" class="flex items-center gap-1.5 h-9 px-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-[11px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all">
           <Download :size="13" /> Exportar
         </button>
         <button @click="abrirNuevo" class="flex items-center gap-1.5 h-9 px-4 rounded-lg bg-[#2447F9] text-white text-[11px] font-bold shadow hover:bg-[#1D3DD9] transition-all">
@@ -110,39 +110,39 @@ const exportarContactos = () => exportarContactosExcel(contactosFiltrados.value)
     </div>
 
     <!-- ── Toolbar ───────────────────────────────────────────────── -->
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm px-4 py-3">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm px-4 py-3">
       <div class="flex flex-col xl:flex-row gap-3 items-start xl:items-center">
         <div class="relative w-full xl:w-[380px] xl:shrink-0">
-          <Search :size="14" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search :size="14" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
           <input v-model="buscar" placeholder="Buscar por documento, empresa o nombre..." title="Buscar por nombre, correo, empresa o documento"
-            class="w-full h-9 pl-9 pr-4 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#2447F9] focus:bg-white transition-all truncate" />
+            class="w-full h-9 pl-9 pr-4 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-[12px] text-slate-900 dark:text-slate-100 outline-none focus:border-[#2447F9] focus:bg-white dark:focus:bg-slate-800 transition-all truncate" />
         </div>
         <div class="grid grid-cols-3 gap-2 w-full xl:flex xl:flex-wrap xl:items-center xl:flex-1">
-          <select v-model="filtroEstado" class="w-full xl:flex-1 xl:min-w-[155px] xl:max-w-[240px] h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer">
+          <select v-model="filtroEstado" class="w-full xl:flex-1 xl:min-w-[155px] xl:max-w-[240px] h-9 px-3 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-[11px] font-medium text-slate-600 dark:text-slate-300 outline-none cursor-pointer">
             <option value="todos">Estado: Todos</option>
             <option value="Activo">Activo</option>
             <option value="Inactivo">Inactivo</option>
             <option value="Prospecto">Prospecto</option>
             <option value="En proceso">En proceso</option>
           </select>
-          <select v-model="filtroCiudad" class="w-full xl:flex-1 xl:min-w-[185px] xl:max-w-[260px] h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer">
+          <select v-model="filtroCiudad" class="w-full xl:flex-1 xl:min-w-[185px] xl:max-w-[260px] h-9 px-3 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-[11px] font-medium text-slate-600 dark:text-slate-300 outline-none cursor-pointer">
             <option value="todas">Ciudad: Todas</option>
             <option v-for="ciudad in ciudades" :key="ciudad" :value="ciudad">{{ ciudad }}</option>
           </select>
-          <select v-model="filtroDepartamento" class="w-full xl:flex-1 xl:min-w-[210px] xl:max-w-[280px] h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer">
+          <select v-model="filtroDepartamento" class="w-full xl:flex-1 xl:min-w-[210px] xl:max-w-[280px] h-9 px-3 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-[11px] font-medium text-slate-600 dark:text-slate-300 outline-none cursor-pointer">
             <option value="todos">Departamento: Todos</option>
             <option v-for="depto in departamentosLista" :key="depto" :value="depto">{{ depto }}</option>
           </select>
-          <select v-model="filtroResponsable" class="w-full xl:flex-1 xl:min-w-[195px] xl:max-w-[270px] h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer">
+          <select v-model="filtroResponsable" class="w-full xl:flex-1 xl:min-w-[195px] xl:max-w-[270px] h-9 px-3 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-[11px] font-medium text-slate-600 dark:text-slate-300 outline-none cursor-pointer">
             <option value="todos">Responsable: Todos</option>
             <option v-for="r in responsables" :key="r" :value="r">{{ r }}</option>
           </select>
-          <select v-model="filtroSexo" class="w-full xl:flex-1 xl:min-w-[140px] xl:max-w-[220px] h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer">
+          <select v-model="filtroSexo" class="w-full xl:flex-1 xl:min-w-[140px] xl:max-w-[220px] h-9 px-3 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-[11px] font-medium text-slate-600 dark:text-slate-300 outline-none cursor-pointer">
             <option value="todos">Sexo: Todos</option>
             <option value="Masculino">Masculino</option>
             <option value="Femenino">Femenino</option>
           </select>
-          <select v-model="filtroEdad" class="w-full xl:flex-1 xl:min-w-[145px] xl:max-w-[220px] h-9 px-3 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 outline-none cursor-pointer">
+          <select v-model="filtroEdad" class="w-full xl:flex-1 xl:min-w-[145px] xl:max-w-[220px] h-9 px-3 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-[11px] font-medium text-slate-600 dark:text-slate-300 outline-none cursor-pointer">
             <option value="todos">Edad: Todos</option>
             <option value="0-17">0 – 17 años</option>
             <option value="18-35">18 – 35 años</option>
@@ -150,20 +150,20 @@ const exportarContactos = () => exportarContactosExcel(contactosFiltrados.value)
             <option value="51+">51+ años</option>
           </select>
           <button v-if="filtrosActivos > 0" @click="limpiarFiltros"
-            class="w-full xl:flex-1 xl:min-w-[130px] xl:max-w-[220px] flex items-center justify-center gap-1 h-9 px-3 rounded-lg border border-red-200 bg-red-50 text-[11px] font-semibold text-red-500 hover:bg-red-100 transition-all">
+            class="w-full xl:flex-1 xl:min-w-[130px] xl:max-w-[220px] flex items-center justify-center gap-1 h-9 px-3 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/40 text-[11px] font-semibold text-red-500 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/50 transition-all">
             <X :size="12" /> Limpiar ({{ filtrosActivos }})
           </button>
         </div>
       </div>
-      <div class="mt-2 text-[11px] text-slate-400">
+      <div class="mt-2 text-[11px] text-slate-400 dark:text-slate-500">
         <template v-if="cargandoContactos">Cargando contactos...</template>
         <template v-else>
-          Mostrando <strong class="text-slate-600">{{ contactosFiltrados.length }}</strong> contactos
+          Mostrando <strong class="text-slate-600 dark:text-slate-300">{{ contactosFiltrados.length }}</strong> contactos
           <span v-if="buscar || filtrosActivos > 0"> · filtrado de {{ contactos.length }} total</span>
         </template>
       </div>
-      <p v-if="errorContactos" class="mt-1 text-[11px] font-medium text-red-500">{{ errorContactos }}</p>
-      <p v-if="errorEliminarContacto" class="mt-1 text-[11px] font-medium text-red-500">{{ errorEliminarContacto }}</p>
+      <p v-if="errorContactos" class="mt-1 text-[11px] font-medium text-red-500 dark:text-red-400">{{ errorContactos }}</p>
+      <p v-if="errorEliminarContacto" class="mt-1 text-[11px] font-medium text-red-500 dark:text-red-400">{{ errorEliminarContacto }}</p>
     </div>
 
     <!-- ── Table ─────────────────────────────────────────────────── -->

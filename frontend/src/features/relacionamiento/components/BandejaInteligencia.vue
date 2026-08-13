@@ -252,32 +252,32 @@ const textoEdadActiva = computed(() => {
 </script>
 
 <template>
-  <div class="px-4 py-3 bg-slate-50 border-b border-slate-200 flex justify-between items-center shrink-0 rounded-t-xl relative z-10">
-    <span class="text-[10px] font-black uppercase text-slate-500 tracking-widest">Bandeja de Inteligencia</span>
+  <div class="px-4 py-3 surface-header border-b border-default flex justify-between items-center shrink-0 rounded-t-xl relative z-10">
+    <span class="text-[10px] font-black uppercase text-subtle tracking-widest">Bandeja de Inteligencia</span>
     <span class="text-[10px] bg-blue-700 text-white font-mono px-2 py-0.5 rounded-md font-black shadow-xs">
       {{ contactosRenderizados.length }}
     </span>
   </div>
 
-  <div class="p-3 bg-white border-b border-slate-100 shrink-0 relative z-20 space-y-2">
+  <div class="p-3 bg-white dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700 shrink-0 relative z-20 space-y-2">
     <div class="flex gap-2">
       <div class="relative flex-1">
-        <input 
-          v-model="busquedaLocal" type="text" placeholder="Buscar Cédula, Nombre..." 
-          class="w-full bg-slate-50 text-slate-900 placeholder-slate-400 rounded-lg border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:bg-white focus:ring-1 focus:ring-blue-600 focus:border-blue-600 transition-all shadow-inner" 
+        <input
+          v-model="busquedaLocal" type="text" placeholder="Buscar Cédula, Nombre..."
+          class="w-full input-surface placeholder-slate-400 dark:placeholder-slate-500 rounded-lg px-3 py-2 text-xs focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:ring-1 focus:ring-blue-600 focus:border-blue-600 transition-all shadow-inner"
         />
       </div>
-      
-      <button 
+
+      <button
         type="button" @click="modalAgregarAbierto = true" title="Agregar Nuevo Prospecto"
         class="h-full px-3 bg-blue-600 text-white hover:bg-blue-700 active:scale-95 rounded-lg text-xs font-black transition-all flex items-center justify-center cursor-pointer select-none shrink-0 shadow-sm border border-blue-700"
       >
         <span>➕</span>
       </button>
 
-      <button 
+      <button
         type="button" @click="alternarMenuPrincipal"
-        :class="['btn-ajustes-trigger h-full px-2.5 rounded-lg border text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer select-none shrink-0', filtrosAbiertos || conteoFiltrosActivos > 0 ? 'bg-blue-50 border-blue-200 text-blue-700 shadow-xs' : 'bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100']"
+        :class="['btn-ajustes-trigger h-full px-2.5 rounded-lg border text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer select-none shrink-0', filtrosAbiertos || conteoFiltrosActivos > 0 ? 'bg-blue-50 dark:bg-blue-950/40 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 shadow-xs' : 'bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700']"
       >
         <span>⚙️</span>
         <span v-if="conteoFiltrosActivos > 0" class="bg-blue-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full leading-none">
@@ -287,33 +287,33 @@ const textoEdadActiva = computed(() => {
       </button>
     </div>
 
-    <div class="flex border border-slate-200/60 p-0.5 bg-slate-50 rounded-lg gap-0.5">
-      <button 
+    <div class="flex border border-slate-200/60 dark:border-slate-700 p-0.5 bg-slate-50 dark:bg-slate-900 rounded-lg gap-0.5">
+      <button
         @click="filtroEstadoLocal = 'todos'"
-        :class="['flex-1 py-1.5 px-2 rounded-md text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5', filtroEstadoLocal !== 'Prospecto' ? 'bg-white text-blue-700 shadow-xs' : 'text-slate-500 hover:text-slate-800']"
+        :class="['flex-1 py-1.5 px-2 rounded-md text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5', filtroEstadoLocal !== 'Prospecto' ? 'bg-white dark:bg-slate-800 text-blue-700 dark:text-blue-300 shadow-xs' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200']"
       >
         <span>Contactos</span>
-        <span :class="['px-1.5 py-0.5 font-mono text-[9px] rounded-md font-bold', filtroEstadoLocal !== 'Prospecto' ? 'bg-blue-100 text-blue-800' : 'bg-slate-200 text-slate-600']">
+        <span :class="['px-1.5 py-0.5 font-mono text-[9px] rounded-md font-bold', filtroEstadoLocal !== 'Prospecto' ? 'bg-blue-100 dark:bg-blue-900/60 text-blue-800 dark:text-blue-300' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300']">
           {{ contactosFiltrados.length }}
         </span>
       </button>
 
-      <button 
+      <button
         @click="filtroEstadoLocal = 'Prospecto'"
-        :class="['flex-1 py-1.5 px-2 rounded-md text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5', filtroEstadoLocal === 'Prospecto' ? 'bg-white text-amber-700 shadow-xs border border-slate-100' : 'text-slate-500 hover:text-slate-800']"
+        :class="['flex-1 py-1.5 px-2 rounded-md text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5', filtroEstadoLocal === 'Prospecto' ? 'bg-white dark:bg-slate-800 text-amber-700 dark:text-amber-400 shadow-xs border border-slate-100 dark:border-slate-700' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200']"
       >
         <span>Prospectos</span>
-        <span :class="['px-1.5 py-0.5 font-mono text-[9px] rounded-md font-bold', filtroEstadoLocal === 'Prospecto' ? 'bg-amber-100 text-amber-800' : 'bg-slate-200 text-slate-600']">
+        <span :class="['px-1.5 py-0.5 font-mono text-[9px] rounded-md font-bold', filtroEstadoLocal === 'Prospecto' ? 'bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-300' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300']">
           {{ totalProspectos }}
         </span>
       </button>
     </div>
   </div>
 
-  <div class="px-3 pt-2 pb-1 shrink-0 bg-white">
-    <div 
+  <div class="px-3 pt-2 pb-1 shrink-0 bg-white dark:bg-slate-800">
+    <div
       @click="alternarCargaMasiva"
-      :class="['btn-carga-trigger w-full flex justify-between items-center py-2 px-3 border rounded-xl cursor-pointer select-none transition-all text-left', cargaMasivaAbierta ? 'bg-blue-50 border-blue-200 text-blue-700 font-bold shadow-xs' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50']"
+      :class="['btn-carga-trigger w-full flex justify-between items-center py-2 px-3 border rounded-xl cursor-pointer select-none transition-all text-left', cargaMasivaAbierta ? 'bg-blue-50 dark:bg-blue-950/40 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 font-bold shadow-xs' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700']"
     >
       <span class="text-[11px] font-black uppercase tracking-wider">Carga Masiva de Archivos</span>
       <span class="text-[10px] font-mono">
@@ -322,22 +322,22 @@ const textoEdadActiva = computed(() => {
     </div>
   </div>
 
-  <div class="flex-1 divide-y divide-slate-100 overflow-y-auto relative z-10">
-    <div 
+  <div class="flex-1 divide-y divide-slate-100 dark:divide-slate-700 overflow-y-auto relative z-10">
+    <div
       v-for="contacto in contactosRenderizados" :key="contacto.idUnico" @click="emit('seleccionar', contacto)"
-      :class="['p-3.5 cursor-pointer transition-all border-l-4 relative', (modoVista === 'particular' && contactoSeleccionado?.idUnico === contacto.idUnico) ? 'bg-blue-50/50 border-pink-500' : 'border-transparent hover:bg-slate-50/80']"
+      :class="['p-3.5 cursor-pointer transition-all border-l-4 relative', (modoVista === 'particular' && contactoSeleccionado?.idUnico === contacto.idUnico) ? 'bg-blue-50/50 dark:bg-blue-950/30 border-pink-500' : 'border-transparent hover:bg-slate-50/80 dark:hover:bg-slate-700/60']"
     >
       <div class="flex justify-between items-start gap-2">
         <div class="min-w-0">
-          <h4 class="font-black text-xs text-slate-900 truncate tracking-tight">{{ contacto.nombreCompleto }}</h4>
+          <h4 class="font-black text-xs text-heading truncate tracking-tight">{{ contacto.nombreCompleto }}</h4>
           <div class="flex items-center gap-1.5 mt-1">
-            <span class="text-[10px] text-slate-400 font-medium tracking-wide">{{ contacto.campana }}</span>
-            <span v-if="contacto.estadoLead === 'Prospecto'" class="text-[9px] bg-amber-50 text-amber-700 border border-amber-200 px-1.5 py-px rounded font-black uppercase tracking-tight">
+            <span class="text-[10px] text-muted font-medium tracking-wide">{{ contacto.campana }}</span>
+            <span v-if="contacto.estadoLead === 'Prospecto'" class="text-[9px] bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800 px-1.5 py-px rounded font-black uppercase tracking-tight">
               {{ contacto.estadoLead }}
             </span>
           </div>
         </div>
-        <span class="px-2 py-0.5 bg-slate-100 text-slate-600 border border-slate-200 rounded text-[9px] font-black uppercase shrink-0 tracking-wider">
+        <span class="px-2 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600 rounded text-[9px] font-black uppercase shrink-0 tracking-wider">
           {{ contacto.rol }}
         </span>
       </div>
@@ -345,27 +345,27 @@ const textoEdadActiva = computed(() => {
   </div>
 
  <Teleport to="body">
-  <div 
-    v-if="cargaMasivaAbierta" 
-    class="panel-carga-flotante fixed z-[99999] bg-white rounded-xl border border-slate-200/90 shadow-2xl p-3 w-[295px] space-y-2 text-left animate-in fade-in slide-in-from-left-2 duration-150"
+  <div
+    v-if="cargaMasivaAbierta"
+    class="panel-carga-flotante fixed z-[99999] surface-card rounded-xl shadow-2xl p-3 w-[295px] space-y-2 text-left animate-in fade-in slide-in-from-left-2 duration-150"
     :style="{ top: `${cargaTop}px`, left: `${cargaLeft}px` }"
   >
-    <div class="flex justify-between items-center pb-2 border-b border-slate-100 mb-1">
-      <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Opciones de Importación</span>
-      <button @click="cargaMasivaAbierta = false" class="text-slate-400 hover:text-slate-600 text-xs font-black px-1 rounded cursor-pointer">✕</button>
+    <div class="flex justify-between items-center pb-2 border-b border-slate-100 dark:border-slate-700 mb-1">
+      <span class="text-[10px] font-black text-muted uppercase tracking-wider">Opciones de Importación</span>
+      <button @click="cargaMasivaAbierta = false" class="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 text-xs font-black px-1 rounded cursor-pointer">✕</button>
     </div>
 
-    <div class="border border-slate-200/70 rounded-xl p-2.5 bg-white">
+    <div class="border border-slate-200/70 dark:border-slate-700 rounded-xl p-2.5 bg-white dark:bg-slate-800">
       <div class="flex justify-between items-center mb-1.5">
-        <span class="text-xs font-black text-slate-700">Titulares</span>
-        <button @click="seccionActiva = seccionActiva === 'titulares' ? null : 'titulares'" class="text-[10px] text-blue-600 font-bold">
+        <span class="text-xs font-black text-body">Titulares</span>
+        <button @click="seccionActiva = seccionActiva === 'titulares' ? null : 'titulares'" class="text-[10px] text-blue-600 dark:text-blue-400 font-bold">
           {{ seccionActiva === 'titulares' ? 'Ocultar' : 'Configurar' }}
         </button>
       </div>
       <div v-if="seccionActiva === 'titulares'" class="space-y-2 pt-1">
-        <div class="flex items-center justify-between gap-1.5 bg-slate-50 p-1.5 rounded-lg border border-slate-100">
-          <span class="text-[10px] text-slate-500 font-bold">Acción inicial:</span>
-          <select v-model="accionTitularesUnicos" class="bg-white text-slate-800 text-[11px] font-bold rounded-md border border-slate-200 px-2 py-0.5 focus:outline-none">
+        <div class="flex items-center justify-between gap-1.5 bg-slate-50 dark:bg-slate-900 p-1.5 rounded-lg border border-slate-100 dark:border-slate-700">
+          <span class="text-[10px] text-subtle font-bold">Acción inicial:</span>
+          <select v-model="accionTitularesUnicos" class="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-[11px] font-bold rounded-md border border-slate-200 dark:border-slate-600 px-2 py-0.5 focus:outline-none">
             <option value="Activar">Activar</option>
             <option value="Desactivar">Desactivar</option>
           </select>
@@ -374,23 +374,23 @@ const textoEdadActiva = computed(() => {
           SUBIR ARCHIVO XLSX
           <input type="file" accept=".xlsx, .xls" class="hidden" @change="manejarArchivo($event, 'titulares')" />
         </label>
-        <button type="button" @click="emit('descargarPlantilla', 'titulares')" class="w-full bg-[#f0f4f9] hover:bg-[#e4eafd] text-[#0033a0] font-black text-[10px] py-2 px-3 rounded-lg border border-slate-100 text-center">
+        <button type="button" @click="emit('descargarPlantilla', 'titulares')" class="w-full bg-[#f0f4f9] dark:bg-slate-700 hover:bg-[#e4eafd] dark:hover:bg-slate-600 text-[#0033a0] dark:text-blue-300 font-black text-[10px] py-2 px-3 rounded-lg border border-slate-100 dark:border-slate-600 text-center">
           DESCARGAR PLANTILLA BASE
         </button>
       </div>
     </div>
 
-    <div class="border border-slate-200/70 rounded-xl p-2.5 bg-white">
+    <div class="border border-slate-200/70 dark:border-slate-700 rounded-xl p-2.5 bg-white dark:bg-slate-800">
       <div class="flex justify-between items-center mb-1.5">
-        <span class="text-xs font-black text-slate-700">Beneficiarios</span>
-        <button @click="seccionActiva = seccionActiva === 'beneficiarios' ? null : 'beneficiarios'" class="text-[10px] text-blue-600 font-bold">
+        <span class="text-xs font-black text-body">Beneficiarios</span>
+        <button @click="seccionActiva = seccionActiva === 'beneficiarios' ? null : 'beneficiarios'" class="text-[10px] text-blue-600 dark:text-blue-400 font-bold">
           {{ seccionActiva === 'beneficiarios' ? 'Ocultar' : 'Configurar' }}
         </button>
       </div>
       <div v-if="seccionActiva === 'beneficiarios'" class="space-y-2 pt-1">
-        <div class="flex items-center justify-between gap-1.5 bg-slate-50 p-1.5 rounded-lg border border-slate-100">
-          <span class="text-[10px] text-slate-500 font-bold">Acción:</span>
-          <select v-model="accionDocumento" class="bg-white text-slate-800 text-[11px] font-bold rounded-md border border-slate-200 px-2 py-0.5 focus:outline-none">
+        <div class="flex items-center justify-between gap-1.5 bg-slate-50 dark:bg-slate-900 p-1.5 rounded-lg border border-slate-100 dark:border-slate-700">
+          <span class="text-[10px] text-subtle font-bold">Acción:</span>
+          <select v-model="accionDocumento" class="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-[11px] font-bold rounded-md border border-slate-200 dark:border-slate-600 px-2 py-0.5 focus:outline-none">
             <option value="Activar">Activar</option>
             <option value="Desactivar">Desactivar</option>
           </select>
@@ -399,29 +399,29 @@ const textoEdadActiva = computed(() => {
           SUBIR ARCHIVO XLSX
           <input type="file" accept=".xlsx, .xls" class="hidden" @change="manejarArchivo($event, 'beneficiarios')" />
         </label>
-        <button type="button" @click="emit('descargarPlantilla', 'beneficiarios')" class="w-full bg-[#f0f4f9] hover:bg-[#e4eafd] text-[#0033a0] font-black text-[10px] py-2 px-3 rounded-lg border border-slate-100 text-center">
+        <button type="button" @click="emit('descargarPlantilla', 'beneficiarios')" class="w-full bg-[#f0f4f9] dark:bg-slate-700 hover:bg-[#e4eafd] dark:hover:bg-slate-600 text-[#0033a0] dark:text-blue-300 font-black text-[10px] py-2 px-3 rounded-lg border border-slate-100 dark:border-slate-600 text-center">
           DESCARGAR PLANTILLA BASE
         </button>
       </div>
     </div>
 
-    <div class="border border-slate-200/70 rounded-xl p-2.5 bg-white">
+    <div class="border border-slate-200/70 dark:border-slate-700 rounded-xl p-2.5 bg-white dark:bg-slate-800">
       <div class="flex justify-between items-center mb-1.5">
-        <span class="text-xs font-black text-slate-700">Inscripción</span>
-        <button @click="seccionActiva = seccionActiva === 'inscripcion' ? null : 'inscripcion'" class="text-[10px] text-blue-600 font-bold">
+        <span class="text-xs font-black text-body">Inscripción</span>
+        <button @click="seccionActiva = seccionActiva === 'inscripcion' ? null : 'inscripcion'" class="text-[10px] text-blue-600 dark:text-blue-400 font-bold">
           {{ seccionActiva === 'inscripcion' ? 'Ocultar' : 'Configurar' }}
         </button>
       </div>
-      
-      <div v-if="seccionActiva === 'inscripcion'" class="space-y-2 pt-1">
-        
 
-        <div class="flex items-center justify-between gap-1.5 bg-slate-50 p-1.5 rounded-lg border border-slate-100">
+      <div v-if="seccionActiva === 'inscripcion'" class="space-y-2 pt-1">
+
+
+        <div class="flex items-center justify-between gap-1.5 bg-slate-50 dark:bg-slate-900 p-1.5 rounded-lg border border-slate-100 dark:border-slate-700">
           <div class="flex flex-col">
-            <span class="text-[10px] text-slate-700 font-black">Cupos por Inscripción:</span>
-            <span class="text-[8px] text-slate-400 font-medium">Límite permitido por archivo</span>
+            <span class="text-[10px] text-body font-black">Cupos por Inscripción:</span>
+            <span class="text-[8px] text-muted font-medium">Límite permitido por archivo</span>
           </div>
-          <select v-model="maxPersonasInscripcion" class="bg-white text-slate-800 text-[11px] font-bold rounded-md border border-slate-200 px-2 py-0.5 focus:outline-none">
+          <select v-model="maxPersonasInscripcion" class="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-[11px] font-bold rounded-md border border-slate-200 dark:border-slate-600 px-2 py-0.5 focus:outline-none">
             <option :value="1">1 Persona</option>
             <option :value="2">2 Personas</option>
             <option :value="3">3 Personas</option>
@@ -435,16 +435,16 @@ const textoEdadActiva = computed(() => {
           <input type="file" accept=".xlsx, .xls" class="hidden" @change="manejarArchivo($event, 'inscripcion')" />
         </label>
 
-        <button type="button" @click="emit('descargarPlantilla', 'inscripcion')" class="w-full bg-[#f0f4f9] hover:bg-[#e4eafd] text-[#0033a0] font-black text-[10px] py-2 px-3 rounded-lg border border-slate-100 text-center">
+        <button type="button" @click="emit('descargarPlantilla', 'inscripcion')" class="w-full bg-[#f0f4f9] dark:bg-slate-700 hover:bg-[#e4eafd] dark:hover:bg-slate-600 text-[#0033a0] dark:text-blue-300 font-black text-[10px] py-2 px-3 rounded-lg border border-slate-100 dark:border-slate-600 text-center">
           DESCARGAR PLANTILLA BASE
         </button>
       </div>
     </div>
 
-    <div class="border border-slate-200/70 rounded-xl p-2.5 bg-white">
+    <div class="border border-slate-200/70 dark:border-slate-700 rounded-xl p-2.5 bg-white dark:bg-slate-800">
       <div class="flex justify-between items-center mb-1.5">
-        <span class="text-xs font-black text-slate-700">Remplazo</span>
-        <button @click="seccionActiva = seccionActiva === 'remplazo' ? null : 'remplazo'" class="text-[10px] text-blue-600 font-bold">
+        <span class="text-xs font-black text-body">Remplazo</span>
+        <button @click="seccionActiva = seccionActiva === 'remplazo' ? null : 'remplazo'" class="text-[10px] text-blue-600 dark:text-blue-400 font-bold">
           {{ seccionActiva === 'remplazo' ? 'Ocultar' : 'Configurar' }}
         </button>
       </div>
@@ -457,70 +457,70 @@ const textoEdadActiva = computed(() => {
     </div>
   </div>
 
-  <div 
-    v-if="filtrosAbiertos" 
-    class="panel-flotante-root fixed z-[99999] bg-white rounded-xl border border-slate-200/90 shadow-2xl p-2 w-[210px] text-left animate-in fade-in slide-in-from-left-2 duration-150 space-y-0.5"
+  <div
+    v-if="filtrosAbiertos"
+    class="panel-flotante-root fixed z-[99999] surface-card rounded-xl shadow-2xl p-2 w-[210px] text-left animate-in fade-in slide-in-from-left-2 duration-150 space-y-0.5"
     :style="{ top: `${menuTop}px`, left: `${menuLeft}px` }"
   >
-    <div class="px-2 py-1.5 border-b border-slate-100 mb-1 flex justify-between items-center">
-      <span class="text-[9px] font-black uppercase text-slate-400 tracking-wider">Filtros Avanzados</span>
-      <button @click="filtrosAbiertos = false; subMenuActivo = null" class="text-slate-400 hover:text-slate-600 text-xs font-black">✕</button>
+    <div class="px-2 py-1.5 border-b border-slate-100 dark:border-slate-700 mb-1 flex justify-between items-center">
+      <span class="text-[9px] font-black uppercase text-muted tracking-wider">Filtros Avanzados</span>
+      <button @click="filtrosAbiertos = false; subMenuActivo = null" class="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 text-xs font-black">✕</button>
     </div>
 
-    <button 
-      @click="abrirSubMenu($event, 'rol')" 
+    <button
+      @click="abrirSubMenu($event, 'rol')"
       :class="[
-        'w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-bold flex justify-between items-center transition-all cursor-pointer', 
-        subMenuActivo === 'rol' ? 'bg-blue-600 text-white shadow-sm font-extrabold' : 'text-slate-700 hover:bg-slate-100',
-        filtroRolLocal !== 'todos' && subMenuActivo !== 'rol' ? 'bg-blue-50 text-blue-700 font-bold border border-blue-100/50' : ''
+        'w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-bold flex justify-between items-center transition-all cursor-pointer',
+        subMenuActivo === 'rol' ? 'bg-blue-600 text-white shadow-sm font-extrabold' : 'text-body hover:bg-slate-100 dark:hover:bg-slate-700',
+        filtroRolLocal !== 'todos' && subMenuActivo !== 'rol' ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 font-bold border border-blue-100/50 dark:border-blue-800/50' : ''
       ]"
     >
       <span class="truncate">{{ textoRolActivo }}</span>
       <span class="text-[9px] font-mono opacity-50" :class="{ 'text-white/80': subMenuActivo === 'rol' }">▶</span>
     </button>
 
-    <button 
-      @click="abrirSubMenu($event, 'estado')" 
+    <button
+      @click="abrirSubMenu($event, 'estado')"
       :class="[
-        'w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-bold flex justify-between items-center transition-all cursor-pointer', 
-        subMenuActivo === 'estado' ? 'bg-blue-600 text-white shadow-sm font-extrabold' : 'text-slate-700 hover:bg-slate-100',
-        filtroEstadoLocal !== 'todos' && subMenuActivo !== 'estado' ? 'bg-blue-50 text-blue-700 font-bold border border-blue-100/50' : ''
+        'w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-bold flex justify-between items-center transition-all cursor-pointer',
+        subMenuActivo === 'estado' ? 'bg-blue-600 text-white shadow-sm font-extrabold' : 'text-body hover:bg-slate-100 dark:hover:bg-slate-700',
+        filtroEstadoLocal !== 'todos' && subMenuActivo !== 'estado' ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 font-bold border border-blue-100/50 dark:border-blue-800/50' : ''
       ]"
     >
       <span class="truncate">{{ textoEstadoActivo }}</span>
       <span class="text-[9px] font-mono opacity-50" :class="{ 'text-white/80': subMenuActivo === 'estado' }">▶</span>
     </button>
 
-    <button 
-      @click="abrirSubMenu($event, 'origen')" 
+    <button
+      @click="abrirSubMenu($event, 'origen')"
       :class="[
-        'w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-bold flex justify-between items-center transition-all cursor-pointer', 
-        subMenuActivo === 'origen' ? 'bg-blue-600 text-white shadow-sm font-extrabold' : 'text-slate-700 hover:bg-slate-100',
-        filtroOrigenLocal !== 'todos' && subMenuActivo !== 'origen' ? 'bg-blue-50 text-blue-700 font-bold border border-blue-100/50' : ''
+        'w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-bold flex justify-between items-center transition-all cursor-pointer',
+        subMenuActivo === 'origen' ? 'bg-blue-600 text-white shadow-sm font-extrabold' : 'text-body hover:bg-slate-100 dark:hover:bg-slate-700',
+        filtroOrigenLocal !== 'todos' && subMenuActivo !== 'origen' ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 font-bold border border-blue-100/50 dark:border-blue-800/50' : ''
       ]"
     >
       <span class="truncate">{{ textoOrigenActivo }}</span>
       <span class="text-[9px] font-mono opacity-50" :class="{ 'text-white/80': subMenuActivo === 'origen' }">▶</span>
     </button>
 
-    <button 
-      @click="abrirSubMenu($event, 'campana')" 
+    <button
+      @click="abrirSubMenu($event, 'campana')"
       :class="[
-        'w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-bold flex justify-between items-center transition-all cursor-pointer', 
-        subMenuActivo === 'campana' ? 'bg-blue-600 text-white shadow-sm font-extrabold' : 'text-slate-700 hover:bg-slate-100',
-        filtroCampanaLocal !== 'todos' && subMenuActivo !== 'campana' ? 'bg-blue-50 text-blue-700 font-bold border border-blue-100/50' : ''
+        'w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-bold flex justify-between items-center transition-all cursor-pointer',
+        subMenuActivo === 'campana' ? 'bg-blue-600 text-white shadow-sm font-extrabold' : 'text-body hover:bg-slate-100 dark:hover:bg-slate-700',
+        filtroCampanaLocal !== 'todos' && subMenuActivo !== 'campana' ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 font-bold border border-blue-100/50 dark:border-blue-800/50' : ''
       ]"
     >
       <span class="truncate">{{ textoCampanaActiva }}</span>
       <span class="text-[9px] font-mono opacity-50" :class="{ 'text-white/80': subMenuActivo === 'campana' }">▶</span>
     </button>
 
-    <button 
-      @click="abrirSubMenu($event, 'edad')" 
+    <button
+      @click="abrirSubMenu($event, 'edad')"
       :class="[
-        'w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-bold flex justify-between items-center transition-all cursor-pointer', 
-        subMenuActivo === 'edad' ? 'bg-blue-600 text-white shadow-sm font-extrabold' : 'text-slate-700 hover:bg-slate-100',
-        filtroEdadLocal !== 'todos' && subMenuActivo !== 'edad' ? 'bg-blue-50 text-blue-700 font-bold border border-blue-100/50' : ''
+        'w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-bold flex justify-between items-center transition-all cursor-pointer',
+        subMenuActivo === 'edad' ? 'bg-blue-600 text-white shadow-sm font-extrabold' : 'text-body hover:bg-slate-100 dark:hover:bg-slate-700',
+        filtroEdadLocal !== 'todos' && subMenuActivo !== 'edad' ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 font-bold border border-blue-100/50 dark:border-blue-800/50' : ''
       ]"
     >
       <span class="truncate">{{ textoEdadActiva }}</span>
@@ -528,78 +528,78 @@ const textoEdadActiva = computed(() => {
     </button>
   </div>
 
-  <div 
+  <div
     v-if="filtrosAbiertos && subMenuActivo"
-    class="panel-sub-flotante fixed z-[100000] bg-white rounded-xl border border-slate-200/90 shadow-2xl p-1 w-[180px] text-left animate-in fade-in slide-in-from-left-1 duration-100 space-y-px"
+    class="panel-sub-flotante fixed z-[100000] surface-card rounded-xl shadow-2xl p-1 w-[180px] text-left animate-in fade-in slide-in-from-left-1 duration-100 space-y-px"
     :style="{ top: `${subMenuTop}px`, left: `${subMenuLeft}px` }"
   >
     <template v-if="subMenuActivo === 'rol'">
-      <button @click="filtroRolLocal = 'todos'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroRolLocal === 'todos' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 hover:bg-slate-50']">Todos los Roles</button>
-      <button @click="filtroRolLocal = 'titular'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroRolLocal === 'titular' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 hover:bg-slate-50']">Titulares</button>
-      <button @click="filtroRolLocal = 'beneficiario'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroRolLocal === 'beneficiario' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 hover:bg-slate-50']">Beneficiarios</button>
+      <button @click="filtroRolLocal = 'todos'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroRolLocal === 'todos' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700']">Todos los Roles</button>
+      <button @click="filtroRolLocal = 'titular'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroRolLocal === 'titular' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700']">Titulares</button>
+      <button @click="filtroRolLocal = 'beneficiario'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroRolLocal === 'beneficiario' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700']">Beneficiarios</button>
     </template>
 
     <template v-if="subMenuActivo === 'estado'">
-      <button @click="filtroEstadoLocal = 'todos'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroEstadoLocal === 'todos' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 hover:bg-slate-50']">Todos los Estados</button>
-      <button @click="filtroEstadoLocal = 'Prospecto'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroEstadoLocal === 'Prospecto' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 hover:bg-slate-50']">Solo Prospectos</button>
-      <button @click="filtroEstadoLocal = 'Cliente'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroEstadoLocal === 'Cliente' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 hover:bg-slate-50']">Solo Clientes</button>
+      <button @click="filtroEstadoLocal = 'todos'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroEstadoLocal === 'todos' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700']">Todos los Estados</button>
+      <button @click="filtroEstadoLocal = 'Prospecto'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroEstadoLocal === 'Prospecto' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700']">Solo Prospectos</button>
+      <button @click="filtroEstadoLocal = 'Cliente'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroEstadoLocal === 'Cliente' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700']">Solo Clientes</button>
     </template>
 
     <template v-if="subMenuActivo === 'origen'">
-      <button @click="filtroOrigenLocal = 'todos'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroOrigenLocal === 'todos' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 hover:bg-slate-50']">Todos los Orígenes</button>
-      <button @click="filtroOrigenLocal = 'Llamada Directa'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroOrigenLocal === 'Llamada Directa' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 hover:bg-slate-50']">Llamada Directa</button>
-      <button @click="filtroOrigenLocal = 'Formulario Web'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroOrigenLocal === 'Formulario Web' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 hover:bg-slate-50']">Formulario Web</button>
-      <button @click="filtroOrigenLocal = 'WhatsApp'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroOrigenLocal === 'WhatsApp' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 hover:bg-slate-50']">WhatsApp</button>
+      <button @click="filtroOrigenLocal = 'todos'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroOrigenLocal === 'todos' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700']">Todos los Orígenes</button>
+      <button @click="filtroOrigenLocal = 'Llamada Directa'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroOrigenLocal === 'Llamada Directa' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700']">Llamada Directa</button>
+      <button @click="filtroOrigenLocal = 'Formulario Web'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroOrigenLocal === 'Formulario Web' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700']">Formulario Web</button>
+      <button @click="filtroOrigenLocal = 'WhatsApp'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroOrigenLocal === 'WhatsApp' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700']">WhatsApp</button>
     </template>
 
     <template v-if="subMenuActivo === 'campana'">
-      <button @click="filtroCampanaLocal = 'todos'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroCampanaLocal === 'todos' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 hover:bg-slate-50']">Todas las Campañas</button>
-      <button @click="filtroCampanaLocal = 'Registro Manual'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroCampanaLocal === 'Registro Manual' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 hover:bg-slate-50']">Registro Manual</button>
-      <button @click="filtroCampanaLocal = 'Campaña Black Friday'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroCampanaLocal === 'Campaña Black Friday' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 hover:bg-slate-50']">Black Friday</button>
-      <button @click="filtroCampanaLocal = 'Inscripción Orgánica'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroCampanaLocal === 'Inscripción Orgánica' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 hover:bg-slate-50']">Inscripción Orgánica</button>
+      <button @click="filtroCampanaLocal = 'todos'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroCampanaLocal === 'todos' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700']">Todas las Campañas</button>
+      <button @click="filtroCampanaLocal = 'Registro Manual'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroCampanaLocal === 'Registro Manual' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700']">Registro Manual</button>
+      <button @click="filtroCampanaLocal = 'Campaña Black Friday'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroCampanaLocal === 'Campaña Black Friday' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700']">Black Friday</button>
+      <button @click="filtroCampanaLocal = 'Inscripción Orgánica'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroCampanaLocal === 'Inscripción Orgánica' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700']">Inscripción Orgánica</button>
     </template>
 
     <template v-if="subMenuActivo === 'edad'">
-      <button @click="filtroEdadLocal = 'todos'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroEdadLocal === 'todos' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 hover:bg-slate-50']">Todas las Edades</button>
-      <button @click="filtroEdadLocal = 'menores'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroEdadLocal === 'menores' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 hover:bg-slate-50']">Menores (&lt; 18)</button>
-      <button @click="filtroEdadLocal = 'adultos'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroEdadLocal === 'adultos' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 hover:bg-slate-50']">Adultos (18 - 60)</button>
-      <button @click="filtroEdadLocal = 'mayores'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroEdadLocal === 'mayores' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 hover:bg-slate-50']">Adultos Mayores (&gt; 60)</button>
+      <button @click="filtroEdadLocal = 'todos'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroEdadLocal === 'todos' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700']">Todas las Edades</button>
+      <button @click="filtroEdadLocal = 'menores'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroEdadLocal === 'menores' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700']">Menores (&lt; 18)</button>
+      <button @click="filtroEdadLocal = 'adultos'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroEdadLocal === 'adultos' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700']">Adultos (18 - 60)</button>
+      <button @click="filtroEdadLocal = 'mayores'; subMenuActivo = null" :class="['w-full text-left px-2.5 py-1.5 text-[11px] rounded-md transition-all font-medium cursor-pointer', filtroEdadLocal === 'mayores' ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700']">Adultos Mayores (&gt; 60)</button>
     </template>
   </div>
 
   <div v-if="confirmarDesactivarAbierto" class="fixed inset-0 z-[999999] bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4" @click.self="cancelarCargaDesactivar">
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-150">
+    <div class="surface-card rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-150">
       <div class="p-5 text-center">
-        <div class="w-11 h-11 rounded-2xl bg-amber-50 flex items-center justify-center mx-auto mb-3 text-lg">⚠️</div>
-        <h3 class="text-xs font-black uppercase tracking-wider text-slate-800 mb-1">Confirmar desactivación masiva</h3>
-        <p class="text-[11px] text-slate-500">
+        <div class="w-11 h-11 rounded-2xl bg-amber-50 dark:bg-amber-950/40 flex items-center justify-center mx-auto mb-3 text-lg">⚠️</div>
+        <h3 class="text-xs font-black uppercase tracking-wider text-body mb-1">Confirmar desactivación masiva</h3>
+        <p class="text-[11px] text-subtle">
           Vas a <strong>desactivar</strong> los registros del archivo
           <strong>"{{ cargaPendiente?.archivo.name }}"</strong> en la sección de {{ cargaPendiente?.seccion === 'titulares' ? 'titulares' : 'beneficiarios' }}. ¿Deseas continuar?
         </p>
       </div>
       <div class="flex gap-2 px-5 pb-5">
-        <button @click="cancelarCargaDesactivar" class="flex-1 py-2 text-xs font-bold text-slate-500 hover:text-slate-700 bg-white border border-slate-200 rounded-lg cursor-pointer">Cancelar</button>
+        <button @click="cancelarCargaDesactivar" class="flex-1 py-2 text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 bg-white dark:bg-slate-800 border border-default rounded-lg cursor-pointer">Cancelar</button>
         <button @click="confirmarCargaDesactivar" class="flex-1 py-2 text-xs font-black text-white bg-amber-600 hover:bg-amber-700 rounded-lg cursor-pointer shadow-sm">Desactivar</button>
       </div>
     </div>
   </div>
 
   <div v-if="modalAgregarAbierto" class="fixed inset-0 z-[999999] bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-150">
-      <div class="px-4 py-3 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
-        <h3 class="text-xs font-black uppercase tracking-wider text-slate-700">Crear Registro Manual</h3>
-        <button @click="cerrarModalProspecto" class="text-slate-400 hover:text-slate-600 text-sm font-black cursor-pointer">✕</button>
+    <div class="surface-card rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-150">
+      <div class="px-4 py-3 surface-header border-b border-slate-100 dark:border-slate-700 flex justify-between items-center">
+        <h3 class="text-xs font-black uppercase tracking-wider text-body">Crear Registro Manual</h3>
+        <button @click="cerrarModalProspecto" class="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 text-sm font-black cursor-pointer">✕</button>
       </div>
-      
+
       <div class="p-4 space-y-3 text-left">
         <div>
-          <label class="block text-[10px] font-black uppercase tracking-wide text-slate-400 mb-1">Nombre Completo *</label>
-          <input v-model="nuevoProspecto.nombreCompleto" type="text" placeholder="Ej: Juan Pérez" class="w-full bg-slate-50 text-slate-900 rounded-lg border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:bg-white focus:ring-1 focus:ring-blue-600" />
+          <label class="block text-[10px] font-black uppercase tracking-wide text-muted mb-1">Nombre Completo *</label>
+          <input v-model="nuevoProspecto.nombreCompleto" type="text" placeholder="Ej: Juan Pérez" class="w-full input-surface rounded-lg px-3 py-2 text-xs focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:ring-1 focus:ring-blue-600" />
         </div>
         <div class="grid grid-cols-3 gap-2">
           <div class="col-span-1">
-            <label class="block text-[10px] font-black uppercase tracking-wide text-slate-400 mb-1">Tipo Doc.</label>
-            <select v-model="nuevoProspecto.tipoDocumento" class="w-full bg-slate-50 text-slate-900 rounded-lg border border-slate-200 px-2 py-2 text-xs focus:outline-none focus:bg-white">
+            <label class="block text-[10px] font-black uppercase tracking-wide text-muted mb-1">Tipo Doc.</label>
+            <select v-model="nuevoProspecto.tipoDocumento" class="w-full input-surface rounded-lg px-2 py-2 text-xs focus:outline-none focus:bg-white dark:focus:bg-slate-800">
               <option value="CC">CC</option>
               <option value="TI">TI</option>
               <option value="CE">CE</option>
@@ -607,24 +607,24 @@ const textoEdadActiva = computed(() => {
             </select>
           </div>
           <div class="col-span-2">
-            <label class="block text-[10px] font-black uppercase tracking-wide text-slate-400 mb-1">Número Documento *</label>
-            <input v-model="nuevoProspecto.documento" type="text" placeholder="Ej: 1020340" class="w-full bg-slate-50 text-slate-900 rounded-lg border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:bg-white focus:ring-1 focus:ring-blue-600" />
+            <label class="block text-[10px] font-black uppercase tracking-wide text-muted mb-1">Número Documento *</label>
+            <input v-model="nuevoProspecto.documento" type="text" placeholder="Ej: 1020340" class="w-full input-surface rounded-lg px-3 py-2 text-xs focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:ring-1 focus:ring-blue-600" />
           </div>
         </div>
         <div class="grid grid-cols-2 gap-2">
           <div>
-            <label class="block text-[10px] font-black uppercase tracking-wide text-slate-400 mb-1">Teléfono</label>
-            <input v-model="nuevoProspecto.telefono" type="text" placeholder="Ej: 300123" class="w-full bg-slate-50 text-slate-900 rounded-lg border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:bg-white" />
+            <label class="block text-[10px] font-black uppercase tracking-wide text-muted mb-1">Teléfono</label>
+            <input v-model="nuevoProspecto.telefono" type="text" placeholder="Ej: 300123" class="w-full input-surface rounded-lg px-3 py-2 text-xs focus:outline-none focus:bg-white dark:focus:bg-slate-800" />
           </div>
           <div>
-            <label class="block text-[10px] font-black uppercase tracking-wide text-slate-400 mb-1">Email</label>
-            <input v-model="nuevoProspecto.email" type="email" placeholder="correo@ejemplo.com" class="w-full bg-slate-50 text-slate-900 rounded-lg border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:bg-white" />
+            <label class="block text-[10px] font-black uppercase tracking-wide text-muted mb-1">Email</label>
+            <input v-model="nuevoProspecto.email" type="email" placeholder="correo@ejemplo.com" class="w-full input-surface rounded-lg px-3 py-2 text-xs focus:outline-none focus:bg-white dark:focus:bg-slate-800" />
           </div>
         </div>
       </div>
 
-      <div class="px-4 py-3 bg-slate-50 border-t border-slate-100 flex justify-end gap-2">
-        <button @click="cerrarModalProspecto" class="px-3 py-2 text-xs font-bold text-slate-500 hover:text-slate-700 bg-white border border-slate-200 rounded-lg cursor-pointer">Cancelar</button>
+      <div class="px-4 py-3 surface-header border-t border-slate-100 dark:border-slate-700 flex justify-end gap-2">
+        <button @click="cerrarModalProspecto" class="px-3 py-2 text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 bg-white dark:bg-slate-800 border border-default rounded-lg cursor-pointer">Cancelar</button>
         <button @click="procesarGuardado" class="px-4 py-2 text-xs font-black text-white bg-blue-600 hover:bg-blue-700 rounded-lg cursor-pointer shadow-sm">Guardar Registro</button>
       </div>
     </div>

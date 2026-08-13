@@ -74,9 +74,14 @@ export const formatearFechaCorta = (fechaIso: string): string => {
   return `${dia}/${mes}/${anio}`
 }
 
-export const estadoTitularStyle = (e: Titular['estado']) => e === 'Activo' ? 'text-emerald-600' : 'text-slate-400'
+export const estadoTitularStyle = (e: Titular['estado']) => e === 'Activo' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'
 
 export const estadoBeneStyle = (e: Beneficiario['estado']) =>
-  ({ Activo: 'text-emerald-600', Inactivo: 'text-slate-400', Reemplazado: 'text-amber-600', Retirado: 'text-red-500' } as Record<string, string>)[e] ?? 'text-slate-400'
+  ({
+    Activo: 'text-emerald-600 dark:text-emerald-400',
+    Inactivo: 'text-slate-400 dark:text-slate-500',
+    Reemplazado: 'text-amber-600 dark:text-amber-400',
+    Retirado: 'text-red-500 dark:text-red-400',
+  } as Record<string, string>)[e] ?? 'text-slate-400 dark:text-slate-500'
 
-export const planStyle = (p: string) => p === 'Plan Liga Empresarial' ? 'text-[#1E3A8A]' : 'text-[#9D174D]'
+export const planStyle = (p: string) => p === 'Plan Liga Empresarial' ? 'text-[#1E3A8A] dark:text-blue-300' : 'text-[#9D174D] dark:text-pink-300'

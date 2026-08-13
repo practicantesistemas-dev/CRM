@@ -29,7 +29,7 @@ const estadoProximoPaso = computed<'vencido' | 'hoy' | 'proximo' | 'realizado' |
 </script>
 
 <template>
-  <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex gap-4 hover:shadow-md transition-all group">
+  <div class="surface-card rounded-2xl shadow-sm p-4 flex gap-4 hover:shadow-md transition-all group">
     <div class="flex-shrink-0">
       <div class="w-10 h-10 rounded-xl flex items-center justify-center" :style="{ backgroundColor: TIPO_META[actividad.tipo].bg }">
         <component :is="TIPO_META[actividad.tipo].icono" :size="16" :style="{ color: TIPO_META[actividad.tipo].color }" />
@@ -41,53 +41,53 @@ const estadoProximoPaso = computed<'vencido' | 'hoy' | 'proximo' | 'realizado' |
         <div class="flex items-center gap-2 flex-wrap">
           <span class="text-[10px] font-bold uppercase tracking-wide" :style="{ color: TIPO_META[actividad.tipo].color }">{{ actividad.tipo }}</span>
           <template v-for="(s, i) in sujetos" :key="i">
-            <span class="text-[11px] text-slate-400">·</span>
-            <span :class="i === 0 ? 'text-[12px] font-bold text-[#0F172A]' : 'text-[11px] text-slate-500'">{{ s }}</span>
+            <span class="text-[11px] text-muted">·</span>
+            <span :class="i === 0 ? 'text-[12px] font-bold text-heading' : 'text-[11px] text-subtle'">{{ s }}</span>
           </template>
-          <span v-if="sujetos.length === 0" class="text-[11px] text-slate-400 italic">Sin contacto, empresa o titular asociado</span>
+          <span v-if="sujetos.length === 0" class="text-[11px] text-muted italic">Sin contacto, empresa o titular asociado</span>
         </div>
         <div class="flex items-center gap-2 flex-shrink-0">
-          <span class="text-[10px] text-slate-400">{{ actividad.fecha }}</span>
+          <span class="text-[10px] text-muted">{{ actividad.fecha }}</span>
           <div class="flex items-center gap-1">
-            <div class="w-5 h-5 rounded-full bg-[#EEF2FF] text-[#2447F9] text-[7px] font-bold flex items-center justify-center">
+            <div class="w-5 h-5 rounded-full bg-[#EEF2FF] dark:bg-blue-950/50 text-[#2447F9] dark:text-blue-300 text-[7px] font-bold flex items-center justify-center">
               {{ actividad.usuario.split(' ').map(n => n[0]).join('') }}
             </div>
-            <span class="text-[10px] text-slate-400">{{ actividad.usuario }}</span>
+            <span class="text-[10px] text-muted">{{ actividad.usuario }}</span>
           </div>
-          <span class="w-px h-5 bg-slate-200 shrink-0" />
+          <span class="w-px h-5 bg-slate-200 dark:bg-slate-700 shrink-0" />
           <button @click="emit('editar')"
-            class="w-8 h-8 rounded-lg bg-slate-50 border border-slate-200 hover:bg-blue-50 hover:border-blue-200 hover:text-[#2447F9] text-slate-500 flex items-center justify-center transition-colors shrink-0"
+            class="w-8 h-8 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:border-blue-200 dark:hover:border-blue-800 hover:text-[#2447F9] dark:hover:text-blue-400 text-slate-500 dark:text-slate-400 flex items-center justify-center transition-colors shrink-0"
             title="Editar actividad">
             <Pencil :size="14" />
           </button>
           <button @click="emit('eliminar')"
-            class="w-8 h-8 rounded-lg bg-slate-50 border border-slate-200 hover:bg-red-50 hover:border-red-200 hover:text-red-500 text-slate-500 flex items-center justify-center transition-colors shrink-0"
+            class="w-8 h-8 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:bg-red-50 dark:hover:bg-red-950/40 hover:border-red-200 dark:hover:border-red-800 hover:text-red-500 dark:hover:text-red-400 text-slate-500 dark:text-slate-400 flex items-center justify-center transition-colors shrink-0"
             title="Eliminar actividad">
             <Trash2 :size="15" />
           </button>
         </div>
       </div>
 
-      <p class="text-[12px] text-slate-700 mb-2">{{ actividad.accion }}</p>
+      <p class="text-[12px] text-slate-700 dark:text-slate-300 mb-2">{{ actividad.accion }}</p>
 
       <div v-if="oportunidad" class="flex items-center gap-1.5 mb-2">
-        <Target :size="11" class="text-[#2447F9] flex-shrink-0" />
-        <span class="text-[11px] text-[#2447F9] font-semibold">{{ oportunidad.servicio }}</span>
-        <span class="text-[10px] text-slate-400">· {{ clienteLabel(oportunidad) }}</span>
+        <Target :size="11" class="text-[#2447F9] dark:text-blue-400 flex-shrink-0" />
+        <span class="text-[11px] text-[#2447F9] dark:text-blue-400 font-semibold">{{ oportunidad.servicio }}</span>
+        <span class="text-[10px] text-muted">· {{ clienteLabel(oportunidad) }}</span>
       </div>
 
       <div v-if="actividad.proximoPaso" class="flex items-center gap-2 rounded-lg px-3 py-2"
-        :class="estadoProximoPaso === 'vencido' ? 'bg-red-50' : estadoProximoPaso === 'hoy' ? 'bg-amber-50' : estadoProximoPaso === 'realizado' ? 'bg-emerald-50' : 'bg-[#F8FAFC]'">
+        :class="estadoProximoPaso === 'vencido' ? 'bg-red-50 dark:bg-red-950/40' : estadoProximoPaso === 'hoy' ? 'bg-amber-50 dark:bg-amber-950/40' : estadoProximoPaso === 'realizado' ? 'bg-emerald-50 dark:bg-emerald-950/40' : 'surface-sunken'">
         <AlarmClock v-if="estadoProximoPaso === 'vencido' || estadoProximoPaso === 'hoy'" :size="12"
-          :class="estadoProximoPaso === 'vencido' ? 'text-red-500' : 'text-amber-500'" class="flex-shrink-0" />
-        <Check v-if="estadoProximoPaso === 'realizado'" :size="12" class="text-emerald-600 flex-shrink-0" />
+          :class="estadoProximoPaso === 'vencido' ? 'text-red-500 dark:text-red-400' : 'text-amber-500 dark:text-amber-400'" class="flex-shrink-0" />
+        <Check v-if="estadoProximoPaso === 'realizado'" :size="12" class="text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
         <span class="text-[9px] font-bold uppercase tracking-wide flex-shrink-0"
-          :class="estadoProximoPaso === 'vencido' ? 'text-red-500' : estadoProximoPaso === 'hoy' ? 'text-amber-600' : estadoProximoPaso === 'realizado' ? 'text-emerald-600' : 'text-slate-400'">
+          :class="estadoProximoPaso === 'vencido' ? 'text-red-500 dark:text-red-400' : estadoProximoPaso === 'hoy' ? 'text-amber-600 dark:text-amber-400' : estadoProximoPaso === 'realizado' ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted'">
           {{ estadoProximoPaso === 'realizado' ? 'Próx. paso realizado:' : 'Próx. paso:' }}
         </span>
         <span class="text-[11px] font-medium"
-          :class="estadoProximoPaso === 'vencido' ? 'text-red-600' : estadoProximoPaso === 'hoy' ? 'text-amber-700' : estadoProximoPaso === 'realizado' ? 'text-emerald-700 line-through' : 'text-[#2447F9]'">{{ actividad.proximoPaso }}</span>
-        <span v-if="actividad.proximoPasoFecha && estadoProximoPaso !== 'realizado'" class="text-[10px] text-slate-400 ml-auto flex-shrink-0">
+          :class="estadoProximoPaso === 'vencido' ? 'text-red-600 dark:text-red-400' : estadoProximoPaso === 'hoy' ? 'text-amber-700 dark:text-amber-400' : estadoProximoPaso === 'realizado' ? 'text-emerald-700 dark:text-emerald-400 line-through' : 'text-[#2447F9] dark:text-blue-400'">{{ actividad.proximoPaso }}</span>
+        <span v-if="actividad.proximoPasoFecha && estadoProximoPaso !== 'realizado'" class="text-[10px] text-muted ml-auto flex-shrink-0">
           {{ estadoProximoPaso === 'vencido' ? 'Venció' : 'Para' }} {{ actividad.proximoPasoFecha }}
         </span>
       </div>

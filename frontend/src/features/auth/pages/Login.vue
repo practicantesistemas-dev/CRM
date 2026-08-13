@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-slate-50 flex flex-col md:flex-row antialiased text-slate-800 font-sans w-full overflow-hidden">
+  <div class="min-h-screen bg-slate-50 dark:bg-slate-900 flex flex-col md:flex-row antialiased text-slate-800 dark:text-slate-100 font-sans w-full overflow-hidden">
     
     <div class="w-full md:w-1/2 bg-gradient-to-br from-blue-800 via-blue-700 to-blue-900 p-5 sm:p-8 flex flex-col justify-between relative overflow-hidden text-white md:min-h-screen">
       <div class="absolute -top-24 -left-24 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl pointer-events-none"></div>
@@ -36,9 +36,9 @@
       </div>
     </div>
 
-    <div class="w-full md:w-1/2 bg-white flex items-center justify-center p-6 sm:p-12 md:p-16 relative">
+    <div class="w-full md:w-1/2 bg-white dark:bg-slate-900 flex items-center justify-center p-6 sm:p-12 md:p-16 relative">
       <div class="w-full max-w-sm space-y-5 sm:space-y-8 animate-fadeIn">
-        
+
         <div class="text-center md:text-left space-y-2 sm:space-y-4">
           <div class="flex justify-center md:justify-start">
             <img
@@ -49,57 +49,57 @@
           </div>
 
           <div class="pt-1 sm:pt-2">
-            <h3 class="text-lg font-black text-slate-900 tracking-tight">Iniciar Sesión</h3>
-            <p class="text-xs text-slate-400 mt-1">Ingresa tus credenciales autorizadas por TI.</p>
+            <h3 class="text-lg font-black text-slate-900 dark:text-slate-100 tracking-tight">Iniciar Sesión</h3>
+            <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">Ingresa tus credenciales autorizadas por TI.</p>
           </div>
         </div>
 
         <form @submit.prevent="handleLogin" class="space-y-4">
-          
+
           <div class="space-y-1.5">
-            <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Usuario</label>
+            <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider block">Usuario</label>
             <div class="relative">
-              <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 text-xs pointer-events-none"></span>
-              <input 
-                v-model="form.username" 
-                type="text" 
+              <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 dark:text-slate-500 text-xs pointer-events-none"></span>
+              <input
+                v-model="form.username"
+                type="text"
                 required
-                placeholder="ejemplo@laliga.org" 
-                class="w-full bg-slate-50 text-slate-900 placeholder-slate-400 rounded-xl border border-slate-200/80 pl-9 pr-4 py-2.5 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all shadow-2xs" 
+                placeholder="ejemplo@laliga.org"
+                class="w-full bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl border border-slate-200/80 dark:border-slate-700 pl-9 pr-4 py-2.5 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all shadow-2xs"
               />
             </div>
           </div>
 
           <div class="space-y-1.5">
             <div class="flex justify-between items-center">
-              <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Contraseña</label>
-              <a href="#" class="text-[10px] font-bold text-pink-500 hover:underline">¿La olvidaste?</a>
+              <label class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider block">Contraseña</label>
+              <a href="#" class="text-[10px] font-bold text-pink-500 dark:text-pink-400 hover:underline">¿La olvidaste?</a>
             </div>
             <div class="relative">
-              <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 text-xs pointer-events-none"></span>
-              <input 
-                v-model="form.password" 
-                type="password" 
+              <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 dark:text-slate-500 text-xs pointer-events-none"></span>
+              <input
+                v-model="form.password"
+                type="password"
                 required
-                placeholder="••••••••••••" 
-                class="w-full bg-slate-50 text-slate-900 placeholder-slate-400 rounded-xl border border-slate-200/80 pl-9 pr-4 py-2.5 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all shadow-2xs" 
+                placeholder="••••••••••••"
+                class="w-full bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl border border-slate-200/80 dark:border-slate-700 pl-9 pr-4 py-2.5 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all shadow-2xs"
               />
             </div>
           </div>
 
           <div class="flex items-center justify-between pt-1">
             <label class="flex items-center gap-2 cursor-pointer select-none">
-              <input type="checkbox" v-model="form.rememberMe" class="w-3.5 h-3.5 text-blue-600 border-slate-300 rounded focus:ring-blue-500 bg-slate-50" />
-              <span class="text-[11px] text-slate-500 font-medium">Recordar sesión</span>
+              <input type="checkbox" v-model="form.rememberMe" class="w-3.5 h-3.5 text-blue-600 border-slate-300 dark:border-slate-600 rounded focus:ring-blue-500 bg-slate-50 dark:bg-slate-800" />
+              <span class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Recordar sesión</span>
             </label>
           </div>
 
-          <div v-if="errorMsg" class="p-2.5 bg-red-50 border border-red-100 rounded-xl text-[11px] font-semibold text-red-600 flex items-center gap-2 animate-fadeIn">
+          <div v-if="errorMsg" class="p-2.5 bg-red-50 dark:bg-red-950/40 border border-red-100 dark:border-red-800 rounded-xl text-[11px] font-semibold text-red-600 dark:text-red-400 flex items-center gap-2 animate-fadeIn">
             <span></span> {{ errorMsg }}
           </div>
 
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             :disabled="loading"
             class="w-full bg-gradient-to-r from-blue-700 to-blue-800 hover:from-pink-500 hover:to-pink-600 text-white font-black text-xs uppercase tracking-widest py-3 rounded-xl shadow-md shadow-blue-700/10 hover:shadow-pink-500/10 transition-all duration-300 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed text-center flex items-center justify-center gap-2"
           >
@@ -108,9 +108,9 @@
           </button>
         </form>
 
-        <div class="pt-4 border-t border-slate-100 text-center">
-          <p class="text-[10px] text-slate-400 font-medium">
-            ¿Problemas de acceso? Contacta a <a href="mailto:soporte@fundacionlaliga.org" class="text-blue-600 font-bold hover:underline">Soporte TI</a>
+        <div class="pt-4 border-t border-slate-100 dark:border-slate-800 text-center">
+          <p class="text-[10px] text-slate-400 dark:text-slate-500 font-medium">
+            ¿Problemas de acceso? Contacta a <a href="mailto:soporte@fundacionlaliga.org" class="text-blue-600 dark:text-blue-400 font-bold hover:underline">Soporte TI</a>
           </p>
         </div>
 

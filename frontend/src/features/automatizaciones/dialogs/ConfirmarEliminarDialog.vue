@@ -12,20 +12,20 @@ const emit = defineEmits<{ confirmar: []; cancelar: [] }>()
     class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
     @click.self="emit('cancelar')"
   >
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
+    <div class="surface-card rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
       <div class="p-6 text-center">
-        <div class="w-12 h-12 rounded-2xl bg-red-50 flex items-center justify-center mx-auto mb-4">
-          <Trash2 :size="20" class="text-red-500" />
+        <div class="w-12 h-12 rounded-2xl bg-red-50 dark:bg-red-950/40 flex items-center justify-center mx-auto mb-4">
+          <Trash2 :size="20" class="text-red-500 dark:text-red-400" />
         </div>
-        <h3 class="text-[14px] font-bold text-[#0F172A] mb-1">Eliminar automatización</h3>
-        <p class="text-[12px] text-slate-500">
+        <h3 class="text-[14px] font-bold text-heading mb-1">Eliminar automatización</h3>
+        <p class="text-[12px] text-body">
           ¿Eliminar <strong>"{{ automatizacion.nombre }}"</strong>? Esta acción no se puede deshacer.
         </p>
       </div>
       <div class="flex gap-2 px-6 pb-6">
         <button
           @click="emit('cancelar')"
-          class="flex-1 h-9 rounded-lg border border-slate-200 bg-white text-[11px] font-semibold text-slate-600 hover:bg-slate-50 transition-all"
+          class="flex-1 h-9 rounded-lg border border-default bg-white dark:bg-slate-800 text-[11px] font-semibold text-body hover:bg-slate-50 dark:hover:bg-slate-700 transition-all"
         >
           Cancelar
         </button>

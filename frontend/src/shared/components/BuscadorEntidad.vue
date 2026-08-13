@@ -58,7 +58,7 @@ function alPerderFoco() {
 <template>
   <div class="relative">
     <div class="relative">
-      <Search :size="13" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+      <Search :size="13" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 pointer-events-none" />
       <input
         :value="abierto ? query : (seleccionado?.label ?? '')"
         @input="query = ($event.target as HTMLInputElement).value; abierto = true"
@@ -66,27 +66,27 @@ function alPerderFoco() {
         @blur="alPerderFoco"
         :disabled="disabled"
         :placeholder="placeholder ?? 'Buscar...'"
-        class="w-full h-10 pl-8 pr-8 rounded-lg border bg-slate-50 text-[12px] outline-none focus:bg-white transition-all border-slate-200 focus:border-[#2447F9] disabled:opacity-50 disabled:cursor-not-allowed"
+        class="w-full h-10 pl-8 pr-8 rounded-lg border bg-slate-50 dark:bg-slate-900 text-[12px] text-slate-900 dark:text-slate-100 outline-none focus:bg-white dark:focus:bg-slate-800 transition-all border-slate-200 dark:border-slate-600 focus:border-[#2447F9] disabled:opacity-50 disabled:cursor-not-allowed"
       />
       <button
         v-if="seleccionado && !disabled"
         type="button"
         @mousedown.prevent="limpiar"
-        class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+        class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"
       >
         <X :size="13" />
       </button>
     </div>
-    <div v-if="abierto" class="absolute z-50 mt-1 w-full max-h-56 overflow-y-auto rounded-lg border border-slate-200 bg-white shadow-lg py-1">
+    <div v-if="abierto" class="absolute z-50 mt-1 w-full max-h-56 overflow-y-auto rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg py-1">
       <button
         v-for="o in filtradas" :key="o.id" type="button"
         @mousedown.prevent="elegir(o)"
-        class="w-full text-left px-3 py-2 text-[12px] hover:bg-[#EEF2FF] transition-colors"
+        class="w-full text-left px-3 py-2 text-[12px] hover:bg-[#EEF2FF] dark:hover:bg-blue-950/40 transition-colors"
       >
-        <div class="font-semibold text-[#0F172A]">{{ o.label }}</div>
-        <div v-if="o.sublabel" class="text-[10px] text-slate-400">{{ o.sublabel }}</div>
+        <div class="font-semibold text-[#0F172A] dark:text-slate-100">{{ o.label }}</div>
+        <div v-if="o.sublabel" class="text-[10px] text-slate-400 dark:text-slate-500">{{ o.sublabel }}</div>
       </button>
-      <div v-if="filtradas.length === 0" class="px-3 py-2 text-[11px] text-slate-400">{{ vacio ?? 'Sin resultados' }}</div>
+      <div v-if="filtradas.length === 0" class="px-3 py-2 text-[11px] text-slate-400 dark:text-slate-500">{{ vacio ?? 'Sin resultados' }}</div>
     </div>
   </div>
 </template>

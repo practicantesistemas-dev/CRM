@@ -2,18 +2,20 @@
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuth } from '@/features/auth/composables/useAuth'
+import { useTema } from '@/shared/composables/useTema'
 
 import {
   LayoutDashboard, Heart, Users, Building2, Truck,
   Target, GitBranch, Layers, SlidersHorizontal, Megaphone,
   BookOpen, Upload, Zap,
   ChevronLeft, ChevronRight, LogOut, Settings,
-  RefreshCw, X, Menu
+  RefreshCw, X, Menu, Moon, Sun
 } from 'lucide-vue-next'
 
 const router = useRouter()
 const route = useRoute()
 const { me, logout, checkSession, fetchMe } = useAuth()
+const { esOscuro, alternarTema } = useTema()
 
 const initials = computed(() => {
   const parts = (me.value?.nombres ?? '').trim().split(/\s+/).filter(Boolean)
@@ -193,7 +195,7 @@ const refrescarVistaActual = () => {
 </script>
 
 <template>
-  <div class="flex h-screen overflow-hidden bg-[#F8FAFC] font-[Inter,system-ui,sans-serif]">
+  <div class="flex h-screen overflow-hidden bg-[#F8FAFC] dark:bg-slate-900 font-[Inter,system-ui,sans-serif]">
 
     <!-- Fondo oscuro tras el sidebar cuando está abierto como drawer en móvil -->
     <div
@@ -307,36 +309,36 @@ const refrescarVistaActual = () => {
     <div class="flex-1 flex flex-col overflow-hidden min-w-0">
 
       <!-- ── Top header ────────────────────────────────────────── -->
-      <header class="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-3 md:px-4 shrink-0 gap-2 md:gap-3 z-10">
+      <header class="h-14 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between px-3 md:px-4 shrink-0 gap-2 md:gap-3 z-10">
         <div class="flex items-center gap-2 md:gap-3 min-w-0">
           <!-- Hamburguesa: solo móvil, abre el sidebar como drawer -->
           <button
             @click="sidebarMobileOpen = true"
-            class="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-50 transition-all shrink-0 md:hidden"
+            class="w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all shrink-0 md:hidden"
           >
             <Menu :size="15" />
           </button>
           <!-- Toggle sidebar: solo desktop/tablet, colapsa a modo íconos -->
           <button
             @click="sidebarCollapsed = !sidebarCollapsed"
-            class="hidden md:flex w-8 h-8 rounded-lg border border-slate-200 items-center justify-center text-slate-500 hover:bg-slate-50 transition-all shrink-0"
+            class="hidden md:flex w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 items-center justify-center text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all shrink-0"
           >
             <component :is="sidebarCollapsed ? ChevronRight : ChevronLeft" :size="15" />
           </button>
           <!-- Breadcrumb -->
           <div class="flex items-center gap-1.5 text-[12px] min-w-0 overflow-hidden">
-            <span class="text-slate-400 shrink-0">CRM Mercadeo</span>
+            <span class="text-slate-400 dark:text-slate-500 shrink-0">CRM Mercadeo</span>
             <template v-if="isConfigRoute">
-              <span class="text-slate-300 shrink-0">/</span>
-              <span class="font-bold text-[#0F172A] truncate">Configuración</span>
+              <span class="text-slate-300 dark:text-slate-600 shrink-0">/</span>
+              <span class="font-bold text-[#0F172A] dark:text-slate-100 truncate">Configuración</span>
             </template>
             <template v-else>
               <template v-if="activeGroup && activeGroup !== 'General'">
-                <span class="text-slate-300 shrink-0 hidden sm:inline">/</span>
-                <span class="text-slate-400 shrink-0 hidden sm:inline">{{ activeGroup }}</span>
+                <span class="text-slate-300 dark:text-slate-600 shrink-0 hidden sm:inline">/</span>
+                <span class="text-slate-400 dark:text-slate-500 shrink-0 hidden sm:inline">{{ activeGroup }}</span>
               </template>
-              <span class="text-slate-300 shrink-0">/</span>
-              <span class="font-bold text-[#0F172A] truncate">{{ activeLabel }}</span>
+              <span class="text-slate-300 dark:text-slate-600 shrink-0">/</span>
+              <span class="font-bold text-[#0F172A] dark:text-slate-100 truncate">{{ activeLabel }}</span>
             </template>
           </div>
         </div>
@@ -344,7 +346,7 @@ const refrescarVistaActual = () => {
         <div class="flex items-center gap-2 shrink-0">
           <button
             @click="refrescarVistaActual"
-            class="h-8 w-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-50 transition-all"
+            class="h-8 w-8 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
             title="Actualizar"
           >
             <RefreshCw :size="13" />
@@ -353,11 +355,11 @@ const refrescarVistaActual = () => {
             <button
               type="button"
               @click="toggleMenuUsuario"
-              class="menu-usuario-trigger flex items-center gap-2 pl-2 border-l border-slate-200 rounded-lg hover:bg-slate-50 transition-all py-1 pr-1"
+              class="menu-usuario-trigger flex items-center gap-2 pl-2 border-l border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-all py-1 pr-1"
             >
               <div class="text-right hidden sm:block leading-tight">
-                <div class="text-[13px] font-bold text-[#0F172A] whitespace-nowrap">{{ me?.nombres ?? '—' }}</div>
-                <div class="text-[11px] text-slate-400 font-bold uppercase tracking-wider">{{ me?.portal_role ?? '' }}</div>
+                <div class="text-[13px] font-bold text-[#0F172A] dark:text-slate-100 whitespace-nowrap">{{ me?.nombres ?? '—' }}</div>
+                <div class="text-[11px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">{{ me?.portal_role ?? '' }}</div>
               </div>
               <div
                 class="h-8 w-8 rounded-lg bg-[#1E3A8A] text-white text-[10px] font-bold flex items-center justify-center select-none shrink-0"
@@ -369,18 +371,25 @@ const refrescarVistaActual = () => {
 
             <div
               v-if="menuUsuarioAbierto"
-              class="menu-usuario-panel absolute right-0 top-full mt-2 w-48 bg-white rounded-xl border border-slate-200 shadow-lg py-1.5 z-30"
+              class="menu-usuario-panel absolute right-0 top-full mt-2 w-48 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-lg py-1.5 z-30"
             >
               <button
                 @click="menuUsuarioAbierto = false; router.push('/configuracion')"
-                class="flex items-center gap-2 w-full px-3 py-2 text-[12px] font-semibold text-slate-600 hover:bg-slate-50 transition-all"
+                class="flex items-center gap-2 w-full px-3 py-2 text-[12px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all"
               >
                 <Settings :size="14" class="shrink-0" />
                 Configuración
               </button>
               <button
+                @click="alternarTema"
+                class="flex items-center gap-2 w-full px-3 py-2 text-[12px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all"
+              >
+                <component :is="esOscuro ? Sun : Moon" :size="14" class="shrink-0" />
+                {{ esOscuro ? 'Modo claro' : 'Modo oscuro' }}
+              </button>
+              <button
                 @click="menuUsuarioAbierto = false; handleLogout()"
-                class="flex items-center gap-2 w-full px-3 py-2 text-[12px] font-semibold text-slate-600 hover:bg-red-50 hover:text-red-600 transition-all"
+                class="flex items-center gap-2 w-full px-3 py-2 text-[12px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400 transition-all"
               >
                 <LogOut :size="14" class="shrink-0" />
                 Cerrar sesión
@@ -391,7 +400,7 @@ const refrescarVistaActual = () => {
       </header>
 
       <!-- ── Tab strip ─────────────────────────────────────────── -->
-      <div v-if="!isConfigRoute" class="bg-white border-b border-slate-200 px-3 flex items-end gap-0.5 shrink-0 overflow-x-auto">
+      <div v-if="!isConfigRoute" class="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-3 flex items-end gap-0.5 shrink-0 overflow-x-auto">
         <button
           v-for="(tab, idx) in tabs"
           :key="tab.key"
@@ -401,11 +410,11 @@ const refrescarVistaActual = () => {
           @dragover.prevent
           @drop.prevent="soltarTab(idx)"
           @dragend="tabArrastrandoIdx = null"
-          class="flex items-center gap-1.5 px-3 py-2.5 text-[11px] font-semibold border-b-2 transition-all shrink-0 group/tab rounded-t-lg hover:bg-slate-50 cursor-grab active:cursor-grabbing"
+          class="flex items-center gap-1.5 px-3 py-2.5 text-[11px] font-semibold border-b-2 transition-all shrink-0 group/tab rounded-t-lg hover:bg-slate-50 dark:hover:bg-slate-800 cursor-grab active:cursor-grabbing"
           :class="[
             idx === activeTabIdx
-              ? 'border-[#1E3A8A] text-[#1E3A8A] bg-[#EEF2FF]/60'
-              : 'border-transparent text-slate-500 hover:text-slate-700',
+              ? 'border-[#1E3A8A] text-[#1E3A8A] dark:text-blue-300 bg-[#EEF2FF]/60 dark:bg-blue-950/40'
+              : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200',
             tabArrastrandoIdx === idx ? 'opacity-40' : '',
           ]"
         >
@@ -413,8 +422,8 @@ const refrescarVistaActual = () => {
           <span class="max-w-[120px] truncate">{{ tab.label }}</span>
           <span
             v-if="tabs.length > 1"
-            class="w-4 h-4 rounded flex items-center justify-center ml-0.5 opacity-0 group-hover/tab:opacity-100 hover:!bg-slate-200 transition-all"
-            :class="idx === activeTabIdx ? 'text-[#1E3A8A] hover:bg-[#DBEAFE]' : 'text-slate-400 hover:bg-slate-100'"
+            class="w-4 h-4 rounded flex items-center justify-center ml-0.5 opacity-0 group-hover/tab:opacity-100 hover:!bg-slate-200 dark:hover:!bg-slate-700 transition-all"
+            :class="idx === activeTabIdx ? 'text-[#1E3A8A] dark:text-blue-300 hover:bg-[#DBEAFE]' : 'text-slate-400 dark:text-slate-500 hover:bg-slate-100'"
             @click.stop="closeTab(idx, $event)"
           >
             <X :size="9" />
@@ -423,7 +432,7 @@ const refrescarVistaActual = () => {
         <!-- Slot count indicator when at max -->
         <div
           v-if="tabs.length >= MAX_TABS"
-          class="ml-auto px-2 py-2 text-[10px] text-slate-400 font-semibold shrink-0 self-center"
+          class="ml-auto px-2 py-2 text-[10px] text-slate-400 dark:text-slate-500 font-semibold shrink-0 self-center"
         >
           {{ MAX_TABS }}/{{ MAX_TABS }} pestañas
         </div>

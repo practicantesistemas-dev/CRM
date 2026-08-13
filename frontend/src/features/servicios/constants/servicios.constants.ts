@@ -18,19 +18,19 @@ export const SERVICIO_DRAFT_VACIO: ServicioDraft = {
 export const TIPOS_SERVICIO = ['Empresarial', 'Individual', 'Salud', 'Bienestar'] as const
 
 export const estadoStyle = (e: Servicio['estado']) => {
-  if (e === 'Activo')   return 'text-emerald-600'
-  if (e === 'Inactivo') return 'text-slate-400'
-  return 'text-amber-600'
+  if (e === 'Activo')   return 'text-emerald-600 dark:text-emerald-400'
+  if (e === 'Inactivo') return 'text-slate-400 dark:text-slate-500'
+  return 'text-amber-600 dark:text-amber-400'
 }
 
 export const tipoColor = (t: Servicio['tipo']) => {
   const map: Record<Servicio['tipo'], string> = {
-    'Empresarial': 'text-[#1E3A8A]',
-    'Individual':  'text-[#9D174D]',
-    'Bienestar':   'text-[#065F46]',
-    'Salud':       'text-[#92400E]',
+    'Empresarial': 'text-[#1E3A8A] dark:text-blue-300',
+    'Individual':  'text-[#9D174D] dark:text-pink-300',
+    'Bienestar':   'text-[#065F46] dark:text-emerald-400',
+    'Salud':       'text-[#92400E] dark:text-amber-400',
   }
-  return map[t] ?? 'text-slate-500'
+  return map[t] ?? 'text-slate-500 dark:text-slate-400'
 }
 
 export const tipoBarColor = (tipo: string) =>

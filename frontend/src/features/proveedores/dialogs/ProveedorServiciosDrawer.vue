@@ -82,20 +82,20 @@ const formatoMoneda = (n: number) => n.toLocaleString('es-CO', { style: 'currenc
 <template>
   <div v-if="visible" class="fixed inset-0 z-[9999]" @click.self="visible = false">
     <div class="fixed inset-0 bg-black/30 backdrop-blur-sm" @click="visible = false" />
-    <div class="fixed right-0 top-0 h-full w-full max-w-md bg-white shadow-2xl flex flex-col z-10">
-      <div class="flex items-center justify-between px-5 py-4 border-b border-slate-200 bg-[#F8FAFC]">
+    <div class="fixed right-0 top-0 h-full w-full max-w-md bg-white dark:bg-slate-800 shadow-2xl flex flex-col z-10">
+      <div class="flex items-center justify-between px-5 py-4 border-b border-default surface-header">
         <div>
-          <h3 class="text-[13px] font-bold text-[#0F172A]">Actividades del proveedor</h3>
-          <p class="text-[11px] text-slate-400">{{ proveedor?.nombre }}</p>
+          <h3 class="text-[13px] font-bold text-heading">Actividades del proveedor</h3>
+          <p class="text-[11px] text-muted">{{ proveedor?.nombre }}</p>
         </div>
-        <button @click="visible = false" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500"><X :size="14" /></button>
+        <button @click="visible = false" class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 flex items-center justify-center text-slate-500 dark:text-slate-400"><X :size="14" /></button>
       </div>
 
       <div class="px-5 pt-4 space-y-3">
         <div class="relative">
-          <Search :size="13" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search :size="13" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
           <input v-model="buscar" placeholder="Buscar por nombre o descripción..."
-            class="w-full h-9 pl-8 pr-3 rounded-lg border border-slate-200 bg-slate-50 text-[12px] outline-none focus:border-[#2447F9] focus:bg-white transition-all" />
+            class="w-full h-9 pl-8 pr-3 rounded-lg input-surface text-[12px] outline-none focus:border-[#2447F9] focus:bg-white dark:focus:bg-slate-800 transition-all" />
         </div>
         <button @click="abrirNuevo" class="w-full flex items-center justify-center gap-1.5 h-9 rounded-lg bg-[#2447F9] text-white text-[11px] font-bold shadow hover:bg-[#1D3DD9] transition-all">
           <Plus :size="14" /> Nueva actividad
@@ -103,32 +103,32 @@ const formatoMoneda = (n: number) => n.toLocaleString('es-CO', { style: 'currenc
       </div>
 
       <div class="flex-1 overflow-y-auto p-5 space-y-3">
-        <p v-if="!buscar" class="text-[10px] text-slate-400 -mt-1 mb-1">Mostrando las 4 más recientes. Busca para ver el resto.</p>
-        <div v-if="cargando" class="flex items-center justify-center gap-2 text-[11px] text-slate-400 py-8">
+        <p v-if="!buscar" class="text-[10px] text-muted -mt-1 mb-1">Mostrando las 4 más recientes. Busca para ver el resto.</p>
+        <div v-if="cargando" class="flex items-center justify-center gap-2 text-[11px] text-muted py-8">
           <Loader2 :size="14" class="animate-spin" /> Cargando actividades...
         </div>
-        <div v-else-if="error" class="flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-3 py-2">
-          <AlertCircle :size="13" class="text-red-500 shrink-0" />
-          <p class="text-[11px] text-red-600 font-medium">{{ error }}</p>
+        <div v-else-if="error" class="flex items-center gap-2 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 rounded-xl px-3 py-2">
+          <AlertCircle :size="13" class="text-red-500 dark:text-red-400 shrink-0" />
+          <p class="text-[11px] text-red-600 dark:text-red-400 font-medium">{{ error }}</p>
         </div>
-        <p v-else-if="actividades.length === 0 && buscar" class="text-center text-[11px] text-slate-400 py-8">No se encontraron actividades para "{{ buscar }}".</p>
-        <p v-else-if="actividades.length === 0" class="text-center text-[11px] text-slate-400 py-8">Este proveedor aún no tiene actividades registradas.</p>
+        <p v-else-if="actividades.length === 0 && buscar" class="text-center text-[11px] text-muted py-8">No se encontraron actividades para "{{ buscar }}".</p>
+        <p v-else-if="actividades.length === 0" class="text-center text-[11px] text-muted py-8">Este proveedor aún no tiene actividades registradas.</p>
         <template v-else>
-          <div v-for="a in actividades" :key="a.id" class="bg-slate-50 rounded-xl p-3.5 group">
+          <div v-for="a in actividades" :key="a.id" class="surface-sunken rounded-xl p-3.5 group">
             <div class="flex items-start justify-between gap-2">
               <div class="min-w-0">
-                <p class="text-[12px] font-semibold text-[#0F172A] truncate">{{ a.nombre }}</p>
-                <p v-if="a.descripcion" class="text-[11px] text-slate-500 mt-0.5">{{ a.descripcion }}</p>
-                <div class="flex items-center gap-3 mt-1.5 text-[10px] text-slate-400 font-medium">
+                <p class="text-[12px] font-semibold text-heading truncate">{{ a.nombre }}</p>
+                <p v-if="a.descripcion" class="text-[11px] text-subtle mt-0.5">{{ a.descripcion }}</p>
+                <div class="flex items-center gap-3 mt-1.5 text-[10px] text-muted font-medium">
                   <span>Cantidad: {{ a.cantidad }}</span>
                   <span>Precio: {{ formatoMoneda(a.precio) }}</span>
                 </div>
               </div>
               <div class="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button @click="abrirEditar(a)" class="w-6 h-6 rounded-lg bg-white hover:bg-[#EEF2FF] hover:text-[#2447F9] text-slate-500 flex items-center justify-center transition-all" title="Editar">
+                <button @click="abrirEditar(a)" class="w-6 h-6 rounded-lg bg-white dark:bg-slate-800 hover:bg-[#EEF2FF] dark:hover:bg-blue-950/50 hover:text-[#2447F9] dark:hover:text-blue-400 text-slate-500 dark:text-slate-400 flex items-center justify-center transition-all" title="Editar">
                   <Edit2 :size="11" />
                 </button>
-                <button @click="pedirBorrar(a)" class="w-6 h-6 rounded-lg bg-white hover:bg-red-50 hover:text-red-600 text-slate-500 flex items-center justify-center transition-all" title="Eliminar">
+                <button @click="pedirBorrar(a)" class="w-6 h-6 rounded-lg bg-white dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-950/50 hover:text-red-600 dark:hover:text-red-400 text-slate-500 dark:text-slate-400 flex items-center justify-center transition-all" title="Eliminar">
                   <Trash2 :size="11" />
                 </button>
               </div>

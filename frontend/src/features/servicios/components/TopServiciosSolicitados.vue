@@ -10,10 +10,10 @@ const puestoColor = (idx: number) =>
 </script>
 
 <template>
-  <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+  <div class="surface-card rounded-2xl shadow-sm p-5">
     <div class="flex items-center gap-2 mb-4">
       <BarChart3 :size="14" class="text-[#2447F9]" />
-      <h3 class="text-[13px] font-bold text-[#0F172A]">Servicios más solicitados</h3>
+      <h3 class="text-[13px] font-bold text-heading">Servicios más solicitados</h3>
     </div>
     <div class="space-y-4">
       <div v-for="(s, idx) in servicios" :key="s.id">
@@ -23,14 +23,14 @@ const puestoColor = (idx: number) =>
               :style="{ backgroundColor: puestoColor(idx) }">
               {{ idx + 1 }}
             </span>
-            <span class="text-[12px] font-semibold text-slate-700">{{ s.nombre }}</span>
+            <span class="text-[12px] font-semibold text-slate-700 dark:text-slate-200">{{ s.nombre }}</span>
           </div>
           <div class="flex items-center gap-3">
-            <span class="text-[11px] text-slate-400">{{ s.solicitudes }} sol.</span>
-            <span class="text-[11px] font-bold text-emerald-600">{{ s.conversion }}</span>
+            <span class="text-[11px] text-muted">{{ s.solicitudes }} sol.</span>
+            <span class="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">{{ s.conversion }}</span>
           </div>
         </div>
-        <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+        <div class="w-full h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
           <div class="h-full rounded-full bg-[#2447F9] transition-all" :style="{ width: (s.solicitudes / max * 100) + '%' }" />
         </div>
       </div>

@@ -8,14 +8,14 @@ const router = useRouter()
 </script>
 
 <template>
-  <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
-    <h3 class="text-[13px] font-bold text-[#0F172A] mb-4">Accesos Rápidos</h3>
+  <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-5">
+    <h3 class="text-[13px] font-bold text-[#0F172A] dark:text-slate-100 mb-4">Accesos Rápidos</h3>
     <div class="grid grid-cols-3 gap-3">
       <div
         v-for="item in accesos"
         :key="item.label"
         @click="router.push('/' + item.ruta)"
-        class="flex flex-col items-center gap-2 p-3 rounded-xl border border-slate-100 hover:border-slate-200 hover:shadow-sm transition-all cursor-pointer group"
+        class="flex flex-col items-center gap-2 p-3 rounded-xl border border-slate-100 dark:border-slate-700 hover:border-slate-200 dark:hover:border-slate-600 hover:shadow-sm transition-all cursor-pointer group"
       >
         <div
           class="w-9 h-9 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform"
@@ -23,7 +23,7 @@ const router = useRouter()
         >
           <component :is="item.icono" :size="16" :style="{ color: item.color }" />
         </div>
-        <span class="text-[10px] font-semibold text-slate-600 text-center leading-tight">{{ item.label }}</span>
+        <span class="text-[10px] font-semibold text-slate-600 dark:text-slate-300 text-center leading-tight">{{ item.label }}</span>
       </div>
     </div>
   </div>
