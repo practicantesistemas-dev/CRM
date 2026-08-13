@@ -47,7 +47,7 @@ const cerrar = () => {
                 <FileSpreadsheet :size="15" :style="{ color: tipoImport === op.key ? 'white' : '#94A3B8' }" />
               </div>
               <div class="min-w-0">
-                <div class="text-[11px] font-bold" :style="{ color: tipoImport === op.key ? op.color : '#0F172A' }">{{ op.label }}</div>
+                <div class="text-[11px] font-bold" :class="tipoImport !== op.key && 'text-[#0F172A] dark:text-slate-100'" :style="tipoImport === op.key ? { color: op.color } : {}">{{ op.label }}</div>
                 <div class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 leading-tight">{{ op.desc }}</div>
               </div>
             </button>
