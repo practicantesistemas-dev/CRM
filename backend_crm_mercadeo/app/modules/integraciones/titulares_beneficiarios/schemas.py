@@ -1,0 +1,279 @@
+from datetime import date
+from typing import Any, Optional
+
+from pydantic import BaseModel, model_validator
+
+
+class EntradaMayusculas(BaseModel):
+    """Base para los esquemas que reciben datos del cliente: normaliza a
+    mayusculas cualquier valor de texto, sin importar como lo haya escrito
+    el usuario (minusculas, mixto, etc.), para mantener consistencia con los
+    datos legacy en Oracle."""
+
+    @model_validator(mode="before")
+    @classmethod
+    def normalizar_mayusculas(cls, datos: Any) -> Any:
+        if not isinstance(datos, dict):
+            return datos
+        return {
+            campo: valor.upper() if isinstance(valor, str) else valor
+            for campo, valor in datos.items()
+        }
+
+
+class ResumenTitularesBeneficiarios(BaseModel):
+    titulares_activos: int
+    beneficiarios_activos: int
+
+
+class PlanItem(BaseModel):
+    ID: int
+    NOMBRE: str
+    TIPO: Optional[str] = None
+    MAX_BENEFICIARIOS: Optional[int] = None
+    BENEFICIARIOS_ADICIONALES: Optional[int] = None
+    DESCRIPCION: Optional[str] = None
+    ESTADO: Optional[str] = None
+
+
+class PlanNombre(BaseModel):
+    ID: int
+    NOMBRE: str
+
+
+class TitularDetalle(BaseModel):
+    ID_TITULAR: int
+    DOCUMENTO: Optional[str] = None
+    TIPO_DOCUMENTO: Optional[str] = None
+    NOMBRE1: Optional[str] = None
+    NOMBRE2: Optional[str] = None
+    APELLIDO1: Optional[str] = None
+    APELLIDO2: Optional[str] = None
+    FECHA_NACIMIENTO: Optional[str] = None
+    SEXO: Optional[str] = None
+    CORREO: Optional[str] = None
+    TELEFONO: Optional[str] = None
+    DIRECCION: Optional[str] = None
+    CIUDAD: Optional[str] = None
+    DEPARTAMENTO: Optional[str] = None
+    TIPO_PLAN: Optional[str] = None
+    TIPO_AFILIADO: Optional[str] = None
+    EMPRESA: Optional[str] = None
+    EPS: Optional[str] = None
+    OTRAEPS: Optional[str] = None
+    PLAN_SALUD: Optional[str] = None
+    PLAN_NOMBRE: Optional[str] = None
+    ESTADO: Optional[str] = None
+    FECHA_INGRESO: Optional[str] = None
+
+
+class ListadoTitulares(BaseModel):
+    ID_TITULAR: int
+    TITULAR: str
+    EMAIL: Optional[str] = None
+    TELEFONO: Optional[str] = None
+    TIPO_DOCUMENTO: Optional[str] = None
+    DOCUMENTO: str
+    EMPRESA: Optional[str] = None
+    PLANES: Optional[str] = None
+    BENEFICIARIOS: Optional[str] = None
+    INSCRIPCION: Optional[str] = None
+    ESTADO: str
+
+
+class TitularUpdate(EntradaMayusculas):
+    DOCUMENTO: Optional[str] = None
+    TIPO_DOCUMENTO: Optional[str] = None
+    NOMBRE1: Optional[str] = None
+    NOMBRE2: Optional[str] = None
+    APELLIDO1: Optional[str] = None
+    APELLIDO2: Optional[str] = None
+    FECHA_NACIMIENTO: Optional[date] = None
+    SEXO: Optional[str] = None
+    CORREO: Optional[str] = None
+    TELEFONO: Optional[str] = None
+    DIRECCION: Optional[str] = None
+    CIUDAD: Optional[str] = None
+    DEPARTAMENTO: Optional[str] = None
+    EMPRESA: Optional[str] = None
+    ESTADO: Optional[str] = None
+
+
+class TitularActivar(BaseModel):
+    FECHA_INGRESO: date
+
+
+class ReemplazoPersona(EntradaMayusculas):
+    """Datos de la persona nueva que reemplaza al titular/beneficiario actual.
+    El plan, cupo y demas datos legacy (tipo_plan, eps, plan_salud, etc.) se
+    heredan del registro reemplazado, no se piden aqui."""
+
+    TIPO_DOCUMENTO: str
+    DOCUMENTO: str
+    NOMBRE1: str
+    NOMBRE2: Optional[str] = None
+    APELLIDO1: str
+    APELLIDO2: Optional[str] = None
+    FECHA_NACIMIENTO: Optional[date] = None
+    SEXO: Optional[str] = None
+    DIRECCION: Optional[str] = None
+    CIUDAD: Optional[str] = None
+    DEPARTAMENTO: Optional[str] = None
+    CORREO: Optional[str] = None
+    TELEFONO: Optional[str] = None
+    EMPRESA: Optional[str] = None
+
+
+class ReemplazoTitularResultado(BaseModel):
+    titular_anterior_id: int
+    titular_nuevo: TitularDetalle
+    beneficiarios_reasignados: int
+    usuario_servinte_creado: bool
+    marcado_en_incle: bool
+    registros_incle_marcados_anterior: int
+
+
+class TitularCrear(EntradaMayusculas):
+    TIPO_PLAN: Optional[str] = None
+    TIPO_DOCUMENTO: str
+    DOCUMENTO: str
+    NOMBRE1: str
+    NOMBRE2: Optional[str] = None
+    APELLIDO1: str
+    APELLIDO2: Optional[str] = None
+    FECHA_NACIMIENTO: Optional[date] = None
+    SEXO: Optional[str] = None
+    DIRECCION: Optional[str] = None
+    CIUDAD: Optional[str] = None
+    DEPARTAMENTO: Optional[str] = None
+    CORREO: Optional[str] = None
+    TELEFONO: Optional[str] = None
+    FECHA_INGRESO: date
+    TIPO_AFILIADO: str
+    EMPRESA: Optional[str] = None
+    EPS: Optional[str] = None
+    OTRAEPS: Optional[str] = None
+    PLAN_SALUD: str
+    PLAN_NOMBRE: str
+    TIPO_PLAN_ID: Optional[int] = None
+    FACTURA: Optional[str] = None
+
+
+class CreacionTitularResultado(BaseModel):
+    titular: TitularDetalle
+    usuario_servinte_creado: bool
+    marcado_en_incle: bool
+
+
+class ActivacionTitularResultado(BaseModel):
+    titular: TitularDetalle
+    beneficiarios_activados: int
+    registros_incle_desmarcados: int
+
+
+class DesactivacionTitularResultado(BaseModel):
+    titular: TitularDetalle
+    beneficiarios_desactivados: int
+    registros_incle_marcados: int
+
+
+class ListadoTitularesPaginado(BaseModel):
+    items: list[ListadoTitulares]
+    total: int
+    limit: int
+    offset: int
+
+
+class BeneficiarioDetalle(BaseModel):
+    ID: int
+    TIPO_DOCUMENTO: Optional[str] = None
+    DOCUMENTO: Optional[str] = None
+    NOMBRE1: Optional[str] = None
+    NOMBRE2: Optional[str] = None
+    APELLIDO1: Optional[str] = None
+    APELLIDO2: Optional[str] = None
+    FECHA_NACIMIENTO: Optional[str] = None
+    SEXO: Optional[str] = None
+    DIRECCION: Optional[str] = None
+    CIUDAD: Optional[str] = None
+    DEPARTAMENTO: Optional[str] = None
+    CORREO: Optional[str] = None
+    TELEFONO: Optional[str] = None
+    FECHA_INGRESO: Optional[str] = None
+    EMPRESA: Optional[str] = None
+    ESTADO: Optional[str] = None
+
+
+class BeneficiarioCrear(EntradaMayusculas):
+    """EMPRESA, TIPO_PLAN y PLAN_NOMBRE no se piden aqui: el beneficiario
+    siempre hereda esos datos del titular al que se asocia (ver
+    TitularesBeneficiariosService.crear_beneficiario)."""
+
+    TIPO_DOCUMENTO: str
+    DOCUMENTO: str
+    NOMBRE1: str
+    NOMBRE2: Optional[str] = None
+    APELLIDO1: str
+    APELLIDO2: Optional[str] = None
+    FECHA_NACIMIENTO: date
+    SEXO: Optional[str] = None
+    DIRECCION: Optional[str] = None
+    CIUDAD: str
+    DEPARTAMENTO: str
+    CORREO: Optional[str] = None
+    TELEFONO: Optional[str] = None
+    EPS: Optional[str] = None
+    OTRAEPS: Optional[str] = None
+    PLAN_SALUD: Optional[str] = None
+
+
+class CreacionBeneficiarioResultado(BaseModel):
+    beneficiario: BeneficiarioDetalle
+    usuario_servinte_creado: bool
+    marcado_en_incle: bool
+
+
+class BeneficiarioActivar(BaseModel):
+    FECHA_INGRESO: date
+
+
+class ActivacionBeneficiarioResultado(BaseModel):
+    beneficiario: BeneficiarioDetalle
+    registros_incle_desmarcados: int
+
+
+class DesactivacionBeneficiarioResultado(BaseModel):
+    beneficiario: BeneficiarioDetalle
+    registros_incle_marcados: int
+
+
+class BeneficiarioUpdate(EntradaMayusculas):
+    TIPO_DOCUMENTO: Optional[str] = None
+    DOCUMENTO: Optional[str] = None
+    NOMBRE1: Optional[str] = None
+    NOMBRE2: Optional[str] = None
+    APELLIDO1: Optional[str] = None
+    APELLIDO2: Optional[str] = None
+    FECHA_NACIMIENTO: Optional[date] = None
+    SEXO: Optional[str] = None
+    DIRECCION: Optional[str] = None
+    CIUDAD: Optional[str] = None
+    DEPARTAMENTO: Optional[str] = None
+    CORREO: Optional[str] = None
+    TELEFONO: Optional[str] = None
+    EMPRESA: Optional[str] = None
+    ESTADO: Optional[str] = None
+
+
+class CambioTitularBeneficiario(EntradaMayusculas):
+    """Documento (cedula) del titular al que se va a mover el beneficiario."""
+
+    DOCUMENTO_TITULAR_NUEVO: str
+
+
+class ReemplazoBeneficiarioResultado(BaseModel):
+    beneficiario_anterior_id: int
+    beneficiario_nuevo: BeneficiarioDetalle
+    usuario_servinte_creado: bool
+    marcado_en_incle: bool
+    registros_incle_marcados_anterior: int

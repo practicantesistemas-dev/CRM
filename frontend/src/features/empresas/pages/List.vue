@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { Search, Plus, Download } from 'lucide-vue-next'
+import { Search, Plus, Download, Upload, Loader2, X, ChevronLeft, ChevronRight } from 'lucide-vue-next'
 import type { Empresa, EmpresaDraft } from '../types/empresa'
 import { EMPRESA_DRAFT_VACIO } from '../constants/empresas.constants'
 import { useEmpresas } from '../composables/useEmpresas'
@@ -14,9 +14,12 @@ const {
   empresas, cargandoEmpresas, errorEmpresas, cargarEmpresas,
   buscar, filtroEstado, filtroIndustria,
   empresasFiltradas, industrias,
+  paginaActual, totalPaginas, hayPaginaAnterior, hayPaginaSiguiente,
+  empresasPaginadas, paginaSiguiente, paginaAnterior,
   crearEmpresa, actualizarEmpresa, guardandoEmpresa, errorGuardarEmpresa,
   eliminarEmpresa, errorEliminarEmpresa,
   historialActual, cargandoHistorial, cargarHistorial,
+  importarDesdePlanLiga, importandoPlanLiga, errorImportarPlanLiga, resultadoImportarPlanLiga,
 } = useEmpresas()
 
 onMounted(() => { cargarEmpresas() })
@@ -83,6 +86,16 @@ const alRegistrarActividad = () => { if (empresaHistorial.value) cargarHistorial
         <p class="text-[12px] text-slate-500 dark:text-slate-400 mt-0.5">Empresas vinculadas e industrias</p>
       </div>
       <div class="flex items-center gap-2">
+        <button
+          @click="importarDesdePlanLiga"
+          :disabled="importandoPlanLiga"
+          class="flex items-center gap-1.5 h-9 px-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-[11px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-60 disabled:cursor-not-allowed transition-all"
+          title="Crea una empresa por cada nombre distinto en intranet_planliga.empresa que todavía no exista en este catálogo"
+        >
+          <Loader2 v-if="importandoPlanLiga" :size="13" class="animate-spin" />
+          <Upload v-else :size="13" />
+          Importar de Plan Liga
+        </button>
         <button class="flex items-center gap-1.5 h-9 px-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-[11px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all">
           <Download :size="13" /> Exportar
         </button>
@@ -90,6 +103,15 @@ const alRegistrarActividad = () => { if (empresaHistorial.value) cargarHistorial
           <Plus :size="14" /> Nueva empresa
         </button>
       </div>
+    </div>
+
+    <div v-if="resultadoImportarPlanLiga" class="flex items-center gap-2.5 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-xl px-4 py-3">
+      <p class="text-[12px] font-semibold text-emerald-700 dark:text-emerald-300">{{ resultadoImportarPlanLiga }}</p>
+      <button @click="resultadoImportarPlanLiga = null" class="ml-auto text-emerald-400 hover:text-emerald-600 dark:hover:text-emerald-300 shrink-0"><X :size="13" /></button>
+    </div>
+    <div v-if="errorImportarPlanLiga" class="flex items-center gap-2.5 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 rounded-xl px-4 py-3">
+      <p class="text-[12px] font-semibold text-red-600 dark:text-red-400">{{ errorImportarPlanLiga }}</p>
+      <button @click="errorImportarPlanLiga = null" class="ml-auto text-red-400 hover:text-red-600 dark:hover:text-red-300 shrink-0"><X :size="13" /></button>
     </div>
 
     <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm px-4 py-3">
@@ -120,7 +142,21 @@ const alRegistrarActividad = () => { if (empresaHistorial.value) cargarHistorial
       <p v-if="errorEliminarEmpresa" class="mt-1 text-[11px] font-medium text-red-500 dark:text-red-400">{{ errorEliminarEmpresa }}</p>
     </div>
 
-    <EmpresasTable :rows="empresasFiltradas" @editar="abrirEditar" @historial="abrirHistorial" @borrar="pedirBorrarEmpresa" />
+    <EmpresasTable :rows="empresasPaginadas" @editar="abrirEditar" @historial="abrirHistorial" @borrar="pedirBorrarEmpresa" />
+
+    <div v-if="empresasFiltradas.length > 0" class="flex items-center justify-center gap-3 px-1">
+      <button @click="paginaAnterior" :disabled="!hayPaginaAnterior"
+        class="w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+        title="Página anterior">
+        <ChevronLeft :size="15" />
+      </button>
+      <span class="text-[11px] text-slate-400 dark:text-slate-500">Página <strong class="text-slate-600 dark:text-slate-300">{{ paginaActual }}</strong> de <strong class="text-slate-600 dark:text-slate-300">{{ totalPaginas }}</strong></span>
+      <button @click="paginaSiguiente" :disabled="!hayPaginaSiguiente"
+        class="w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+        title="Página siguiente">
+        <ChevronRight :size="15" />
+      </button>
+    </div>
 
     <EmpresaFormDialog
       v-model:visible="modalVisible"

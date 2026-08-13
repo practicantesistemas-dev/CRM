@@ -13,7 +13,8 @@ async function lanzarErrorConDetalle(response: Response, mensajeError: string): 
 interface EmpresaReadResponse {
   id: number
   razon_social: string
-  nit: string
+  // Nulo en empresas importadas desde Plan Liga (nombre libre sin NIT asociado).
+  nit: string | null
   industria: string | null
   direccion: string | null
   ciudad: string | null
@@ -27,7 +28,7 @@ function mapEmpresaResponse(r: EmpresaReadResponse): Empresa {
   return {
     id: r.id,
     razonSocial: r.razon_social,
-    nit: r.nit,
+    nit: r.nit ?? '',
     industria: r.industria ?? '',
     direccion: r.direccion ?? '',
     ciudad: r.ciudad ?? '',
@@ -97,4 +98,21 @@ export async function deleteEmpresa(id: number): Promise<void> {
     headers: { ...authHeader() },
   })
   if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo eliminar la empresa.')
+}
+
+export interface ImportacionEmpresasPlanLiga {
+  creadas: number
+  nombres: string[]
+}
+
+// Crea una Empresa (sin NIT) por cada nombre distinto de intranet_planliga.empresa que
+// todavía no exista en el catálogo (el backend hace el filtro/dedup); es idempotente,
+// se puede volver a llamar sin duplicar lo ya importado.
+export async function importarEmpresasPlanLiga(): Promise<ImportacionEmpresasPlanLiga> {
+  const response = await fetch(`${API_URL}/api/empresas/importar-plan-liga`, {
+    method: 'POST',
+    headers: { ...authHeader() },
+  })
+  if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo importar empresas desde Plan Liga.')
+  return response.json()
 }
