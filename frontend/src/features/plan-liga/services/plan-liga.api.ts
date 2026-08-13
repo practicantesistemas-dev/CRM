@@ -53,12 +53,6 @@ function fechaApiAIso(fecha: string | null): string {
 const ESTADO_TITULAR_API: Record<Titular['estado'], string> = { Activo: 'A', Inactivo: 'I' }
 const SEXO_TITULAR_API: Record<Titular['sexo'], string | null> = { Masculino: 'M', Femenino: 'F', '': null }
 
-/** Selector de titulares (usado por Oportunidades/Actividades): trae el listado real del backend. */
-export async function getTitulares(): Promise<Titular[]> {
-  const { items } = await getListadoTitulares({ limit: 2000 })
-  return items
-}
-
 export async function createTitular(data: TitularDraft): Promise<void> {
   const { nombre1, nombre2, apellido1, apellido2 } = splitNombreCompleto(data.nombre)
   const body = {

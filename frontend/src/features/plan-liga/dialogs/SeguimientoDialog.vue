@@ -11,6 +11,7 @@ import FieldError from '@/shared/components/FieldError.vue'
 import FechaInput from '@/shared/components/FechaInput.vue'
 import BuscadorEntidad, { type OpcionBuscador } from '@/shared/components/BuscadorEntidad.vue'
 import { getOportunidades } from '@/features/oportunidades/services/oportunidades.api'
+import type { Oportunidad } from '@/features/oportunidades/types/oportunidad'
 
 // beneficiario: cuando se registra el seguimiento desde un beneficiario puntual (no el
 // titular). El endpoint de bitácora solo tiene titular_id, así que el seguimiento siempre
@@ -27,8 +28,9 @@ const formSeg = ref<SeguimientoDraft>({
 
 const { errors, tocar, esVisible, onValidSubmit } = useZodForm(seguimientoSchema, formSeg)
 
+const oportunidades = ref<Oportunidad[]>([])
 const opcionesOportunidades = computed<OpcionBuscador[]>(() =>
-  getOportunidades()
+  oportunidades.value
     .filter(o => o.planLigaTitularId === props.titular?.id)
     .map(o => ({ id: o.id, label: o.servicio, sublabel: `${o.estado} · ${o.valor}` })),
 )
@@ -38,6 +40,7 @@ watch(visible, (v) => {
   formSeg.value = { tipo: 'Nota', accion: '', proximoPaso: '', proximoPasoFecha: '', fecha: new Date().toISOString().split('T')[0], oportunidadId: null }
   segGuardado.value = false
   error.value = null
+  getOportunidades().then(data => { oportunidades.value = data }).catch(() => { oportunidades.value = [] })
 })
 
 const guardarSeguimiento = onValidSubmit(async () => {

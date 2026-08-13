@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { Plus, Filter, Loader2, AlertCircle, CheckCircle2, X } from 'lucide-vue-next'
 import type { Actividad, ActividadDraft } from '../types/actividad'
 import { ACTIVIDAD_DRAFT_VACIO } from '../constants/relacionamiento.constants'
 import { useRelacionamiento } from '../composables/useRelacionamiento'
+import type { Oportunidad } from '@/features/oportunidades/types/oportunidad'
+import { getOportunidades } from '@/features/oportunidades/services/oportunidades.api'
 import FiltrosTipo from '../components/FiltrosTipo.vue'
 import TimelineItem from '../components/TimelineItem.vue'
 import PendientesAlerta from '../components/PendientesAlerta.vue'
@@ -17,6 +19,11 @@ const {
   eliminarActividad, eliminandoActividad, errorEliminarActividad,
   marcarRealizada, completandoId, errorCompletarActividad,
 } = useRelacionamiento()
+
+// Se carga una sola vez acá (no en cada TimelineItem) para que "oportunidad relacionada"
+// se pueda mostrar por fila sin un fetch por actividad.
+const oportunidades = ref<Oportunidad[]>([])
+onMounted(async () => { oportunidades.value = await getOportunidades().catch(() => []) })
 
 const avisoRealizado = ref<string | null>(null)
 const marcarRealizado = async (a: Actividad) => {
@@ -114,7 +121,7 @@ const confirmarEliminar = async () => {
       <Loader2 :size="16" class="animate-spin" />Cargando bitácora...
     </div>
     <div v-else class="space-y-3">
-      <TimelineItem v-for="a in actividadesFiltradas" :key="a.id" :actividad="a" @eliminar="abrirEliminar(a)" @editar="abrirEditar(a)" />
+      <TimelineItem v-for="a in actividadesFiltradas" :key="a.id" :actividad="a" :oportunidades="oportunidades" @eliminar="abrirEliminar(a)" @editar="abrirEditar(a)" />
 
       <div v-if="actividadesFiltradas.length === 0" class="surface-card rounded-2xl p-16 text-center text-muted text-[12px]">
         No se encontraron actividades con los filtros aplicados.

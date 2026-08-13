@@ -1,9 +1,24 @@
-import { ref, computed } from 'vue'
-import type { Oportunidad, OportunidadDraft } from '../types/oportunidad'
+import { ref, computed, onMounted } from 'vue'
+import type { EtapaOportunidad, Oportunidad, OportunidadDraft } from '../types/oportunidad'
 import { getOportunidades, createOportunidad, updateOportunidad } from '../services/oportunidades.api'
 
 export function useOportunidades() {
-  const oportunidades = ref<Oportunidad[]>(getOportunidades())
+  const oportunidades = ref<Oportunidad[]>([])
+  const cargando = ref(false)
+  const error = ref<string | null>(null)
+
+  const cargarOportunidades = async () => {
+    cargando.value = true
+    error.value = null
+    try {
+      oportunidades.value = await getOportunidades()
+    } catch (e) {
+      error.value = e instanceof Error ? e.message : 'No se pudo cargar el listado de oportunidades.'
+    } finally {
+      cargando.value = false
+    }
+  }
+  onMounted(cargarOportunidades)
 
   const buscar = ref('')
   const filtroEstado = ref('todos')
@@ -26,34 +41,76 @@ export function useOportunidades() {
     return activas.length + ' activas'
   })
 
-  const crearOportunidad = (data: OportunidadDraft) => {
-    oportunidades.value = [createOportunidad(data), ...oportunidades.value]
+  const guardando = ref(false)
+  const errorGuardar = ref<string | null>(null)
+
+  const crearOportunidad = async (data: OportunidadDraft): Promise<boolean> => {
+    guardando.value = true
+    errorGuardar.value = null
+    try {
+      const nueva = await createOportunidad(data)
+      oportunidades.value = [nueva, ...oportunidades.value]
+      return true
+    } catch (e) {
+      errorGuardar.value = e instanceof Error ? e.message : 'No se pudo crear la oportunidad.'
+      return false
+    } finally {
+      guardando.value = false
+    }
   }
 
-  const actualizarOportunidad = (id: number, data: OportunidadDraft) => {
-    const actualizada = updateOportunidad(id, data)
-    if (!actualizada) return
-    const idx = oportunidades.value.findIndex(o => o.id === id)
-    if (idx !== -1) oportunidades.value[idx] = actualizada
+  const actualizarOportunidad = async (id: number, data: OportunidadDraft): Promise<boolean> => {
+    guardando.value = true
+    errorGuardar.value = null
+    try {
+      const actualizada = await updateOportunidad(id, data)
+      const idx = oportunidades.value.findIndex(o => o.id === id)
+      if (idx !== -1) oportunidades.value[idx] = actualizada
+      return true
+    } catch (e) {
+      errorGuardar.value = e instanceof Error ? e.message : 'No se pudo actualizar la oportunidad.'
+      return false
+    } finally {
+      guardando.value = false
+    }
   }
 
-  const marcarGanada = (o: Oportunidad) => {
-    const actualizada = updateOportunidad(o.id, { estado: 'Ganada', probabilidad: 100 })
-    if (!actualizada) return
-    const idx = oportunidades.value.findIndex(x => x.id === o.id)
-    if (idx !== -1) oportunidades.value[idx] = actualizada
+  // Cambia solo la etapa (sin tocar probabilidad): la usa el Tablero (Kanban) al arrastrar
+  // una tarjeta a otra columna.
+  const cambiarEtapa = async (o: Oportunidad, etapa: EtapaOportunidad) => {
+    try {
+      const actualizada = await updateOportunidad(o.id, { estado: etapa })
+      const idx = oportunidades.value.findIndex(x => x.id === o.id)
+      if (idx !== -1) oportunidades.value[idx] = actualizada
+    } catch (e) {
+      errorGuardar.value = e instanceof Error ? e.message : 'No se pudo cambiar la etapa de la oportunidad.'
+    }
   }
 
-  const marcarPerdida = (o: Oportunidad) => {
-    const actualizada = updateOportunidad(o.id, { estado: 'Perdida', probabilidad: 0 })
-    if (!actualizada) return
-    const idx = oportunidades.value.findIndex(x => x.id === o.id)
-    if (idx !== -1) oportunidades.value[idx] = actualizada
+  const marcarGanada = async (o: Oportunidad) => {
+    try {
+      const actualizada = await updateOportunidad(o.id, { estado: 'Ganada', probabilidad: 100 })
+      const idx = oportunidades.value.findIndex(x => x.id === o.id)
+      if (idx !== -1) oportunidades.value[idx] = actualizada
+    } catch (e) {
+      errorGuardar.value = e instanceof Error ? e.message : 'No se pudo marcar la oportunidad como ganada.'
+    }
+  }
+
+  const marcarPerdida = async (o: Oportunidad) => {
+    try {
+      const actualizada = await updateOportunidad(o.id, { estado: 'Perdida', probabilidad: 0 })
+      const idx = oportunidades.value.findIndex(x => x.id === o.id)
+      if (idx !== -1) oportunidades.value[idx] = actualizada
+    } catch (e) {
+      errorGuardar.value = e instanceof Error ? e.message : 'No se pudo marcar la oportunidad como perdida.'
+    }
   }
 
   return {
-    oportunidades, buscar, filtroEstado, filtroResponsable,
+    oportunidades, cargando, error, buscar, filtroEstado, filtroResponsable,
     oportunidadesFiltradas, responsables, valorTotal,
-    crearOportunidad, actualizarOportunidad, marcarGanada, marcarPerdida,
+    crearOportunidad, actualizarOportunidad, cambiarEtapa, marcarGanada, marcarPerdida,
+    guardando, errorGuardar,
   }
 }

@@ -3,13 +3,16 @@ import { computed } from 'vue'
 import { Target, Trash2, Pencil, AlarmClock, Check } from 'lucide-vue-next'
 import type { Actividad } from '../types/actividad'
 import { TIPO_META } from '../constants/relacionamiento.constants'
-import { getOportunidades } from '@/features/oportunidades/services/oportunidades.api'
+import type { Oportunidad } from '@/features/oportunidades/types/oportunidad'
 import { clienteLabel } from '@/features/oportunidades/constants/oportunidades.constants'
 
-const props = defineProps<{ actividad: Actividad }>()
+// `oportunidades` viaja por prop (cargada una sola vez en la página List.vue) en vez de
+// pedirla acá: este componente se repite una vez por actividad, así que hacerlo local
+// dispararía un fetch duplicado por cada fila del timeline.
+const props = defineProps<{ actividad: Actividad; oportunidades: Oportunidad[] }>()
 const emit = defineEmits<{ eliminar: []; editar: [] }>()
 
-const oportunidad = computed(() => getOportunidades().find(o => o.id === props.actividad.oportunidadId) ?? null)
+const oportunidad = computed(() => props.oportunidades.find(o => o.id === props.actividad.oportunidadId) ?? null)
 
 const sujetos = computed(() => [props.actividad.contactoNombre, props.actividad.empresaNombre, props.actividad.titularNombre].filter(Boolean))
 

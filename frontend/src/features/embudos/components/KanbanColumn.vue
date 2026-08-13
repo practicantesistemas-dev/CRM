@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { Plus } from 'lucide-vue-next'
-import type { EtapaColor, Tarjeta } from '../types/tarjeta'
+import type { EtapaColor } from '../types/tarjeta'
+import type { Oportunidad } from '@/features/oportunidades/types/oportunidad'
 import KanbanCard from './KanbanCard.vue'
 
 defineProps<{
   etapa: string
   color: EtapaColor
-  tarjetas: Tarjeta[]
+  oportunidades: Oportunidad[]
   valor: string
   isDropTarget: boolean
   draggingId: number | null
@@ -40,7 +41,7 @@ const emit = defineEmits<{
         <div class="w-2 h-2 rounded-full" :style="{ backgroundColor: color.dot }" />
         <span class="text-[11px] font-bold" :style="{ color: color.text }">{{ etapa }}</span>
         <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full text-white" :style="{ backgroundColor: color.dot }">
-          {{ tarjetas.length }}
+          {{ oportunidades.length }}
         </span>
       </div>
       <div class="text-[9px] font-bold text-slate-400 dark:text-slate-500">{{ valor }}</div>
@@ -55,13 +56,13 @@ const emit = defineEmits<{
 
     <div class="flex flex-col gap-2 flex-1">
       <KanbanCard
-        v-for="t in tarjetas"
-        :key="t.id"
-        :tarjeta="t"
+        v-for="o in oportunidades"
+        :key="o.id"
+        :oportunidad="o"
         :color="color"
-        :dragging="draggingId === t.id"
-        :drop-indicator="dropIndicator && dropIndicator.id === t.id ? dropIndicator.position : null"
-        @dragstart="emit('dragstart', $event, t.id)"
+        :dragging="draggingId === o.id"
+        :drop-indicator="dropIndicator && dropIndicator.id === o.id ? dropIndicator.position : null"
+        @dragstart="emit('dragstart', $event, o.id)"
         @dragend="emit('dragend')"
         @dragover-card="(id, pos) => emit('dragoverCard', id, pos)"
       />

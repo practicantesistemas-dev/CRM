@@ -19,16 +19,3 @@ export interface Oportunidad {
 }
 
 export type OportunidadDraft = Omit<Oportunidad, 'id'>
-
-/** Forma en la que el Front envía la oportunidad al Backend: solo el id correspondiente al tipo de cliente va diligenciado, los demás viajan en null. */
-export interface OportunidadPayload {
-  tipo_cliente: TipoCliente
-  empresa_id: number | null
-  contacto_id: number | null
-  plan_liga_titular_id: number | null
-  servicio: string
-  responsable: string
-  valor: string
-  probabilidad: number
-  estado: EtapaOportunidad
-}

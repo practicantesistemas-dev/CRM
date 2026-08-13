@@ -1,30 +1,35 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { Plus, ZoomIn, ZoomOut } from 'lucide-vue-next'
-import type { TarjetaDraft } from '../types/tarjeta'
-import { ETAPAS, ETAPA_COLOR, TARJETA_DRAFT_VACIO } from '../constants/embudos.constants'
+import type { EtapaOportunidad, OportunidadDraft } from '@/features/oportunidades/types/oportunidad'
+import { ETAPAS, OPORTUNIDAD_DRAFT_VACIO } from '@/features/oportunidades/constants/oportunidades.constants'
+import { useOportunidades } from '@/features/oportunidades/composables/useOportunidades'
+import OportunidadFormDialog from '@/features/oportunidades/dialogs/OportunidadFormDialog.vue'
+import { ETAPA_COLOR } from '../constants/embudos.constants'
 import { useEmbudos } from '../composables/useEmbudos'
 import KanbanColumn from '../components/KanbanColumn.vue'
-import NuevaTarjetaDialog from '../dialogs/NuevaTarjetaDialog.vue'
+
+const { oportunidades, crearOportunidad, cambiarEtapa } = useOportunidades()
 
 const {
   draggingId, dropTarget, dropIndicator,
   onDragStart, onDragEnd, onDragOver, onDragOverCard, onDragLeave, onDrop,
   porEtapa, valorEtapa, totalOportunidades, totalValor,
-  crearTarjeta,
-} = useEmbudos()
+} = useEmbudos(oportunidades, (id, etapa) => {
+  const o = oportunidades.value.find(x => x.id === id)
+  if (o) cambiarEtapa(o, etapa)
+})
 
 const nuevaVisible = ref(false)
-const draft = ref<TarjetaDraft>({ ...TARJETA_DRAFT_VACIO })
+const draft = ref<OportunidadDraft>({ ...OPORTUNIDAD_DRAFT_VACIO })
 
-const abrirNueva = (etapa: string) => {
-  draft.value = { ...TARJETA_DRAFT_VACIO, etapa }
+const abrirNueva = (etapa: EtapaOportunidad) => {
+  draft.value = { ...OPORTUNIDAD_DRAFT_VACIO, estado: etapa }
   nuevaVisible.value = true
 }
 
-const confirmarCreacion = () => {
-  crearTarjeta(draft.value)
-  nuevaVisible.value = false
+const confirmarCreacion = async () => {
+  if (await crearOportunidad(draft.value)) nuevaVisible.value = false
 }
 
 const ZOOM_MIN = 0.5
@@ -93,7 +98,7 @@ const resetZoom = () => { zoom.value = 1 }
           :key="etapa"
           :etapa="etapa"
           :color="ETAPA_COLOR[etapa]"
-          :tarjetas="porEtapa(etapa)"
+          :oportunidades="porEtapa(etapa)"
           :valor="valorEtapa(etapa)"
           :is-drop-target="dropTarget === etapa"
           :dragging-id="draggingId"
@@ -109,10 +114,10 @@ const resetZoom = () => { zoom.value = 1 }
       </div>
     </div>
 
-    <NuevaTarjetaDialog
+    <OportunidadFormDialog
       v-model:visible="nuevaVisible"
       v-model:draft="draft"
-      :etapa="draft.etapa"
+      modo="nuevo"
       @submit="confirmarCreacion"
     />
   </div>
