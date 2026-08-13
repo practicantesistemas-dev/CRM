@@ -1,8 +1,10 @@
 <script setup lang="ts">
+import Select from 'primevue/select'
 import { Building2, Hash, MapPin } from 'lucide-vue-next'
 import type { EmpresaDraft } from '../types/empresa'
 import { empresaSchema } from '../schemas/empresa.schema'
 import { useZodForm } from '@/shared/composables/useZodForm'
+import { useUbicaciones } from '@/shared/composables/useUbicaciones'
 import { fieldStateClass } from '@/shared/utils/fieldStateClass'
 import FieldError from '@/shared/components/FieldError.vue'
 
@@ -10,6 +12,9 @@ const draft = defineModel<EmpresaDraft>({ required: true })
 const emit = defineEmits<{ validSubmit: [] }>()
 
 const { errors, tocar, esVisible, onValidSubmit } = useZodForm(empresaSchema, draft)
+// Empresa solo guarda el nombre de la ciudad (sin departamento asociado, a diferencia de
+// Contacto/Titular), así que el Select usa option-value="nombre" en vez del código DIVIPOLA.
+const { municipios, cargandoUbicaciones } = useUbicaciones()
 defineExpose({ submit: onValidSubmit(() => emit('validSubmit')) })
 </script>
 
@@ -46,7 +51,10 @@ defineExpose({ submit: onValidSubmit(() => emit('validSubmit')) })
     </div>
     <div>
       <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1.5 uppercase tracking-wide">Ciudad *</label>
-      <input v-model="draft.ciudad" @blur="tocar('ciudad')" placeholder="Ej: Pereira" class="w-full h-10 px-4 rounded-lg border bg-slate-50 dark:bg-slate-900 text-[12px] text-slate-900 dark:text-slate-100 outline-none focus:bg-white dark:focus:bg-slate-800 transition-all" :class="fieldStateClass(esVisible('ciudad') && !!errors.ciudad, esVisible('ciudad') && !errors.ciudad && !!draft.ciudad, 'border-slate-200 dark:border-slate-600 focus:border-[#2447F9]')" />
+      <Select v-model="draft.ciudad" @change="tocar('ciudad')" :options="municipios" option-label="nombre" option-value="nombre"
+        filter filter-placeholder="Buscar ciudad..." :loading="cargandoUbicaciones" placeholder="Selecciona una ciudad"
+        empty-filter-message="Sin resultados" empty-message="Sin ciudades" class="w-full" input-class="h-10 text-[12px] flex items-center"
+        :class="fieldStateClass(esVisible('ciudad') && !!errors.ciudad, esVisible('ciudad') && !errors.ciudad && !!draft.ciudad, '')" />
       <FieldError :message="esVisible('ciudad') ? errors.ciudad : undefined" />
     </div>
     <div>

@@ -1,6 +1,6 @@
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import type { Empresa, EmpresaDraft, HistorialItem } from '../types/empresa'
-import { getEmpresas, createEmpresa, updateEmpresa, deleteEmpresa } from '../services/empresas.api'
+import { getEmpresas, createEmpresa, updateEmpresa, deleteEmpresa, importarEmpresasPlanLiga } from '../services/empresas.api'
 import { getContactos } from '@/features/contactos/services/contactos.api'
 import { getActividades } from '@/features/relacionamiento/services/relacionamiento.api'
 import { TIPO_META } from '@/features/relacionamiento/constants/relacionamiento.constants'
@@ -48,6 +48,25 @@ export function useEmpresas() {
 
   const industrias = computed(() => [...new Set(empresas.value.map(e => e.industria))].sort())
 
+  // Paginado en cliente (6 por página): la tabla ya carga el catálogo completo para poder
+  // buscar/filtrar en memoria, así que no hace falta ida y vuelta al backend para paginar.
+  const POR_PAGINA = 6
+  const paginaActual = ref(1)
+  const totalPaginas = computed(() => Math.max(1, Math.ceil(empresasFiltradas.value.length / POR_PAGINA)))
+  const hayPaginaAnterior = computed(() => paginaActual.value > 1)
+  const hayPaginaSiguiente = computed(() => paginaActual.value < totalPaginas.value)
+  const empresasPaginadas = computed(() => {
+    const inicio = (paginaActual.value - 1) * POR_PAGINA
+    return empresasFiltradas.value.slice(inicio, inicio + POR_PAGINA)
+  })
+  const paginaSiguiente = () => { if (hayPaginaSiguiente.value) paginaActual.value++ }
+  const paginaAnterior = () => { if (hayPaginaAnterior.value) paginaActual.value-- }
+
+  // Si cambian los filtros/búsqueda, o si la página actual queda fuera de rango (ej. se
+  // borró una empresa y la última página ya no existe), vuelve a una página válida.
+  watch([buscar, filtroEstado, filtroIndustria], () => { paginaActual.value = 1 })
+  watch(totalPaginas, (total) => { if (paginaActual.value > total) paginaActual.value = total })
+
   const guardandoEmpresa = ref(false)
   const errorGuardarEmpresa = ref<string | null>(null)
 
@@ -79,6 +98,27 @@ export function useEmpresas() {
       return false
     } finally {
       guardandoEmpresa.value = false
+    }
+  }
+
+  const importandoPlanLiga = ref(false)
+  const errorImportarPlanLiga = ref<string | null>(null)
+  const resultadoImportarPlanLiga = ref<string | null>(null)
+
+  const importarDesdePlanLiga = async () => {
+    importandoPlanLiga.value = true
+    errorImportarPlanLiga.value = null
+    resultadoImportarPlanLiga.value = null
+    try {
+      const { creadas } = await importarEmpresasPlanLiga()
+      resultadoImportarPlanLiga.value = creadas > 0
+        ? `Se importaron ${creadas} empresa${creadas === 1 ? '' : 's'} nueva${creadas === 1 ? '' : 's'} desde Plan Liga.`
+        : 'No hay empresas nuevas por importar desde Plan Liga.'
+      await cargarEmpresas()
+    } catch (e) {
+      errorImportarPlanLiga.value = e instanceof Error ? e.message : 'No se pudo importar empresas desde Plan Liga.'
+    } finally {
+      importandoPlanLiga.value = false
     }
   }
 
@@ -137,8 +177,11 @@ export function useEmpresas() {
     empresas, cargandoEmpresas, errorEmpresas, cargarEmpresas,
     buscar, filtroEstado, filtroIndustria,
     empresasFiltradas, industrias,
+    paginaActual, totalPaginas, hayPaginaAnterior, hayPaginaSiguiente,
+    empresasPaginadas, paginaSiguiente, paginaAnterior,
     crearEmpresa, actualizarEmpresa, guardandoEmpresa, errorGuardarEmpresa,
     eliminarEmpresa, eliminandoEmpresa, errorEliminarEmpresa,
     historialActual, cargandoHistorial, errorHistorial, cargarHistorial,
+    importarDesdePlanLiga, importandoPlanLiga, errorImportarPlanLiga, resultadoImportarPlanLiga,
   }
 }
