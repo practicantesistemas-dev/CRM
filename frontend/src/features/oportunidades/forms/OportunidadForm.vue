@@ -11,8 +11,7 @@ import { getEmpresas } from '@/features/empresas/services/empresas.api'
 import type { Empresa } from '@/features/empresas/types/empresa'
 import { getContactos } from '@/features/contactos/services/contactos.api'
 import type { Contacto } from '@/features/contactos/types/contacto'
-import { getTitulares } from '@/features/plan-liga/services/plan-liga.api'
-import type { Titular } from '@/features/plan-liga/types/plan-liga'
+import { getListadoTitulares } from '@/features/plan-liga/services/plan-liga.api'
 
 const draft = defineModel<OportunidadDraft>({ required: true })
 const emit = defineEmits<{ validSubmit: [] }>()
@@ -41,12 +40,12 @@ const opcionesContactosDeEmpresa = computed<OpcionBuscador[]>(() => {
     .map(c => ({ id: c.id, label: c.nombre, sublabel: c.cargo }))
 })
 
-const titulares = ref<Titular[]>([])
-onMounted(async () => { titulares.value = await getTitulares() })
-
-const opcionesTitulares = computed<OpcionBuscador[]>(() =>
-  titulares.value.map(t => ({ id: t.id, label: t.nombre, sublabel: t.empresa })),
-)
+// Los titulares Plan Liga pueden ser miles: se busca contra el backend a medida que se
+// escribe en vez de precargar el catálogo completo (ver mismo ajuste en ActividadForm).
+async function buscarTitulares(query: string): Promise<OpcionBuscador[]> {
+  const { items } = await getListadoTitulares({ busqueda: query || undefined, limit: 8 })
+  return items.map(t => ({ id: t.id, label: t.nombre, sublabel: t.empresa }))
+}
 
 function cambiarTipoCliente(tipo: TipoCliente) {
   if (draft.value.tipoCliente === tipo) return
@@ -137,7 +136,9 @@ function alSeleccionarTitular(item: OpcionBuscador | null) {
         <label class="block text-[11px] font-bold text-body mb-1.5 uppercase tracking-wide">Titular Plan Liga *</label>
         <BuscadorEntidad
           v-model="draft.planLigaTitularId"
-          :opciones="opcionesTitulares"
+          :opciones="[]"
+          :buscar="buscarTitulares"
+          :label-seleccionado="draft.titularNombre"
           placeholder="Buscar titular Plan Liga..."
           vacio="No se encontraron titulares"
           @select="alSeleccionarTitular"
@@ -168,19 +169,10 @@ function alSeleccionarTitular(item: OpcionBuscador | null) {
       <label class="block text-[11px] font-bold text-body mb-1.5 uppercase tracking-wide">Probabilidad ({{ draft.probabilidad }}%)</label>
       <input v-model.number="draft.probabilidad" type="range" min="0" max="100" step="5" class="w-full h-2 rounded-lg appearance-none cursor-pointer mt-3" />
     </div>
-    <div>
+    <div class="sm:col-span-2">
       <label class="block text-[11px] font-bold text-body mb-1.5 uppercase tracking-wide">Etapa</label>
       <select v-model="draft.estado" class="w-full h-10 px-3 rounded-lg input-surface text-[12px] outline-none focus:border-[#2447F9] focus:bg-white dark:focus:bg-slate-800 transition-all cursor-pointer">
         <option v-for="e in ETAPAS" :key="e" :value="e">{{ e }}</option>
-      </select>
-    </div>
-    <div>
-      <label class="block text-[11px] font-bold text-body mb-1.5 uppercase tracking-wide">Responsable</label>
-      <select v-model="draft.responsable" class="w-full h-10 px-3 rounded-lg input-surface text-[12px] outline-none focus:border-[#2447F9] focus:bg-white dark:focus:bg-slate-800 transition-all cursor-pointer">
-        <option value="">Seleccionar</option>
-        <option value="María García">María García</option>
-        <option value="Juan López">Juan López</option>
-        <option value="Carlos Torres">Carlos Torres</option>
       </select>
     </div>
   </div>

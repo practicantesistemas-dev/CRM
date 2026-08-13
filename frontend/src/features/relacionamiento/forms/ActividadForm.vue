@@ -9,11 +9,11 @@ import FieldError from '@/shared/components/FieldError.vue'
 import FechaInput from '@/shared/components/FechaInput.vue'
 import BuscadorEntidad, { type OpcionBuscador } from '@/shared/components/BuscadorEntidad.vue'
 import { getOportunidades } from '@/features/oportunidades/services/oportunidades.api'
+import type { Oportunidad } from '@/features/oportunidades/types/oportunidad'
 import { clienteLabel } from '@/features/oportunidades/constants/oportunidades.constants'
 import { getContactos } from '@/features/contactos/services/contactos.api'
 import type { Contacto } from '@/features/contactos/types/contacto'
-import { getTitulares } from '@/features/plan-liga/services/plan-liga.api'
-import type { Titular } from '@/features/plan-liga/types/plan-liga'
+import { getListadoTitulares } from '@/features/plan-liga/services/plan-liga.api'
 import { getEmpresas } from '@/features/empresas/services/empresas.api'
 import type { Empresa } from '@/features/empresas/types/empresa'
 
@@ -29,12 +29,13 @@ onMounted(async () => { contactos.value = await getContactos() })
 const opcionesContactos = computed<OpcionBuscador[]>(() =>
   contactos.value.map(c => ({ id: c.id, label: c.nombre, sublabel: c.empresaNombre })),
 )
-const titulares = ref<Titular[]>([])
-onMounted(async () => { titulares.value = await getTitulares() })
-
-const opcionesTitulares = computed<OpcionBuscador[]>(() =>
-  titulares.value.map(t => ({ id: t.id, label: t.nombre, sublabel: t.empresa })),
-)
+// Los titulares Plan Liga pueden ser miles: a diferencia de contactos/empresas (que se
+// precargan completos), acá se busca contra el backend a medida que se escribe en vez de
+// traer todo el catálogo (limitado además a los primeros N que devuelva el listado).
+async function buscarTitulares(query: string): Promise<OpcionBuscador[]> {
+  const { items } = await getListadoTitulares({ busqueda: query || undefined, limit: 8 })
+  return items.map(t => ({ id: t.id, label: t.nombre, sublabel: t.empresa }))
+}
 
 // empresaNombre sigue siendo texto libre (el backend no tiene empresa_id en la bitácora),
 // pero se busca contra el catálogo real de empresas en vez de escribirla a mano: reduce
@@ -65,7 +66,7 @@ function alSeleccionarEmpresa(item: OpcionBuscador | null) {
 // se toma su empresa tal cual, sin obligar a buscarla/escribirla de nuevo.
 function alSeleccionarTitular(item: OpcionBuscador | null) {
   draft.value.titularNombre = item?.label ?? ''
-  if (item) draft.value.empresaNombre = titulares.value.find(t => t.id === item.id)?.empresa ?? draft.value.empresaNombre
+  if (item) draft.value.empresaNombre = item.sublabel ?? draft.value.empresaNombre
 }
 
 const errorSujeto = computed(() =>
@@ -75,9 +76,12 @@ const errorSujeto = computed(() =>
   || undefined,
 )
 
+const oportunidades = ref<Oportunidad[]>([])
+onMounted(async () => { oportunidades.value = await getOportunidades().catch(() => []) })
+
 const opcionesOportunidades = computed<OpcionBuscador[]>(() => {
   const { contactoId, titularId } = draft.value
-  const todas = getOportunidades()
+  const todas = oportunidades.value
   const relevantes = (contactoId || titularId)
     ? todas.filter(o => (contactoId && o.contactoId === contactoId) || (titularId && o.planLigaTitularId === titularId))
     : todas
@@ -123,7 +127,9 @@ const opcionesOportunidades = computed<OpcionBuscador[]>(() => {
         />
         <BuscadorEntidad
           v-model="draft.titularId"
-          :opciones="opcionesTitulares"
+          :opciones="[]"
+          :buscar="buscarTitulares"
+          :label-seleccionado="draft.titularNombre"
           placeholder="Buscar titular Plan Liga..."
           vacio="No se encontraron titulares"
           @select="alSeleccionarTitular"
