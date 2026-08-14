@@ -89,9 +89,7 @@ export async function getOportunidades(): Promise<Oportunidad[]> {
 export async function createOportunidad(data: OportunidadDraft): Promise<Oportunidad> {
   const body = {
     ...idsDeCliente(data),
-    // TODO: servicio_nombre queda en null por ahora (el catálogo de servicios del CRM
-    // Comercial todavía no está definido/conectado); se retoma cuando se decida ese diseño.
-    servicio_nombre: null,
+    servicio_nombre: data.servicio || null,
     valor: valorANumero(data.valor),
     probabilidad: data.probabilidad,
     etapa: data.estado,
@@ -118,8 +116,7 @@ export async function updateOportunidad(id: number, data: Partial<OportunidadDra
       planLigaTitularId: data.planLigaTitularId ?? null,
     }))
   }
-  // servicio_nombre queda en null por ahora, igual que en createOportunidad.
-  if (data.servicio !== undefined) body.servicio_nombre = null
+  if (data.servicio !== undefined) body.servicio_nombre = data.servicio || null
   if (data.valor !== undefined) body.valor = valorANumero(data.valor)
   if (data.probabilidad !== undefined) body.probabilidad = data.probabilidad
   if (data.estado !== undefined) body.etapa = data.estado

@@ -22,7 +22,8 @@ services:
       context: ./frontend
       args:
         VITE_CRM_API_URL: ""
-        VITE_PORTAL_PRINCIPAL_URL: ${VITE_PORTAL_PRINCIPAL_URL:?falta VITE_PORTAL_PRINCIPAL_URL en .env}
+        # Puede quedar vacío a propósito (login local vía proxy same-origin de nginx).
+        VITE_PORTAL_PRINCIPAL_URL: ${VITE_PORTAL_PRINCIPAL_URL:-}
         VITE_TABLEAU_CLIENT_ID: ${VITE_TABLEAU_CLIENT_ID:-}
         VITE_TABLEAU_SECRET_ID: ${VITE_TABLEAU_SECRET_ID:-}
         VITE_TABLEAU_SECRET_VALUE: ${VITE_TABLEAU_SECRET_VALUE:-}

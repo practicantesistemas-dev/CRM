@@ -6,7 +6,7 @@ import { useTema } from '@/shared/composables/useTema'
 
 import {
   LayoutDashboard, Heart, Users, Building2, Truck,
-  BookOpen,
+  BookOpen, Target, Filter, Wrench, Megaphone, Layers, Zap, Upload,
   ChevronLeft, ChevronRight, LogOut, Settings,
   RefreshCw, X, Menu, Moon, Sun
 } from 'lucide-vue-next'
@@ -47,22 +47,49 @@ interface Tab { key: Vista; label: string; icono: any }
 // ── Menu ──────────────────────────────────────────────────────────
 interface MenuGroup { label?: string; items: Tab[] }
 
-// Temporalmente solo se muestran estos módulos en el menú (a pedido del negocio); el resto
-// de las vistas/rutas siguen existiendo y accesibles por URL directa, solo quedan ocultas acá.
+// Producción: temporalmente solo se muestran estos módulos en el menú (a pedido del
+// negocio); el resto de las vistas/rutas siguen existiendo y accesibles por URL directa.
+// const menuGroups: MenuGroup[] = [
+//   { items: [
+//     { key: 'dashboard',        label: 'Dashboard',                 icono: LayoutDashboard },
+//   ]},
+//   { label: 'Plan Liga', items: [
+//     { key: 'plan-liga',       label: 'Titulares y Beneficiarios', icono: Heart           },
+//   ]},
+//   { label: 'Comercial', items: [
+//     { key: 'contactos',        label: 'Contactos',                 icono: Users           },
+//     { key: 'empresas',         label: 'Empresas',                  icono: Building2       },
+//     { key: 'proveedores',      label: 'Proveedores',               icono: Truck           },
+//   ]},
+//   { label: 'Operaciones', items: [
+//     { key: 'relacionamiento',  label: 'Bitácora',                  icono: BookOpen        },
+//   ]},
+// ]
+
+// Local: se muestran todos los módulos existentes en el menú.
 const menuGroups: MenuGroup[] = [
   { items: [
     { key: 'dashboard',        label: 'Dashboard',                 icono: LayoutDashboard },
   ]},
   { label: 'Plan Liga', items: [
-    { key: 'plan-liga',       label: 'Titulares y Beneficiarios', icono: Heart           },
+    { key: 'plan-liga',        label: 'Titulares y Beneficiarios', icono: Heart           },
   ]},
   { label: 'Comercial', items: [
     { key: 'contactos',        label: 'Contactos',                 icono: Users           },
     { key: 'empresas',         label: 'Empresas',                  icono: Building2       },
     { key: 'proveedores',      label: 'Proveedores',               icono: Truck           },
+    { key: 'oportunidades',    label: 'Oportunidades',             icono: Target          },
+    { key: 'embudos',          label: 'Embudos',                   icono: Filter          },
+    { key: 'servicios',        label: 'Servicios',                 icono: Wrench          },
+  ]},
+  { label: 'Marketing', items: [
+    { key: 'campanas',         label: 'Campañas',                  icono: Megaphone       },
+    { key: 'segmentacion',     label: 'Segmentación',              icono: Layers          },
+    { key: 'automatizaciones', label: 'Automatizaciones',          icono: Zap             },
   ]},
   { label: 'Operaciones', items: [
     { key: 'relacionamiento',  label: 'Bitácora',                  icono: BookOpen        },
+    { key: 'importacion',      label: 'Importación',               icono: Upload          },
   ]},
 ]
 

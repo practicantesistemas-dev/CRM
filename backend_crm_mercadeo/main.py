@@ -14,6 +14,7 @@ from app.modules.compartidos.ubicaciones.router import router as ubicaciones_rou
 from app.modules.marketing.etiquetas.router import router as etiquetas_router
 from app.modules.servicios_proveedores.actividades.router import router as actividades_router
 from app.modules.servicios_proveedores.proveedores.router import router as proveedores_router
+from app.modules.servicios_proveedores.servicios.router import router as servicios_router
 from app.modules.integraciones.titulares_beneficiarios.router import (
     router as titulares_beneficiarios_router,
 )
@@ -33,6 +34,7 @@ app.include_router(empresas_router, prefix=settings.api_prefix)
 app.include_router(etiquetas_router, prefix=settings.api_prefix)
 app.include_router(oportunidades_router, prefix=settings.api_prefix)
 app.include_router(proveedores_router, prefix=settings.api_prefix)
+app.include_router(servicios_router, prefix=settings.api_prefix)
 app.include_router(tablero_router, prefix=settings.api_prefix)
 app.include_router(ubicaciones_router, prefix=settings.api_prefix)
 app.include_router(titulares_beneficiarios_router, prefix=settings.api_prefix)

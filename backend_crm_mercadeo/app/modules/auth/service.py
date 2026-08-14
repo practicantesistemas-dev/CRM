@@ -19,12 +19,16 @@ def _contrasena_coincide(guardada: str | None, ingresada: str) -> bool:
     if not guardada:
         return False
 
-    password_ingresada = hashlib.sha1(ingresada.strip().encode("utf-8")).hexdigest().upper()
-    return guardada.strip().upper() == password_ingresada
+    # Producción (contraseñas guardadas como hash SHA1 en mayúsculas):
+    # password_ingresada = hashlib.sha1(ingresada.strip().encode("utf-8")).hexdigest().upper()
+    # return guardada.strip().upper() == password_ingresada
+
+    # Local (comparación directa en texto plano, sin SHA1, para usuarios de prueba):
+    return guardada.strip() == ingresada.strip()
 
 
 def _rol(usuario: Usuario) -> str:
-    return (usuario.portal_rol or "").strip() or "USUARIO"
+    return (usuario.portal_rol or "").strip()
 
 
 class AuthService:
