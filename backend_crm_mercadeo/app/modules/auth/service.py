@@ -1,3 +1,4 @@
+import hashlib
 from datetime import timedelta
 
 from app.core.config import settings
@@ -17,13 +18,13 @@ def _esta_activo(estado: str | None) -> bool:
 def _contrasena_coincide(guardada: str | None, ingresada: str) -> bool:
     if not guardada:
         return False
-    return guardada.strip().upper() == ingresada.strip().upper()
+
+    password_ingresada = hashlib.sha1(ingresada.strip().encode("utf-8")).hexdigest().upper()
+    return guardada.strip().upper() == password_ingresada
 
 
 def _rol(usuario: Usuario) -> str:
-    # No hay nombre de rol en esta tabla, solo ID_CLASE (numerico); se expone
-    # tal cual hasta que se sepa el mapeo numero -> nombre de rol.
-    return str(usuario.id_clase) if usuario.id_clase is not None else "usuario"
+    return (usuario.portal_rol or "").strip() or "USUARIO"
 
 
 class AuthService:

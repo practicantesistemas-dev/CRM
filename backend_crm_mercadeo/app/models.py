@@ -362,6 +362,7 @@ class Usuario(Base):
     nombres: Mapped[str | None] = mapped_column(String(50))
     contrasena: Mapped[str | None] = mapped_column(String(100))
     estado: Mapped[str | None] = mapped_column(String(20))
+    portal_rol: Mapped[str | None] = mapped_column("PORTAL_ROL", String(50))
     id_clase: Mapped[int | None] = mapped_column(Integer)
     id_area: Mapped[int | None] = mapped_column(Integer)
     num_id: Mapped[int | None] = mapped_column(Integer)

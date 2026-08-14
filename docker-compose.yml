@@ -30,5 +30,8 @@ services:
     restart: unless-stopped
     depends_on:
       - backend
+    volumes:
+      - ./frontend/certs:/etc/nginx/certs:ro
     ports:
       - "${CRM_FRONTEND_PORT:-8090}:80"
+      - "8443:443"

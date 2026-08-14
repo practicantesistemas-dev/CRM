@@ -119,7 +119,7 @@ class TitularesBeneficiariosService:
         if cantidad_actual >= cupo:
             raise CupoBeneficiariosExcedidoError(id_titular)
 
-        fecha_ingreso = self.repository.obtener_fecha_ingreso_titular(id_titular)
+        fecha_ingreso = date.today()
         orden = self.repository.siguiente_orden_beneficiario(id_titular)
         datos = data.model_dump()
         id_beneficiario = self.repository.crear_beneficiario(
