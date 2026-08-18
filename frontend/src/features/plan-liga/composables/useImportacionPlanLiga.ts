@@ -2,6 +2,7 @@ import { ref, computed, onMounted } from 'vue'
 import type { AccionMasiva, PlanServicio, ResultadoImportacion, TipoImportacion } from '../types/plan-liga'
 import { CUPO_MAXIMO } from '../constants/plan-liga.constants'
 import { getPlanesServicio } from '../services/plan-liga.api'
+import { useUbicaciones, esperarUbicaciones } from '@/shared/composables/useUbicaciones'
 import { agruparFilas, parsearArchivoCargaMasiva, procesarCargaMasiva, validarGruposCargaMasiva } from '../utils/cargaMasiva'
 import { parsearArchivoAccionTitulares, procesarAccionMasivaTitulares, validarFilasAccionTitulares } from '../utils/accionMasivaTitulares'
 import { parsearArchivoAccionBeneficiarios, procesarAccionMasivaBeneficiarios, validarFilasAccionBeneficiarios } from '../utils/accionMasivaBeneficiarios'
@@ -20,6 +21,7 @@ export function useImportacionPlanLiga() {
   // el cupo de beneficiarios del plan elegido para agrupar filas.
   const planesServicio = ref<PlanServicio[]>([])
   const planSeleccionado = ref<number | 'estandar'>('estandar')
+  const { departamentos, municipios } = useUbicaciones()
   const cupoBeneficiarios = computed(() => {
     if (planSeleccionado.value === 'estandar') return CUPO_MAXIMO
     return planesServicio.value.find(p => p.id === planSeleccionado.value)?.cupoBeneficiarios ?? CUPO_MAXIMO
@@ -87,7 +89,8 @@ export function useImportacionPlanLiga() {
           (hechos, total) => { progresoImport.value = { hechos, total } },
         )
       } else {
-        const filas = await parsearArchivoCargaMasiva(archivo.value)
+        await esperarUbicaciones()
+        const filas = await parsearArchivoCargaMasiva(archivo.value, { departamentos: departamentos.value, municipios: municipios.value })
         const tipoPlanId = planSeleccionado.value === 'estandar' ? null : planSeleccionado.value
         const grupos = agruparFilas(filas, cupoBeneficiarios.value).filter(g => !g.titular.vacia)
         const erroresFormato = validarGruposCargaMasiva(grupos)

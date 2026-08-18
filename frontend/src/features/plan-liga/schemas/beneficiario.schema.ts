@@ -1,8 +1,8 @@
 import { z } from 'zod'
-import { documentoIdentidad, nombreEntidad, nombrePersona, optionalEmail, telefonoCO } from '@/shared/utils/zodHelpers'
+import { documentoIdentidad, nombreEntidad, nombrePersona, optionalEmail, telefonoCO, tipoDocumento } from '@/shared/utils/zodHelpers'
 
 export const beneficiarioSchema = z.object({
-  tipoDocumento: z.string().trim().min(1, 'Selecciona un tipo de documento'),
+  tipoDocumento: tipoDocumento(),
   documento: documentoIdentidad(),
   nombre: nombrePersona(),
   fechaNacimiento: z.string().trim().min(1, 'La fecha de nacimiento es obligatoria'),

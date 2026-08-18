@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import Select from 'primevue/select'
 import type { ReemplazoPersonaDraft } from '../types/plan-liga'
 import { reemplazoPersonaSchema } from '../schemas/reemplazoPersona.schema'
 import { useZodForm } from '@/shared/composables/useZodForm'
 import { useNombreCompuesto } from '@/shared/composables/useNombreCompuesto'
 import { faltaApellido } from '@/shared/utils/nombreCompuesto'
 import { fieldStateClass } from '@/shared/utils/fieldStateClass'
+import { TIPOS_DOCUMENTO_OPCIONES } from '@/shared/constants/tiposDocumento'
 import FieldError from '@/shared/components/FieldError.vue'
 import FechaInput from '@/shared/components/FechaInput.vue'
 
@@ -36,13 +38,10 @@ defineExpose({ submit: onValidSubmit(() => { if (!apellidoFaltante.value) emit('
         </div>
         <div>
           <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1.5 uppercase tracking-wide">Tipo de documento *</label>
-          <select v-model="draft.tipoDocumento" @change="tocar('tipoDocumento')" class="w-full h-10 px-3 rounded-lg border bg-slate-50 dark:bg-slate-900 text-[12px] outline-none focus:bg-white dark:focus:bg-slate-800 transition-all cursor-pointer" :class="fieldStateClass(esVisible('tipoDocumento') && !!errors.tipoDocumento, esVisible('tipoDocumento') && !errors.tipoDocumento && !!draft.tipoDocumento, 'border-slate-200 dark:border-slate-600 focus:border-amber-500')">
-            <option value="CC">Cédula de Ciudadanía (CC)</option>
-            <option value="CE">Cédula de Extranjería (CE)</option>
-            <option value="TI">Tarjeta de Identidad (TI)</option>
-            <option value="RC">Registro Civil (RC)</option>
-            <option value="PP">Pasaporte (PP)</option>
-          </select>
+          <Select v-model="draft.tipoDocumento" @change="tocar('tipoDocumento')" :options="TIPOS_DOCUMENTO_OPCIONES" option-label="label" option-value="value"
+            filter filter-placeholder="Buscar tipo..." placeholder="Selecciona un tipo de documento"
+            empty-filter-message="Sin resultados" class="w-full" input-class="h-10 text-[12px] flex items-center"
+            :class="fieldStateClass(esVisible('tipoDocumento') && !!errors.tipoDocumento, esVisible('tipoDocumento') && !errors.tipoDocumento && !!draft.tipoDocumento, '')" />
           <FieldError :message="esVisible('tipoDocumento') ? errors.tipoDocumento : undefined" />
         </div>
         <div>

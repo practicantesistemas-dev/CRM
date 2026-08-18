@@ -14,7 +14,7 @@ const { oportunidades, crearOportunidad, cambiarEtapa } = useOportunidades()
 const {
   draggingId, dropTarget, dropIndicator,
   onDragStart, onDragEnd, onDragOver, onDragOverCard, onDragLeave, onDrop,
-  porEtapa, valorEtapa, totalOportunidades, totalValor,
+  porEtapa, totalPorEtapa, valorEtapa, totalOportunidades, totalValor,
 } = useEmbudos(oportunidades, (id, etapa) => {
   const o = oportunidades.value.find(x => x.id === id)
   if (o) cambiarEtapa(o, etapa)
@@ -99,6 +99,7 @@ const resetZoom = () => { zoom.value = 1 }
           :etapa="etapa"
           :color="ETAPA_COLOR[etapa]"
           :oportunidades="porEtapa(etapa)"
+          :total="totalPorEtapa(etapa)"
           :valor="valorEtapa(etapa)"
           :is-drop-target="dropTarget === etapa"
           :dragging-id="draggingId"

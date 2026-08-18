@@ -5,6 +5,7 @@ from app.core.exceptions import register_exception_handlers
 from app.core.logging import setup_logging
 from app.core.middleware import setup_middlewares
 from app.modules.administracion.bitacora.router import router as bitacora_router
+from app.modules.administracion.importaciones.router import router as importaciones_router
 from app.modules.auth.router import router as auth_router
 from app.modules.comercial.contactos.router import router as contactos_router
 from app.modules.comercial.empresas.router import router as empresas_router
@@ -32,6 +33,7 @@ app.include_router(bitacora_router, prefix=settings.api_prefix)
 app.include_router(contactos_router, prefix=settings.api_prefix)
 app.include_router(empresas_router, prefix=settings.api_prefix)
 app.include_router(etiquetas_router, prefix=settings.api_prefix)
+app.include_router(importaciones_router, prefix=settings.api_prefix)
 app.include_router(oportunidades_router, prefix=settings.api_prefix)
 app.include_router(proveedores_router, prefix=settings.api_prefix)
 app.include_router(servicios_router, prefix=settings.api_prefix)

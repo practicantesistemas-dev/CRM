@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import { Plus, Filter, Loader2, AlertCircle, CheckCircle2, X } from 'lucide-vue-next'
+import { Plus, Filter, Loader2, AlertCircle, CheckCircle2, X, ChevronLeft, ChevronRight } from 'lucide-vue-next'
 import type { Actividad, ActividadDraft } from '../types/actividad'
 import { ACTIVIDAD_DRAFT_VACIO } from '../constants/relacionamiento.constants'
 import { useRelacionamiento } from '../composables/useRelacionamiento'
@@ -15,6 +15,7 @@ import ConfirmarEliminarActividadDialog from '../dialogs/ConfirmarEliminarActivi
 const {
   actividades, cargando, filtroTipo, filtroUsuario, buscar,
   actividadesFiltradas, usuarios, pendientes,
+  paginaActual, actividadesPaginadas, totalPaginas,
   crearActividad, actualizarActividad, guardandoActividad, errorGuardarActividad,
   eliminarActividad, eliminandoActividad, errorEliminarActividad,
   marcarRealizada, completandoId, errorCompletarActividad,
@@ -121,10 +122,24 @@ const confirmarEliminar = async () => {
       <Loader2 :size="16" class="animate-spin" />Cargando bitácora...
     </div>
     <div v-else class="space-y-3">
-      <TimelineItem v-for="a in actividadesFiltradas" :key="a.id" :actividad="a" :oportunidades="oportunidades" @eliminar="abrirEliminar(a)" @editar="abrirEditar(a)" />
+      <TimelineItem v-for="a in actividadesPaginadas" :key="a.id" :actividad="a" :oportunidades="oportunidades" @eliminar="abrirEliminar(a)" @editar="abrirEditar(a)" />
 
       <div v-if="actividadesFiltradas.length === 0" class="surface-card rounded-2xl p-16 text-center text-muted text-[12px]">
         No se encontraron actividades con los filtros aplicados.
+      </div>
+
+      <div v-if="totalPaginas > 1" class="flex items-center justify-center gap-3 surface-card rounded-2xl px-1 py-3">
+        <button @click="paginaActual -= 1" :disabled="paginaActual <= 1"
+          class="w-8 h-8 rounded-lg border border-default bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+          title="Página anterior">
+          <ChevronLeft :size="15" />
+        </button>
+        <span class="text-[11px] text-muted">Página <strong class="text-body">{{ paginaActual }}</strong> de <strong class="text-body">{{ totalPaginas }}</strong></span>
+        <button @click="paginaActual += 1" :disabled="paginaActual >= totalPaginas"
+          class="w-8 h-8 rounded-lg border border-default bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+          title="Página siguiente">
+          <ChevronRight :size="15" />
+        </button>
       </div>
     </div>
 

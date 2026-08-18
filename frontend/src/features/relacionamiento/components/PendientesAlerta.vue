@@ -1,12 +1,25 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { AlarmClock, Check, ChevronDown, ChevronUp, Loader2 } from 'lucide-vue-next'
+import { computed, ref, watch } from 'vue'
+import { AlarmClock, Check, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Loader2 } from 'lucide-vue-next'
 import type { Actividad } from '../types/actividad'
 
 const props = defineProps<{ pendientes: Actividad[]; completando?: number | null }>()
 const emit = defineEmits<{ abrir: [Actividad]; completar: [Actividad] }>()
 
 const abierto = ref(true)
+
+const PAGE_SIZE = 3
+const paginaActual = ref(1)
+const totalPaginas = computed(() => Math.ceil(props.pendientes.length / PAGE_SIZE))
+const pendientesPaginados = computed(() => {
+  const start = (paginaActual.value - 1) * PAGE_SIZE
+  return props.pendientes.slice(start, start + PAGE_SIZE)
+})
+// Si se completa/borra un pendiente y la página actual queda vacía (o la lista cambia de
+// tamaño), no se deja "colgada" en una página que ya no existe.
+watch(() => props.pendientes.length, () => {
+  if (paginaActual.value > totalPaginas.value) paginaActual.value = Math.max(1, totalPaginas.value)
+})
 
 const hoy = new Date().toISOString().split('T')[0]
 const estadoDe = (a: Actividad): 'vencido' | 'hoy' | 'proximo' => {
@@ -38,8 +51,8 @@ const vencidos = computed(() => props.pendientes.filter(a => estadoDe(a) === 've
       <component :is="abierto ? ChevronUp : ChevronDown" :size="15" class="text-slate-400 dark:text-slate-500 flex-shrink-0" />
     </button>
 
-    <div v-if="abierto" class="divide-y divide-slate-100 dark:divide-slate-700 max-h-64 overflow-y-auto">
-      <div v-for="a in pendientes" :key="a.id"
+    <div v-if="abierto" class="divide-y divide-slate-100 dark:divide-slate-700">
+      <div v-for="a in pendientesPaginados" :key="a.id"
         class="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
         <button type="button" title="Marcar como realizado" :disabled="completando === a.id"
           @click="emit('completar', a)"
@@ -58,6 +71,19 @@ const vencidos = computed(() => props.pendientes.filter(a => estadoDe(a) === 've
             :class="estadoDe(a) === 'vencido' ? 'text-red-500 dark:text-red-400' : estadoDe(a) === 'hoy' ? 'text-amber-600 dark:text-amber-400' : 'text-muted'">
             {{ a.proximoPasoFecha ? (estadoDe(a) === 'vencido' ? 'Venció ' : 'Para ') + a.proximoPasoFecha : 'Registrada ' + a.fecha }}
           </span>
+        </button>
+      </div>
+      <div v-if="totalPaginas > 1" class="flex items-center justify-center gap-3 px-1 py-2.5 border-t border-slate-100 dark:border-slate-700">
+        <button @click="paginaActual -= 1" :disabled="paginaActual <= 1"
+          class="w-7 h-7 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+          title="Página anterior">
+          <ChevronLeft :size="13" />
+        </button>
+        <span class="text-[10px] text-muted">Página <strong class="text-body">{{ paginaActual }}</strong> de <strong class="text-body">{{ totalPaginas }}</strong></span>
+        <button @click="paginaActual += 1" :disabled="paginaActual >= totalPaginas"
+          class="w-7 h-7 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+          title="Página siguiente">
+          <ChevronRight :size="13" />
         </button>
       </div>
     </div>

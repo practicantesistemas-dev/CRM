@@ -18,13 +18,17 @@ def _esta_activo(estado: str | None) -> bool:
 def _contrasena_coincide(guardada: str | None, ingresada: str) -> bool:
     if not guardada:
         return False
+    guardada = guardada.strip()
+    ingresada = ingresada.strip()
 
-    # Producción (contraseñas guardadas como hash SHA1 en mayúsculas):
-    # password_ingresada = hashlib.sha1(ingresada.strip().encode("utf-8")).hexdigest().upper()
-    # return guardada.strip().upper() == password_ingresada
+    # Usuarios de prueba (ej. "admin"): la contraseña esta guardada en texto plano.
+    if guardada.upper() == ingresada.upper():
+        return True
 
-    # Local (comparación directa en texto plano, sin SHA1, para usuarios de prueba):
-    return guardada.strip() == ingresada.strip()
+    # Usuarios reales importados del portal: la contraseña esta guardada como hash SHA1
+    # (case no consistente en los datos existentes, de ahi el .upper() en ambos lados).
+    hash_ingresada = hashlib.sha1(ingresada.encode("utf-8")).hexdigest()
+    return guardada.upper() == hash_ingresada.upper()
 
 
 def _rol(usuario: Usuario) -> str:

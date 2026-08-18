@@ -6,7 +6,7 @@ import { useTema } from '@/shared/composables/useTema'
 
 import {
   LayoutDashboard, Heart, Users, Building2, Truck,
-  BookOpen, Target, Filter, Wrench, Megaphone, Layers, Zap, Upload,
+  BookOpen, Target, Filter, Wrench, Upload,
   ChevronLeft, ChevronRight, LogOut, Settings,
   RefreshCw, X, Menu, Moon, Sun
 } from 'lucide-vue-next'
@@ -39,7 +39,7 @@ onUnmounted(() => {
 
 type Vista =
   | 'dashboard' | 'plan-liga' | 'contactos' | 'empresas' | 'proveedores'
-  | 'servicios' | 'oportunidades' | 'embudos' | 'segmentacion'
+  | 'servicios' | 'oportunidades' | 'embudos'
   | 'relacionamiento' | 'campanas' | 'importacion' | 'automatizaciones'
 
 interface Tab { key: Vista; label: string; icono: any }
@@ -82,11 +82,9 @@ const menuGroups: MenuGroup[] = [
     { key: 'embudos',          label: 'Embudos',                   icono: Filter          },
     { key: 'servicios',        label: 'Servicios',                 icono: Wrench          },
   ]},
-  { label: 'Marketing', items: [
-    { key: 'campanas',         label: 'Campañas',                  icono: Megaphone       },
-    { key: 'segmentacion',     label: 'Segmentación',              icono: Layers          },
-    { key: 'automatizaciones', label: 'Automatizaciones',          icono: Zap             },
-  ]},
+  // Campañas y Automatizaciones aún no están implementadas: se oculta el grupo del menú (las
+  // rutas siguen existiendo por si se necesita acceso directo) y se muestra un aviso en su lugar.
+  { label: 'Marketing', items: [] },
   { label: 'Operaciones', items: [
     { key: 'relacionamiento',  label: 'Bitácora',                  icono: BookOpen        },
     { key: 'importacion',      label: 'Importación',               icono: Upload          },
@@ -271,6 +269,13 @@ const refrescarVistaActual = () => {
             class="px-4 pt-4 pb-1.5 text-[10px] font-bold uppercase tracking-widest text-white opacity-100 select-none"
           >
             {{ group.label }}
+          </div>
+          <!-- Grupo sin módulos implementados todavía: aviso en vez de botones de navegación -->
+          <div
+            v-if="group.items.length === 0 && !sidebarCollapsed"
+            class="mx-2 px-2 py-2 rounded-lg text-[11px] text-white/50 italic select-none"
+          >
+            Aún no implementado (Campañas y Automatizaciones)
           </div>
           <!-- Items -->
           <button

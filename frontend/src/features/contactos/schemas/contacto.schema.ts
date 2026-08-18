@@ -1,9 +1,9 @@
 import { z } from 'zod'
-import { documentoIdentidad, nombrePersona, optionalEmail, telefonoCO } from '@/shared/utils/zodHelpers'
+import { documentoIdentidad, nombrePersona, optionalEmail, telefonoCO, tipoDocumento } from '@/shared/utils/zodHelpers'
 
 export const contactoSchema = z.object({
   nombre: nombrePersona(),
-  tipoDocumento: z.enum(['CC', 'CE', 'TI', 'NIT', 'PP']),
+  tipoDocumento: tipoDocumento(),
   documento: documentoIdentidad({ opcional: true }),
   correo: optionalEmail(),
   telefono: telefonoCO(),

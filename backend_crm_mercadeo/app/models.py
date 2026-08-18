@@ -439,6 +439,10 @@ class Importacion(Base):
     archivo: Mapped[str | None] = mapped_column(String(255))
     registros: Mapped[int | None] = mapped_column(Integer)
     errores: Mapped[int | None] = mapped_column(Integer)
+    # Detalle fila por fila (mensajes de error/avisos), guardado como JSON en texto; None en
+    # importaciones creadas antes de esta columna.
+    detalle_errores: Mapped[str | None] = mapped_column(Text)
+    avisos: Mapped[str | None] = mapped_column(Text)
     fecha: Mapped[datetime | None] = mapped_column(
         DateTime, default=lambda: datetime.now(timezone.utc)
     )
