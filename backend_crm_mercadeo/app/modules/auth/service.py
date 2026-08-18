@@ -21,9 +21,10 @@ def _contrasena_coincide(guardada: str | None, ingresada: str) -> bool:
     guardada = guardada.strip()
     ingresada = ingresada.strip()
 
-    # Usuarios de prueba (ej. "admin"): la contraseña esta guardada en texto plano.
-    if guardada.upper() == ingresada.upper():
-        return True
+    # Comparacion en texto plano (usuarios de prueba, ej. "admin"): comentada por ahora, en
+    # produccion todos los usuarios reales del portal tienen la contrasena como hash SHA1.
+    # if guardada.upper() == ingresada.upper():
+    #     return True
 
     # Usuarios reales importados del portal: la contraseña esta guardada como hash SHA1
     # (case no consistente en los datos existentes, de ahi el .upper() en ambos lados).
