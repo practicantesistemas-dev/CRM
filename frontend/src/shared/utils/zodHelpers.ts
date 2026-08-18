@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { formatTelefonoCO } from './formatters'
+import { TIPOS_DOCUMENTO } from '@/shared/constants/tiposDocumento'
 
 const SOLO_LETRAS = /^[A-Za-zÁÉÍÓÚÑÜáéíóúñü]+$/
 const capitalizar = (palabra: string) => palabra.charAt(0).toUpperCase() + palabra.slice(1).toLowerCase()
@@ -26,6 +27,15 @@ export const nombrePersona = (opts: { opcional?: boolean; message?: string } = {
       return palabras.length >= 2 && palabras.length <= 6 && palabras.every((p) => SOLO_LETRAS.test(p))
     }, mensaje)
     .transform((v) => (v === '' ? v : v.split(' ').map(capitalizar).join(' ')))
+}
+
+/** Tipo de documento: uno de los códigos oficiales (ver shared/constants/tiposDocumento.ts). */
+export const tipoDocumento = (opts: { opcional?: boolean; message?: string } = {}) => {
+  const mensaje = opts.message ?? `Tipo de documento inválido (use uno de: ${TIPOS_DOCUMENTO.join(', ')})`
+  return z.string()
+    .trim()
+    .toUpperCase()
+    .refine((v) => (opts.opcional && v === '') || (TIPOS_DOCUMENTO as readonly string[]).includes(v), mensaje)
 }
 
 /** Documento de identidad: solo dígitos, entre 3 y 15 caracteres. */

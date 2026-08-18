@@ -71,7 +71,7 @@ const emit = defineEmits<{
               </div>
             </td>
             <td class="px-3 py-3">
-              <div class="flex items-center gap-1.5">
+              <div class="flex items-center gap-1.5" :title="c.responsable">
                 <ContactoAvatar :nombre="c.responsable" size="sm" />
                 <span class="text-[11px] text-slate-600 dark:text-slate-300 truncate max-w-[75px]">{{ c.responsable }}</span>
               </div>

@@ -28,6 +28,16 @@ class Settings(BaseSettings):
         "http://127.0.0.1:5175",
         "http://160.2.1.80:3000",
         "http://160.2.1.80:5175",
+        # Servidor de este CRM: el frontend en docker llama al backend por proxy same-origin
+        # (ver frontend/nginx.conf), pero se deja el puerto publicado por si se golpea el
+        # backend directo (ej. Swagger en /docs) desde un navegador en otra máquina.
+        "http://160.2.1.22:8090",
+        "http://160.2.1.22:8100",
+        # Mismo stack pero corriendo en docker local: el frontend (puerto 8090) llama al
+        # backend directo por su puerto publicado (8100) -> es cross-origin de verdad, así
+        # que sin esto el navegador bloquea el login por CORS.
+        "http://localhost:8090",
+        "http://127.0.0.1:8090",
     ]
 
     scse_db_user: str = ""

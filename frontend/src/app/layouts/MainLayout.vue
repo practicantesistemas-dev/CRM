@@ -6,8 +6,7 @@ import { useTema } from '@/shared/composables/useTema'
 
 import {
   LayoutDashboard, Heart, Users, Building2, Truck,
-  Target, GitBranch, Layers, SlidersHorizontal, Megaphone,
-  BookOpen, Upload, Zap,
+  BookOpen, Target, Filter, Wrench, Upload,
   ChevronLeft, ChevronRight, LogOut, Settings,
   RefreshCw, X, Menu, Moon, Sun
 } from 'lucide-vue-next'
@@ -40,7 +39,7 @@ onUnmounted(() => {
 
 type Vista =
   | 'dashboard' | 'plan-liga' | 'contactos' | 'empresas' | 'proveedores'
-  | 'servicios' | 'oportunidades' | 'embudos' | 'segmentacion'
+  | 'servicios' | 'oportunidades' | 'embudos'
   | 'relacionamiento' | 'campanas' | 'importacion' | 'automatizaciones'
 
 interface Tab { key: Vista; label: string; icono: any }
@@ -48,29 +47,47 @@ interface Tab { key: Vista; label: string; icono: any }
 // ── Menu ──────────────────────────────────────────────────────────
 interface MenuGroup { label?: string; items: Tab[] }
 
+// Producción: temporalmente solo se muestran estos módulos en el menú (a pedido del
+// negocio); el resto de las vistas/rutas siguen existiendo y accesibles por URL directa.
+// const menuGroups: MenuGroup[] = [
+//   { items: [
+//     { key: 'dashboard',        label: 'Dashboard',                 icono: LayoutDashboard },
+//   ]},
+//   { label: 'Plan Liga', items: [
+//     { key: 'plan-liga',       label: 'Titulares y Beneficiarios', icono: Heart           },
+//   ]},
+//   { label: 'Comercial', items: [
+//     { key: 'contactos',        label: 'Contactos',                 icono: Users           },
+//     { key: 'empresas',         label: 'Empresas',                  icono: Building2       },
+//     { key: 'proveedores',      label: 'Proveedores',               icono: Truck           },
+//   ]},
+//   { label: 'Operaciones', items: [
+//     { key: 'relacionamiento',  label: 'Bitácora',                  icono: BookOpen        },
+//   ]},
+// ]
+
+// Local: se muestran todos los módulos existentes en el menú.
 const menuGroups: MenuGroup[] = [
   { items: [
     { key: 'dashboard',        label: 'Dashboard',                 icono: LayoutDashboard },
   ]},
   { label: 'Plan Liga', items: [
-    { key: 'plan-liga',       label: 'Titulares y Beneficiarios', icono: Heart           },
+    { key: 'plan-liga',        label: 'Titulares y Beneficiarios', icono: Heart           },
   ]},
   { label: 'Comercial', items: [
     { key: 'contactos',        label: 'Contactos',                 icono: Users           },
     { key: 'empresas',         label: 'Empresas',                  icono: Building2       },
     { key: 'proveedores',      label: 'Proveedores',               icono: Truck           },
     { key: 'oportunidades',    label: 'Oportunidades',             icono: Target          },
-    { key: 'embudos',          label: 'Tablero',       icono: GitBranch       },
+    { key: 'embudos',          label: 'Embudos',                   icono: Filter          },
+    { key: 'servicios',        label: 'Servicios',                 icono: Wrench          },
   ]},
-  { label: 'Marketing', items: [
-    { key: 'servicios',        label: 'Servicios',       icono: Layers          },
-    { key: 'segmentacion',     label: 'Segmentación',              icono: SlidersHorizontal},
-    { key: 'campanas',         label: 'Campañas Masivas',          icono: Megaphone       },
-  ]},
+  // Campañas y Automatizaciones aún no están implementadas: se oculta el grupo del menú (las
+  // rutas siguen existiendo por si se necesita acceso directo) y se muestra un aviso en su lugar.
+  { label: 'Marketing', items: [] },
   { label: 'Operaciones', items: [
     { key: 'relacionamiento',  label: 'Bitácora',                  icono: BookOpen        },
-    { key: 'importacion',      label: 'Importación Masiva',        icono: Upload          },
-    { key: 'automatizaciones', label: 'Automatizaciones',          icono: Zap             },
+    { key: 'importacion',      label: 'Importación',               icono: Upload          },
   ]},
 ]
 
@@ -240,7 +257,7 @@ const refrescarVistaActual = () => {
       </div>
 
       <!-- Nav -->
-      <nav class="flex-1 overflow-y-auto py-3 scrollbar-none">
+      <nav class="flex-1 overflow-y-auto py-3 scrollbar-sidebar">
         <template v-for="group in menuGroups" :key="group.label ?? '__root__'">
           <!-- Divider for collapsed state -->
           <div v-if="group.label && sidebarCollapsed" class="px-3 py-2">
@@ -252,6 +269,13 @@ const refrescarVistaActual = () => {
             class="px-4 pt-4 pb-1.5 text-[10px] font-bold uppercase tracking-widest text-white opacity-100 select-none"
           >
             {{ group.label }}
+          </div>
+          <!-- Grupo sin módulos implementados todavía: aviso en vez de botones de navegación -->
+          <div
+            v-if="group.items.length === 0 && !sidebarCollapsed"
+            class="mx-2 px-2 py-2 rounded-lg text-[11px] text-white/50 italic select-none"
+          >
+            Aún no implementado (Campañas y Automatizaciones)
           </div>
           <!-- Items -->
           <button
@@ -346,10 +370,11 @@ const refrescarVistaActual = () => {
         <div class="flex items-center gap-2 shrink-0">
           <button
             @click="refrescarVistaActual"
-            class="h-8 w-8 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
+            class="h-9 px-3.5 rounded-lg bg-[#EC4899] hover:bg-[#D61F69] flex items-center gap-1.5 text-white shadow transition-all"
             title="Actualizar"
           >
-            <RefreshCw :size="13" />
+            <span class="text-[12px] font-bold hidden sm:inline">Actualizar</span>
+            <RefreshCw :size="14" />
           </button>
           <div class="relative">
             <button
@@ -451,3 +476,30 @@ const refrescarVistaActual = () => {
     </div>
   </div>
 </template>
+
+<style scoped>
+/* Antes el menú usaba scrollbar-none (invisible): cuando había más módulos de los que caben
+   en pantalla, no había ninguna señal de que se podía hacer scroll. Esta barra delgada, clara
+   sobre el fondo azul del menú, queda siempre visible como indicación (no solo al pasar el mouse). */
+.scrollbar-sidebar::-webkit-scrollbar {
+  width: 5px;
+}
+
+.scrollbar-sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-sidebar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 3px;
+}
+
+.scrollbar-sidebar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.scrollbar-sidebar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+}
+</style>

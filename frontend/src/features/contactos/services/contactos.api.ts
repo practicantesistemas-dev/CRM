@@ -4,6 +4,7 @@ import { splitNombreCompleto, joinNombreCompleto } from '@/shared/utils/nombreCo
 import { authHeader, useAuth } from '@/features/auth/composables/useAuth'
 import { useUbicaciones, esperarUbicaciones } from '@/shared/composables/useUbicaciones'
 import type { Departamento, Municipio } from '@/shared/types/ubicaciones'
+import { TIPOS_DOCUMENTO } from '@/shared/constants/tiposDocumento'
 
 const API_URL = import.meta.env.VITE_CRM_API_URL
 
@@ -63,7 +64,7 @@ interface ContactoReadResponse {
   responsable: { id: number; nombres: string; usuario: string } | null
 }
 
-const TIPO_DOC_VALIDOS: readonly string[] = ['CC', 'CE', 'TI', 'NIT', 'PP']
+const TIPO_DOC_VALIDOS: readonly string[] = TIPOS_DOCUMENTO
 const ESTADO_VALIDOS: readonly string[] = ['Activo', 'Inactivo', 'Prospecto', 'En proceso']
 
 // El formulario solo ofrece Masculino/Femenino; al backend se manda como M/F

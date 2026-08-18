@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { Search, Plus } from 'lucide-vue-next'
+import { Search, Plus, Download } from 'lucide-vue-next'
 import type { EtapaOportunidad, Oportunidad, OportunidadDraft } from '../types/oportunidad'
 import { ETAPAS, OPORTUNIDAD_DRAFT_VACIO } from '../constants/oportunidades.constants'
 import { useOportunidades } from '../composables/useOportunidades'
+import { exportarOportunidadesExcel } from '../utils/exportarOportunidadesExcel'
 import EtapasResumen from '../components/EtapasResumen.vue'
 import OportunidadFormDialog from '../dialogs/OportunidadFormDialog.vue'
 import OportunidadesTable from '../tables/OportunidadesTable.vue'
@@ -43,6 +44,13 @@ const guardar = () => {
 const toggleEtapa = (etapa: EtapaOportunidad) => {
   filtroEstado.value = filtroEstado.value === etapa ? 'todos' : etapa
 }
+
+const exportar = () => exportarOportunidadesExcel(
+  oportunidadesFiltradas.value,
+  buscar.value,
+  filtroEstado.value,
+  filtroResponsable.value,
+)
 </script>
 
 <template>
@@ -55,9 +63,14 @@ const toggleEtapa = (etapa: EtapaOportunidad) => {
         </h2>
         <p class="text-[12px] text-muted mt-0.5">Pipeline comercial · empresas, contactos y servicios asociados</p>
       </div>
-      <button @click="abrirNuevo" class="flex items-center gap-1.5 h-9 px-4 rounded-lg bg-[#2447F9] text-white text-[11px] font-bold shadow hover:bg-[#1D3DD9] transition-all">
-        <Plus :size="14" /> Nueva oportunidad
-      </button>
+      <div class="flex items-center gap-2">
+        <button @click="exportar" class="flex items-center gap-1.5 h-9 px-4 rounded-lg border-default surface-card text-[11px] font-semibold text-body surface-hover transition-all">
+          <Download :size="13" /> Exportar
+        </button>
+        <button @click="abrirNuevo" class="flex items-center gap-1.5 h-9 px-4 rounded-lg bg-[#2447F9] text-white text-[11px] font-bold shadow hover:bg-[#1D3DD9] transition-all">
+          <Plus :size="14" /> Nueva oportunidad
+        </button>
+      </div>
     </div>
 
     <EtapasResumen :etapas="ETAPAS" :oportunidades="oportunidades" :filtro-estado="filtroEstado" @toggle-etapa="toggleEtapa" />

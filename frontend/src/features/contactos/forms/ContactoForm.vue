@@ -5,6 +5,7 @@ import { User, Mail, Phone, Building2, Briefcase, Tag, X, Loader2, Plus, AlertCi
 import type { ContactoDraft, Etiqueta, EtiquetaDraft } from '../types/contacto'
 import type { Empresa } from '@/features/empresas/types/empresa'
 import { TIPO_CONTACTO_OPTIONS } from '../constants/contactos.constants'
+import { TIPOS_DOCUMENTO_OPCIONES } from '@/shared/constants/tiposDocumento'
 import { contactoSchema } from '../schemas/contacto.schema'
 import { useZodForm } from '@/shared/composables/useZodForm'
 import { useNombreCompuesto } from '@/shared/composables/useNombreCompuesto'
@@ -86,13 +87,9 @@ const crearYSeleccionarEtiqueta = async () => {
     </div>
     <div>
       <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1.5 uppercase tracking-wide">Tipo documento</label>
-      <select v-model="draft.tipoDocumento" class="w-full h-10 px-3 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-[12px] text-slate-900 dark:text-slate-100 outline-none focus:border-[#2447F9] focus:bg-white dark:focus:bg-slate-800 transition-all cursor-pointer">
-        <option value="CC">Cédula de Ciudadanía (CC)</option>
-        <option value="CE">Cédula de Extranjería (CE)</option>
-        <option value="TI">Tarjeta de Identidad (TI)</option>
-        <option value="NIT">NIT</option>
-        <option value="PP">Pasaporte (PP)</option>
-      </select>
+      <Select v-model="draft.tipoDocumento" :options="TIPOS_DOCUMENTO_OPCIONES" option-label="label" option-value="value"
+        filter filter-placeholder="Buscar tipo..." placeholder="Selecciona un tipo de documento"
+        empty-filter-message="Sin resultados" class="w-full" input-class="h-10 text-[12px] flex items-center" />
     </div>
     <div>
       <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1.5 uppercase tracking-wide">Número de documento</label>

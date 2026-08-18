@@ -51,9 +51,10 @@ def importar_empresas_plan_liga(
 def update_empresa(
     empresa_id: int,
     data: EmpresaUpdate,
+    username: str = Depends(get_current_username),
     service: EmpresaService = Depends(get_empresa_service),
 ) -> EmpresaRead:
-    return service.update(empresa_id, data)
+    return service.update(empresa_id, data, username=username)
 
 
 @router.delete("/{empresa_id}", status_code=status.HTTP_204_NO_CONTENT)

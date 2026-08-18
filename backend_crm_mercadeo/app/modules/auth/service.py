@@ -1,3 +1,4 @@
+import hashlib
 from datetime import timedelta
 
 from app.core.config import settings
@@ -17,13 +18,21 @@ def _esta_activo(estado: str | None) -> bool:
 def _contrasena_coincide(guardada: str | None, ingresada: str) -> bool:
     if not guardada:
         return False
-    return guardada.strip().upper() == ingresada.strip().upper()
+    guardada = guardada.strip()
+    ingresada = ingresada.strip()
+
+    # Usuarios de prueba (ej. "admin"): la contraseña esta guardada en texto plano.
+    if guardada.upper() == ingresada.upper():
+        return True
+
+    # Usuarios reales importados del portal: la contraseña esta guardada como hash SHA1
+    # (case no consistente en los datos existentes, de ahi el .upper() en ambos lados).
+    hash_ingresada = hashlib.sha1(ingresada.encode("utf-8")).hexdigest()
+    return guardada.upper() == hash_ingresada.upper()
 
 
 def _rol(usuario: Usuario) -> str:
-    # No hay nombre de rol en esta tabla, solo ID_CLASE (numerico); se expone
-    # tal cual hasta que se sepa el mapeo numero -> nombre de rol.
-    return str(usuario.id_clase) if usuario.id_clase is not None else "usuario"
+    return (usuario.portal_rol or "").strip()
 
 
 class AuthService:

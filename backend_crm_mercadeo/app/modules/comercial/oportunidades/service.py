@@ -98,7 +98,7 @@ class OportunidadService:
         oportunidad = self.repository.create(oportunidad)
         return self.obtener(oportunidad.id)
 
-    def actualizar(self, oportunidad_id: int, data: OportunidadUpdate) -> OportunidadRead:
+    def actualizar(self, oportunidad_id: int, data: OportunidadUpdate, username: str) -> OportunidadRead:
         oportunidad = self.repository.get(oportunidad_id)
         if oportunidad is None:
             raise OportunidadNotFoundError(oportunidad_id)
@@ -109,6 +109,7 @@ class OportunidadService:
             cambios["estado"] = _estado_de_etapa(data.etapa)
 
         if cambios:
+            cambios["usuario_actualizacion_id"] = self.repository.obtener_usuario_id(username)
             self.repository.update(oportunidad, cambios)
         return self.obtener(oportunidad_id)
 

@@ -203,8 +203,11 @@ class Empresa(Base):
     fecha_actualizacion: Mapped[datetime | None] = mapped_column(
         DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc)
     )
+    usuario_actualizacion_id: Mapped[int | None] = mapped_column(ForeignKey("intranet_usuarios.id"))
 
-    responsable: Mapped["Usuario | None"] = relationship(back_populates="empresas")
+    responsable: Mapped["Usuario | None"] = relationship(
+        back_populates="empresas", foreign_keys="Empresa.responsable_id"
+    )
 
 
 class Contacto(Base):
@@ -240,13 +243,16 @@ class Contacto(Base):
     fecha_actualizacion: Mapped[datetime | None] = mapped_column(
         DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc)
     )
+    usuario_actualizacion_id: Mapped[int | None] = mapped_column(ForeignKey("intranet_usuarios.id"))
 
     etiquetas: Mapped[list["ContactoEtiqueta"]] = relationship(
         back_populates="contacto", cascade="all, delete-orphan"
     )
     bitacoras: Mapped[list["Bitacora"]] = relationship(cascade="all, delete-orphan")
     oportunidades: Mapped[list["Oportunidad"]] = relationship(cascade="all, delete-orphan")
-    responsable: Mapped["Usuario | None"] = relationship(back_populates="contactos")
+    responsable: Mapped["Usuario | None"] = relationship(
+        back_populates="contactos", foreign_keys="Contacto.responsable_id"
+    )
     empresa: Mapped["Empresa | None"] = relationship()
 
 
@@ -300,10 +306,13 @@ class Oportunidad(Base):
     fecha_actualizacion: Mapped[datetime | None] = mapped_column(
         DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc)
     )
+    usuario_actualizacion_id: Mapped[int | None] = mapped_column(ForeignKey("intranet_usuarios.id"))
 
     servicio: Mapped["PlanLigaTipoPlan | None"] = relationship(back_populates="oportunidades")
     plan_liga_titular: Mapped["PlanLiga | None"] = relationship(back_populates="oportunidades")
-    responsable: Mapped["Usuario | None"] = relationship(back_populates="oportunidades")
+    responsable: Mapped["Usuario | None"] = relationship(
+        back_populates="oportunidades", foreign_keys="Oportunidad.responsable_id"
+    )
     bitacoras: Mapped[list["Bitacora"]] = relationship(cascade="all, delete-orphan")
 
 
@@ -330,9 +339,15 @@ class Bitacora(Base):
     estado: Mapped[EstadoBitacora] = mapped_column(
         String(20), nullable=False, default=EstadoBitacora.PENDIENTE
     )
+    fecha_actualizacion: Mapped[datetime | None] = mapped_column(
+        DateTime, onupdate=lambda: datetime.now(timezone.utc)
+    )
+    usuario_actualizacion_id: Mapped[int | None] = mapped_column(ForeignKey("intranet_usuarios.id"))
 
     titular: Mapped["PlanLiga | None"] = relationship(back_populates="bitacoras")
-    usuario: Mapped["Usuario | None"] = relationship(back_populates="bitacoras")
+    usuario: Mapped["Usuario | None"] = relationship(
+        back_populates="bitacoras", foreign_keys="Bitacora.usuario_id"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -362,6 +377,7 @@ class Usuario(Base):
     nombres: Mapped[str | None] = mapped_column(String(50))
     contrasena: Mapped[str | None] = mapped_column(String(100))
     estado: Mapped[str | None] = mapped_column(String(20))
+    portal_rol: Mapped[str | None] = mapped_column("PORTAL_ROL", String(50))
     id_clase: Mapped[int | None] = mapped_column(Integer)
     id_area: Mapped[int | None] = mapped_column(Integer)
     num_id: Mapped[int | None] = mapped_column(Integer)
@@ -369,10 +385,18 @@ class Usuario(Base):
     importaciones: Mapped[list["Importacion"]] = relationship(back_populates="usuario")
     contacto_etiquetas: Mapped[list["ContactoEtiqueta"]] = relationship(back_populates="usuario")
     campana_segmentos: Mapped[list["CampanaSegmento"]] = relationship(back_populates="usuario")
-    empresas: Mapped[list["Empresa"]] = relationship(back_populates="responsable")
-    contactos: Mapped[list["Contacto"]] = relationship(back_populates="responsable")
-    oportunidades: Mapped[list["Oportunidad"]] = relationship(back_populates="responsable")
-    bitacoras: Mapped[list["Bitacora"]] = relationship(back_populates="usuario")
+    empresas: Mapped[list["Empresa"]] = relationship(
+        back_populates="responsable", foreign_keys="Empresa.responsable_id"
+    )
+    contactos: Mapped[list["Contacto"]] = relationship(
+        back_populates="responsable", foreign_keys="Contacto.responsable_id"
+    )
+    oportunidades: Mapped[list["Oportunidad"]] = relationship(
+        back_populates="responsable", foreign_keys="Oportunidad.responsable_id"
+    )
+    bitacoras: Mapped[list["Bitacora"]] = relationship(
+        back_populates="usuario", foreign_keys="Bitacora.usuario_id"
+    )
 
 
 class Proveedor(Base):
@@ -391,6 +415,8 @@ class Proveedor(Base):
     fecha_actualizacion: Mapped[datetime | None] = mapped_column(
         DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc)
     )
+    usuario_actualizacion_id: Mapped[int | None] = mapped_column(ForeignKey("intranet_usuarios.id"))
+    usuario_creacion_id: Mapped[int | None] = mapped_column(ForeignKey("intranet_usuarios.id"))
 
     actividades: Mapped[list["Actividad"]] = relationship(cascade="all, delete-orphan")
 
@@ -410,6 +436,7 @@ class Actividad(Base):
     fecha_actualizacion: Mapped[datetime | None] = mapped_column(
         DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc)
     )
+    usuario_actualizacion_id: Mapped[int | None] = mapped_column(ForeignKey("intranet_usuarios.id"))
 
 
 class PlanLigaTipoPlan(Base):
@@ -438,6 +465,10 @@ class Importacion(Base):
     archivo: Mapped[str | None] = mapped_column(String(255))
     registros: Mapped[int | None] = mapped_column(Integer)
     errores: Mapped[int | None] = mapped_column(Integer)
+    # Detalle fila por fila (mensajes de error/avisos), guardado como JSON en texto; None en
+    # importaciones creadas antes de esta columna.
+    detalle_errores: Mapped[str | None] = mapped_column(Text)
+    avisos: Mapped[str | None] = mapped_column(Text)
     fecha: Mapped[datetime | None] = mapped_column(
         DateTime, default=lambda: datetime.now(timezone.utc)
     )

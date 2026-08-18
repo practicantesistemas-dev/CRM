@@ -13,7 +13,6 @@ import proveedoresRoutes from '@/features/proveedores/routes'
 import oportunidadesRoutes from '@/features/oportunidades/routes'
 import embudosRoutes from '@/features/embudos/routes'
 import serviciosRoutes from '@/features/servicios/routes'
-import segmentacionRoutes from '@/features/segmentacion/routes'
 import campanasRoutes from '@/features/campanas/routes'
 import relacionamientoRoutes from '@/features/relacionamiento/routes'
 import importacionRoutes from '@/features/importacion/routes'
@@ -41,7 +40,6 @@ const routes: RouteRecordRaw[] = [
       ...oportunidadesRoutes,
       ...embudosRoutes,
       ...serviciosRoutes,
-      ...segmentacionRoutes,
       ...campanasRoutes,
       ...relacionamientoRoutes,
       ...importacionRoutes,

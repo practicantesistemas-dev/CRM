@@ -11,7 +11,10 @@ class ContactoEmpresaResumen(BaseModel):
 
     id: int
     razon_social: str
-    nit: str
+    # Nulo en empresas importadas desde Plan Liga sin NIT asociado (ver comentario en
+    # Empresa.nit, app/models.py): antes exigía str y tumbaba con 500 cualquier POST/GET de
+    # un contacto ligado a una de esas empresas.
+    nit: str | None = None
     ciudad: str | None = None
 
 

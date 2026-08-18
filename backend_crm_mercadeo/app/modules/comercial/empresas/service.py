@@ -28,9 +28,11 @@ class EmpresaService:
         empresa = Empresa(**data.model_dump(), responsable_id=usuario_id)
         return self.repository.create(empresa)
 
-    def update(self, empresa_id: int, data: EmpresaUpdate) -> Empresa:
+    def update(self, empresa_id: int, data: EmpresaUpdate, username: str) -> Empresa:
         empresa = self.get(empresa_id)
         changes = data.model_dump(exclude_unset=True)
+        if changes:
+            changes["usuario_actualizacion_id"] = self.repository.obtener_usuario_id(username)
         return self.repository.update(empresa, changes)
 
     def delete(self, empresa_id: int) -> None:

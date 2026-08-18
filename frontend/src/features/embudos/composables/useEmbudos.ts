@@ -81,7 +81,22 @@ export function useEmbudos(
     dropIndicator.value = null
   }
 
-  const porEtapa = (etapa: string) => oportunidades.value.filter(o => o.estado === etapa)
+  // Por columna se muestran como máximo las últimas 15 (las de id más alto = creadas más
+  // recientemente; Oportunidad no tiene fecha propia, así que el id autoincremental es el
+  // proxy de "más reciente"). Evita columnas con cientos de tarjetas sin límite; los
+  // totales del tablero (totalOportunidades/totalValor) siguen sumando TODAS las
+  // oportunidades, no solo las 15 que se ven en cada columna.
+  const MAX_TARJETAS_POR_COLUMNA = 15
+  const porEtapa = (etapa: string) =>
+    oportunidades.value
+      .filter(o => o.estado === etapa)
+      .slice()
+      .sort((a, b) => b.id - a.id)
+      .slice(0, MAX_TARJETAS_POR_COLUMNA)
+
+  // Total real de la columna (sin el tope de 15), para poder avisar "mostrando 15 de N"
+  // en vez de que el badge de la columna parezca decir que solo hay 15 en total.
+  const totalPorEtapa = (etapa: string) => oportunidades.value.filter(o => o.estado === etapa).length
 
   const valorEtapa = (etapa: string) => {
     const total = porEtapa(etapa).reduce((acc, o) => acc + parseFloat(o.valor.replace(/[^0-9]/g, '')), 0)
@@ -97,6 +112,7 @@ export function useEmbudos(
   return {
     draggingId, dropTarget, dropIndicator,
     onDragStart, onDragEnd, onDragOver, onDragOverCard, onDragLeave, onDrop,
+    totalPorEtapa,
     porEtapa, valorEtapa, totalOportunidades, totalValor,
   }
 }

@@ -1,5 +1,8 @@
 import * as XLSX from 'xlsx'
 import { joinNombreCompleto } from '@/shared/utils/nombreCompuesto'
+import { TIPOS_DOCUMENTO } from '@/shared/constants/tiposDocumento'
+import { resolverUbicacion } from '@/shared/utils/resolverUbicacion'
+import type { Departamento, Municipio } from '@/shared/types/ubicaciones'
 import type { BeneficiarioDraft, TitularDraft } from '../types/plan-liga'
 import { createBeneficiario, createTitular, getListadoTitulares } from '../services/plan-liga.api'
 
@@ -88,7 +91,10 @@ export function normalizarFecha(valor: unknown): { valor: string; invalida: bool
  * que el agrupamiento en bloques fijos (agruparFilas) no se desalinee. Solo se recortan las filas
  * vacías que quedan después del último dato real del archivo.
  */
-export async function parsearArchivoCargaMasiva(file: File): Promise<FilaCargaMasiva[]> {
+export async function parsearArchivoCargaMasiva(
+  file: File,
+  catalogoUbicaciones: { departamentos: Departamento[]; municipios: Municipio[] },
+): Promise<FilaCargaMasiva[]> {
   const buffer = await file.arrayBuffer()
   const libro = XLSX.read(buffer, { type: 'array', cellDates: true })
   const hoja = libro.Sheets[libro.SheetNames[0]]
@@ -141,11 +147,28 @@ export async function parsearArchivoCargaMasiva(file: File): Promise<FilaCargaMa
     const sexo = base.sexo.toUpperCase()
     if (sexo && sexo !== 'M' && sexo !== 'F') erroresFormato.push(`Fila ${filaExcel}: SEXO debe ser M o F`)
 
+    const tipoDocumento = base.tipoDocumento.toUpperCase()
+    if (tipoDocumento && !(TIPOS_DOCUMENTO as readonly string[]).includes(tipoDocumento)) {
+      erroresFormato.push(`Fila ${filaExcel}: TIPO no es un tipo de documento válido (use uno de: ${TIPOS_DOCUMENTO.join(', ')})`)
+    }
+
+    // CIUDAD/DEPARTAMENTO en la plantilla vienen como texto libre; se resuelven contra el
+    // catálogo real (mismas reglas que en Contactos: exacto, si no el más parecido, si no hay
+    // ni una coincidencia razonable esta fila queda con error de formato y no se procesa). Esto
+    // solo agrega errores al mismo arreglo `erroresFormato` que ya usan SEXO/TIPO/fechas, así
+    // que el agrupamiento por posición fija (agruparFilas) y el resto de procesarCargaMasiva no
+    // cambian en nada: siguen viendo "esta fila tiene errores" igual que antes.
+    const ubicacion = resolverUbicacion(base.departamento, base.ciudad, catalogoUbicaciones.departamentos, catalogoUbicaciones.municipios)
+    ubicacion.errores.forEach(e => erroresFormato.push(`Fila ${filaExcel}: ${e}`))
+
     filas.push({
       ...base,
       fechaNacimiento: nacimiento.valor,
       fechaIngreso: ingreso.valor,
       sexo,
+      tipoDocumento,
+      departamento: ubicacion.departamentoCodigo || base.departamento,
+      ciudad: ubicacion.municipioCodigo || base.ciudad,
       filaExcel,
       vacia: false,
       erroresFormato,

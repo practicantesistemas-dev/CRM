@@ -4,6 +4,7 @@ import { Search, Plus, Download, Upload, Loader2, X, ChevronLeft, ChevronRight }
 import type { Empresa, EmpresaDraft } from '../types/empresa'
 import { EMPRESA_DRAFT_VACIO } from '../constants/empresas.constants'
 import { useEmpresas } from '../composables/useEmpresas'
+import { exportarEmpresasExcel } from '../utils/exportarEmpresasExcel'
 import EmpresaFormDialog from '../dialogs/EmpresaFormDialog.vue'
 import HistorialDrawer from '../dialogs/HistorialDrawer.vue'
 import SeguimientoDialog from '../dialogs/SeguimientoDialog.vue'
@@ -73,6 +74,13 @@ const abrirHistorial = (e: Empresa) => { empresaHistorial.value = e; drawerVisib
 const modalSegVisible = ref(false)
 const abrirSeguimiento = () => { modalSegVisible.value = true }
 const alRegistrarActividad = () => { if (empresaHistorial.value) cargarHistorial(empresaHistorial.value) }
+
+const exportar = () => exportarEmpresasExcel(
+  empresasFiltradas.value,
+  buscar.value,
+  filtroEstado.value,
+  filtroIndustria.value,
+)
 </script>
 
 <template>
@@ -96,7 +104,7 @@ const alRegistrarActividad = () => { if (empresaHistorial.value) cargarHistorial
           <Upload v-else :size="13" />
           Importar de Plan Liga
         </button>
-        <button class="flex items-center gap-1.5 h-9 px-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-[11px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all">
+        <button @click="exportar" class="flex items-center gap-1.5 h-9 px-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-[11px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all">
           <Download :size="13" /> Exportar
         </button>
         <button @click="abrirNuevo" class="flex items-center gap-1.5 h-9 px-4 rounded-lg bg-[#2447F9] text-white text-[11px] font-bold shadow hover:bg-[#1D3DD9] transition-all">

@@ -12,6 +12,7 @@ import type { Empresa } from '@/features/empresas/types/empresa'
 import { getContactos } from '@/features/contactos/services/contactos.api'
 import type { Contacto } from '@/features/contactos/types/contacto'
 import { getListadoTitulares } from '@/features/plan-liga/services/plan-liga.api'
+import { getServicios } from '@/features/servicios/services/servicios.api'
 
 const draft = defineModel<OportunidadDraft>({ required: true })
 const emit = defineEmits<{ validSubmit: [] }>()
@@ -28,6 +29,9 @@ const opcionesEmpresas = computed<OpcionBuscador[]>(() =>
 
 const contactos = ref<Contacto[]>([])
 onMounted(async () => { contactos.value = await getContactos() })
+
+const servicios = ref<string[]>([])
+onMounted(async () => { servicios.value = await getServicios() })
 
 const opcionesContactos = computed<OpcionBuscador[]>(() =>
   contactos.value.map(c => ({ id: c.id, label: c.nombre, sublabel: c.empresaNombre })),
@@ -152,12 +156,7 @@ function alSeleccionarTitular(item: OpcionBuscador | null) {
       <label class="block text-[11px] font-bold text-body mb-1.5 uppercase tracking-wide">Servicio *</label>
       <select v-model="draft.servicio" @blur="tocar('servicio')" class="w-full h-10 px-3 rounded-lg border bg-slate-50 dark:bg-slate-900 text-[12px] text-slate-900 dark:text-slate-100 outline-none focus:bg-white dark:focus:bg-slate-800 transition-all cursor-pointer" :class="fieldStateClass(esVisible('servicio') && !!errors.servicio, esVisible('servicio') && !errors.servicio && !!draft.servicio, 'border-slate-200 dark:border-slate-600 focus:border-[#2447F9]')">
         <option value="">Seleccionar servicio</option>
-        <option value="Plan Liga Empresarial">Plan Liga Empresarial</option>
-        <option value="Plan Liga Individual">Plan Liga Individual</option>
-        <option value="Tamizajes">Tamizajes</option>
-        <option value="Brigadas de Salud">Brigadas de Salud</option>
-        <option value="Capacitaciones">Capacitaciones</option>
-        <option value="Programas de Bienestar">Programas de Bienestar</option>
+        <option v-for="s in servicios" :key="s" :value="s">{{ s }}</option>
       </select>
       <FieldError :message="esVisible('servicio') ? errors.servicio : undefined" />
     </div>

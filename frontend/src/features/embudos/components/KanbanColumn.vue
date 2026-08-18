@@ -8,6 +8,8 @@ defineProps<{
   etapa: string
   color: EtapaColor
   oportunidades: Oportunidad[]
+  /** Total real en esta etapa, sin el tope de 15 tarjetas que se renderizan. */
+  total: number
   valor: string
   isDropTarget: boolean
   draggingId: number | null
@@ -40,12 +42,15 @@ const emit = defineEmits<{
       <div class="flex items-center gap-2">
         <div class="w-2 h-2 rounded-full" :style="{ backgroundColor: color.dot }" />
         <span class="text-[11px] font-bold" :style="{ color: color.text }">{{ etapa }}</span>
-        <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full text-white" :style="{ backgroundColor: color.dot }">
-          {{ oportunidades.length }}
+        <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full text-white" :style="{ backgroundColor: color.dot }" :title="total > oportunidades.length ? `Mostrando ${oportunidades.length} de ${total}` : undefined">
+          {{ total > oportunidades.length ? `${oportunidades.length}/${total}` : oportunidades.length }}
         </span>
       </div>
       <div class="text-[9px] font-bold text-slate-400 dark:text-slate-500">{{ valor }}</div>
     </div>
+    <p v-if="total > oportunidades.length" class="text-[10px] text-slate-400 dark:text-slate-500 px-1">
+      Mostrando las últimas {{ oportunidades.length }} de {{ total }}
+    </p>
 
     <div
       v-if="isDropTarget && draggingId !== null"

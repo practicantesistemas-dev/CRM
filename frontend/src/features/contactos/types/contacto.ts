@@ -1,3 +1,5 @@
+import type { TipoDocumento } from '@/shared/constants/tiposDocumento'
+
 /** Etiqueta real del backend (GET/POST /api/etiquetas/), no un string libre. */
 export interface Etiqueta {
   id: number
@@ -10,7 +12,8 @@ export type EtiquetaDraft = Omit<Etiqueta, 'id'>
 export interface Contacto {
   id: number
   nombre: string
-  tipoDocumento: 'CC' | 'CE' | 'TI' | 'NIT' | 'PP'
+  /** '' solo ocurre en contactos cargados por Excel sin TIPO_DOCUMENTO válido: no se inventa un valor. */
+  tipoDocumento: TipoDocumento | ''
   documento: string
   correo: string
   telefono: string

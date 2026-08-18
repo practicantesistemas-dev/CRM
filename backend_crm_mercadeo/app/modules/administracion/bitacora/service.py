@@ -76,21 +76,28 @@ class BitacoraService:
         )
         return self.repository.create(bitacora)
 
-    def update(self, id_bitacora: int, data: BitacoraUpdate) -> Bitacora:
+    def update(self, id_bitacora: int, data: BitacoraUpdate, username: str) -> Bitacora:
         bitacora = self.repository.get(id_bitacora)
         if bitacora is None:
             raise BitacoraNotFoundError(id_bitacora)
 
         changes = data.model_dump(exclude_unset=True)
         if changes:
+            # fecha_actualizacion no hace falta setearla a mano: el modelo tiene onupdate=...,
+            # que SQLAlchemy dispara solo en cualquier UPDATE de la fila (igual que en
+            # Contacto/Empresa/Oportunidad/Proveedor/Actividad).
+            changes["usuario_actualizacion_id"] = self.repository.obtener_usuario_id(username)
             bitacora = self.repository.update(bitacora, changes)
         return bitacora
 
-    def completar(self, id_bitacora: int) -> Bitacora:
+    def completar(self, id_bitacora: int, username: str) -> Bitacora:
         bitacora = self.repository.get(id_bitacora)
         if bitacora is None:
             raise BitacoraNotFoundError(id_bitacora)
-        return self.repository.update(bitacora, {"estado": EstadoBitacora.REALIZADO})
+        return self.repository.update(bitacora, {
+            "estado": EstadoBitacora.REALIZADO,
+            "usuario_actualizacion_id": self.repository.obtener_usuario_id(username),
+        })
 
     def historial_contacto(self, contacto_id: int, limit: int = 4) -> list[BitacoraItem]:
         filas = self.repository.ultimos_por_contacto(contacto_id, limit=limit)

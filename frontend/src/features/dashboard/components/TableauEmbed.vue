@@ -25,6 +25,7 @@
 import { ref, onMounted } from 'vue';
 import '@tableau/embedding-api';
 import { SignJWT } from 'jose';
+import { v4 as uuidv4 } from 'uuid';
 
 const jwtToken = ref(null);
 
@@ -50,7 +51,7 @@ const generarToken = async () => {
         kid: secretId, 
         iss: clientId  
       })
-      .setJti(crypto.randomUUID())
+      .setJti(uuidv4())
       .setIssuedAt(ahora) 
       .setExpirationTime(ahora + 300) 
       .sign(secret);

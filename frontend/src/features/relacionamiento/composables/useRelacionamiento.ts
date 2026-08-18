@@ -1,6 +1,8 @@
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import type { Actividad, ActividadDraft, TipoActividad } from '../types/actividad'
 import { getActividades, createActividad, updateActividad, completarActividad, deleteActividad } from '../services/relacionamiento.api'
+
+const PAGE_SIZE = 4
 
 export function useRelacionamiento() {
   const actividades = ref<Actividad[]>([])
@@ -36,6 +38,17 @@ export function useRelacionamiento() {
   )
 
   const usuarios = computed(() => [...new Set(actividades.value.map(a => a.usuario).filter(Boolean))].sort())
+
+  const paginaActual = ref(1)
+  const porPagina    = PAGE_SIZE
+  const actividadesPaginadas = computed(() => {
+    const start = (paginaActual.value - 1) * porPagina
+    return actividadesFiltradas.value.slice(start, start + porPagina)
+  })
+  const totalPaginas = computed(() => Math.ceil(actividadesFiltradas.value.length / porPagina))
+
+  // Igual que en Contactos: si cambia la búsqueda o algún filtro, se vuelve a la página 1.
+  watch([buscar, filtroTipo, filtroUsuario], () => { paginaActual.value = 1 })
 
   const guardandoActividad = ref(false)
   const errorGuardarActividad = ref<string | null>(null)
@@ -119,6 +132,7 @@ export function useRelacionamiento() {
     actividades, cargando, error,
     filtroTipo, filtroUsuario, buscar,
     actividadesFiltradas, usuarios,
+    paginaActual, porPagina, actividadesPaginadas, totalPaginas,
     crearActividad, actualizarActividad, guardandoActividad, errorGuardarActividad,
     eliminarActividad, eliminandoActividad, errorEliminarActividad,
     pendientes, marcarRealizada, completandoId, errorCompletarActividad,

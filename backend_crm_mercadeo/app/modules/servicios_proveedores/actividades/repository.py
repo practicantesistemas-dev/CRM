@@ -1,12 +1,18 @@
 from sqlalchemy import func, or_, select
 from sqlalchemy.sql.elements import ColumnElement
 
-from app.models import Actividad
+from app.models import Actividad, Usuario
 from app.shared.database.base_repository import BaseRepository
 
 
 class ActividadRepository(BaseRepository[Actividad]):
     model = Actividad
+
+    def obtener_usuario_id(self, username: str) -> int | None:
+        stmt = select(Usuario.id).where(
+            func.upper(func.trim(Usuario.usuario)) == username.strip().upper()
+        )
+        return self.db.scalar(stmt)
 
     def _filtros(self, q: str | None, proveedor_id: int | None) -> list[ColumnElement]:
         condiciones = []
