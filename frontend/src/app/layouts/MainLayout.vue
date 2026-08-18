@@ -257,7 +257,7 @@ const refrescarVistaActual = () => {
       </div>
 
       <!-- Nav -->
-      <nav class="flex-1 overflow-y-auto py-3 scrollbar-none">
+      <nav class="flex-1 overflow-y-auto py-3 scrollbar-sidebar">
         <template v-for="group in menuGroups" :key="group.label ?? '__root__'">
           <!-- Divider for collapsed state -->
           <div v-if="group.label && sidebarCollapsed" class="px-3 py-2">
@@ -370,10 +370,11 @@ const refrescarVistaActual = () => {
         <div class="flex items-center gap-2 shrink-0">
           <button
             @click="refrescarVistaActual"
-            class="h-8 w-8 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
+            class="h-9 px-3.5 rounded-lg bg-[#EC4899] hover:bg-[#D61F69] flex items-center gap-1.5 text-white shadow transition-all"
             title="Actualizar"
           >
-            <RefreshCw :size="13" />
+            <span class="text-[12px] font-bold hidden sm:inline">Actualizar</span>
+            <RefreshCw :size="14" />
           </button>
           <div class="relative">
             <button
@@ -475,3 +476,30 @@ const refrescarVistaActual = () => {
     </div>
   </div>
 </template>
+
+<style scoped>
+/* Antes el menú usaba scrollbar-none (invisible): cuando había más módulos de los que caben
+   en pantalla, no había ninguna señal de que se podía hacer scroll. Esta barra delgada, clara
+   sobre el fondo azul del menú, queda siempre visible como indicación (no solo al pasar el mouse). */
+.scrollbar-sidebar::-webkit-scrollbar {
+  width: 5px;
+}
+
+.scrollbar-sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-sidebar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 3px;
+}
+
+.scrollbar-sidebar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.scrollbar-sidebar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+}
+</style>

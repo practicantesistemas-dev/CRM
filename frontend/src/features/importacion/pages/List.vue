@@ -58,7 +58,12 @@ const hoy = new Date().toISOString().split('T')[0]
 
     <p v-if="errorProceso" class="text-[12px] text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/40 rounded-lg px-3 py-2">{{ errorProceso }}</p>
 
-    <ResultadoImportacionPanel v-if="resultadoVisible" :resultado="resultado" @descargar-reporte="descargarReporteActual" />
+    <ResultadoImportacionPanel
+      v-if="resultadoVisible"
+      :resultado="resultado"
+      @descargar-reporte="descargarReporteActual"
+      @cerrar="resultadoVisible = false"
+    />
 
     <div>
       <h3 class="text-[12px] font-bold text-subtle uppercase tracking-wider mb-3">Historial de importaciones</h3>

@@ -1,16 +1,25 @@
 <script setup lang="ts">
-import { CheckCircle, AlertCircle, Download } from 'lucide-vue-next'
+import { CheckCircle, AlertCircle, Download, X } from 'lucide-vue-next'
 import type { ResultadoImportacion } from '../types/importacion'
 
 defineProps<{ resultado: ResultadoImportacion }>()
-const emit = defineEmits<{ descargarReporte: [] }>()
+const emit = defineEmits<{ descargarReporte: []; cerrar: [] }>()
 </script>
 
 <template>
   <div class="bg-white dark:bg-slate-800 rounded-2xl border border-emerald-200 dark:border-emerald-800 shadow-sm p-6">
-    <div class="flex items-center gap-2 mb-4">
-      <CheckCircle :size="18" class="text-emerald-600 dark:text-emerald-400" />
-      <h3 class="text-[13px] font-bold text-heading">Importación completada</h3>
+    <div class="flex items-center justify-between gap-2 mb-4">
+      <div class="flex items-center gap-2">
+        <CheckCircle :size="18" class="text-emerald-600 dark:text-emerald-400" />
+        <h3 class="text-[13px] font-bold text-heading">Importación completada</h3>
+      </div>
+      <button
+        @click="emit('cerrar')"
+        title="Cerrar"
+        class="shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+      >
+        <X :size="14" />
+      </button>
     </div>
     <div class="grid grid-cols-3 gap-4">
       <div class="text-center p-3 surface-sunken rounded-xl">

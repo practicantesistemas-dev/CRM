@@ -44,9 +44,10 @@ def create_actividad(
 def update_actividad(
     actividad_id: int,
     data: ActividadUpdate,
+    username: str = Depends(get_current_username),
     service: ActividadService = Depends(get_actividad_service),
 ) -> ActividadRead:
-    return service.update(actividad_id, data)
+    return service.update(actividad_id, data, username=username)
 
 
 @router.delete("/{actividad_id}", status_code=status.HTTP_204_NO_CONTENT)

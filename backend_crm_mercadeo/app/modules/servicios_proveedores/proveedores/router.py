@@ -58,18 +58,21 @@ def list_actividades_proveedor(
 
 @router.post("/", response_model=ProveedorRead, status_code=status.HTTP_201_CREATED)
 def create_proveedor(
-    data: ProveedorCreate, service: ProveedorService = Depends(get_proveedor_service)
+    data: ProveedorCreate,
+    username: str = Depends(get_current_username),
+    service: ProveedorService = Depends(get_proveedor_service),
 ) -> ProveedorRead:
-    return service.create(data)
+    return service.create(data, username=username)
 
 
 @router.put("/{proveedor_id}", response_model=ProveedorRead)
 def update_proveedor(
     proveedor_id: int,
     data: ProveedorUpdate,
+    username: str = Depends(get_current_username),
     service: ProveedorService = Depends(get_proveedor_service),
 ) -> ProveedorRead:
-    return service.update(proveedor_id, data)
+    return service.update(proveedor_id, data, username=username)
 
 
 @router.delete("/{proveedor_id}", status_code=status.HTTP_204_NO_CONTENT)

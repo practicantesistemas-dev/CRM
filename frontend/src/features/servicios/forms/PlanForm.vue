@@ -1,9 +1,11 @@
 <script setup lang="ts">
+import { watch } from 'vue'
 import { Layers } from 'lucide-vue-next'
 import type { PlanDraft } from '../services/servicios.api'
 import { planSchema } from '../schemas/plan.schema'
 import { useZodForm } from '@/shared/composables/useZodForm'
 import { fieldStateClass } from '@/shared/utils/fieldStateClass'
+import { CUPO_MAXIMO } from '@/features/plan-liga/constants/plan-liga.constants'
 import FieldError from '@/shared/components/FieldError.vue'
 
 defineProps<{ categoriaFija?: string }>()
@@ -12,6 +14,13 @@ const emit = defineEmits<{ validSubmit: [] }>()
 
 const { errors, tocar, esVisible, onValidSubmit } = useZodForm(planSchema, draft)
 defineExpose({ submit: onValidSubmit(() => emit('validSubmit')) })
+
+// "Beneficiarios" es el total del plan; "adicionales" no se digita, se calcula solo: lo que
+// pasa del cupo base de un grupo (CUPO_MAXIMO, el mismo tope que usa la carga masiva de Plan
+// Liga para armar cada grupo titular+beneficiarios). Ej: 5 beneficiarios -> 1 adicional.
+watch(() => draft.value.beneficiarios, (nuevo) => {
+  draft.value.beneficiariosAdicionales = Math.max(0, (nuevo ?? 0) - CUPO_MAXIMO)
+}, { immediate: true })
 </script>
 
 <template>
@@ -56,7 +65,8 @@ defineExpose({ submit: onValidSubmit(() => emit('validSubmit')) })
     </div>
     <div>
       <label class="block text-[11px] font-bold text-body mb-1.5 uppercase tracking-wide">Beneficiarios adicionales</label>
-      <input v-model.number="draft.beneficiariosAdicionales" type="number" min="0" class="w-full h-10 px-4 rounded-lg input-surface text-[12px] outline-none focus:border-[#2447F9] focus:bg-white dark:focus:bg-slate-800 transition-all" />
+      <input :value="draft.beneficiariosAdicionales" type="number" disabled class="w-full h-10 px-4 rounded-lg input-surface text-[12px] outline-none opacity-70 cursor-not-allowed" />
+      <p class="text-[10px] text-muted mt-1">Se calcula solo: lo que pasa de {{ CUPO_MAXIMO }} (cupo base de un grupo). Ej: {{ CUPO_MAXIMO + 1 }} beneficiarios → 1 adicional.</p>
     </div>
     <div class="sm:col-span-2">
       <label class="block text-[11px] font-bold text-body mb-1.5 uppercase tracking-wide">Descripción</label>

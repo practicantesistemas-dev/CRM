@@ -43,9 +43,10 @@ def create_oportunidad(
 def update_oportunidad(
     oportunidad_id: int,
     data: OportunidadUpdate,
+    username: str = Depends(get_current_username),
     service: OportunidadService = Depends(get_oportunidad_service),
 ) -> OportunidadRead:
-    return service.actualizar(oportunidad_id, data)
+    return service.actualizar(oportunidad_id, data, username=username)
 
 
 @router.delete("/{oportunidad_id}", status_code=status.HTTP_204_NO_CONTENT)

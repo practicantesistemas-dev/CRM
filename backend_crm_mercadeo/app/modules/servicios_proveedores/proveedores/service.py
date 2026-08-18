@@ -43,13 +43,16 @@ class ProveedorService:
     def categorias(self) -> list[str]:
         return self.repository.categorias()
 
-    def create(self, data: ProveedorCreate) -> Proveedor:
-        proveedor = Proveedor(**data.model_dump())
+    def create(self, data: ProveedorCreate, username: str) -> Proveedor:
+        usuario_id = self.repository.obtener_usuario_id(username)
+        proveedor = Proveedor(**data.model_dump(), usuario_creacion_id=usuario_id)
         return self.repository.create(proveedor)
 
-    def update(self, proveedor_id: int, data: ProveedorUpdate) -> Proveedor:
+    def update(self, proveedor_id: int, data: ProveedorUpdate, username: str) -> Proveedor:
         proveedor = self.get(proveedor_id)
         changes = data.model_dump(exclude_unset=True)
+        if changes:
+            changes["usuario_actualizacion_id"] = self.repository.obtener_usuario_id(username)
         return self.repository.update(proveedor, changes)
 
     def delete(self, proveedor_id: int) -> None:

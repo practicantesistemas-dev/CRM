@@ -41,9 +41,11 @@ class ActividadService:
         actividad = Actividad(**data.model_dump())
         return self.repository.create(actividad)
 
-    def update(self, actividad_id: int, data: ActividadUpdate) -> Actividad:
+    def update(self, actividad_id: int, data: ActividadUpdate, username: str) -> Actividad:
         actividad = self.get(actividad_id)
         changes = data.model_dump(exclude_unset=True)
+        if changes:
+            changes["usuario_actualizacion_id"] = self.repository.obtener_usuario_id(username)
         return self.repository.update(actividad, changes)
 
     def delete(self, actividad_id: int) -> None:

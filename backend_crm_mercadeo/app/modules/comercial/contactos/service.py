@@ -122,6 +122,7 @@ class ContactoService:
 
         changes = data.model_dump(exclude_unset=True, exclude={"etiqueta_ids"})
         if changes:
+            changes["usuario_actualizacion_id"] = self.repository.obtener_usuario_id(username)
             contacto = self.repository.update(contacto, changes)
 
         if data.etiqueta_ids is not None:

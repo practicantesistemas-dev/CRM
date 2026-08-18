@@ -51,17 +51,19 @@ def registrar_seguimiento(
 def actualizar_seguimiento(
     id_bitacora: int,
     data: BitacoraUpdate,
+    username: str = Depends(get_current_username),
     service: BitacoraService = Depends(get_bitacora_service),
 ) -> BitacoraRead:
-    return service.update(id_bitacora, data)
+    return service.update(id_bitacora, data, username=username)
 
 
 @router.patch("/{id_bitacora}/completar", response_model=BitacoraRead)
 def completar_seguimiento(
     id_bitacora: int,
+    username: str = Depends(get_current_username),
     service: BitacoraService = Depends(get_bitacora_service),
 ) -> BitacoraRead:
-    return service.completar(id_bitacora)
+    return service.completar(id_bitacora, username=username)
 
 
 @router.delete("/{id_bitacora}", status_code=status.HTTP_204_NO_CONTENT)
