@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { Search, Plus, Download, X } from 'lucide-vue-next'
 import type { Contacto, ContactoDraft } from '../types/contacto'
-import { CONTACTO_DRAFT_VACIO } from '../constants/contactos.constants'
+import { CONTACTO_DRAFT_VACIO, ESTADO_CONTACTO_OPTIONS, TIPO_CONTACTO_OPTIONS } from '../constants/contactos.constants'
 import { useContactos } from '../composables/useContactos'
 import { exportarContactosExcel } from '../utils/exportarContactosExcel'
 import ContactoFormDialog from '../dialogs/ContactoFormDialog.vue'
@@ -13,10 +13,11 @@ import ConfirmDialog from '@/shared/components/ConfirmDialog.vue'
 
 const {
   contactos, cargandoContactos, errorContactos, cargarContactos,
-  buscar, filtroEstado, filtroCiudad, filtroDepartamento, filtroResponsable, filtroSexo, filtroEdad,
+  buscar, filtroEstado, filtroTipoContacto, filtroCiudad, filtroDepartamento, filtroResponsable, filtroSexo, filtroEdad,
   contactosFiltrados, ciudades, departamentosLista, responsables, filtrosActivos, limpiarFiltros,
   paginaActual, paginado, totalPaginas,
   crearContacto, actualizarContacto, guardandoContacto, errorGuardarContacto,
+  alternarEstadoContacto, cambiandoEstadoId, errorCambiarEstado,
   eliminarContacto, errorEliminarContacto,
   historialActual, cargandoHistorial, cargarHistorial,
   etiquetas, cargandoEtiquetas, cargarEtiquetas,
@@ -120,10 +121,11 @@ const exportarContactos = () => exportarContactosExcel(contactosFiltrados.value)
         <div class="grid grid-cols-3 gap-2 w-full xl:flex xl:flex-wrap xl:items-center xl:flex-1">
           <select v-model="filtroEstado" class="w-full xl:flex-1 xl:min-w-[155px] xl:max-w-[240px] h-9 px-3 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-[11px] font-medium text-slate-600 dark:text-slate-300 outline-none cursor-pointer">
             <option value="todos">Estado: Todos</option>
-            <option value="Activo">Activo</option>
-            <option value="Inactivo">Inactivo</option>
-            <option value="Prospecto">Prospecto</option>
-            <option value="En proceso">En proceso</option>
+            <option v-for="e in ESTADO_CONTACTO_OPTIONS" :key="e" :value="e">{{ e }}</option>
+          </select>
+          <select v-model="filtroTipoContacto" class="w-full xl:flex-1 xl:min-w-[170px] xl:max-w-[240px] h-9 px-3 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-[11px] font-medium text-slate-600 dark:text-slate-300 outline-none cursor-pointer">
+            <option value="todos">Tipo de contacto: Todos</option>
+            <option v-for="t in TIPO_CONTACTO_OPTIONS" :key="t" :value="t">{{ t }}</option>
           </select>
           <select v-model="filtroCiudad" class="w-full xl:flex-1 xl:min-w-[185px] xl:max-w-[260px] h-9 px-3 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-[11px] font-medium text-slate-600 dark:text-slate-300 outline-none cursor-pointer">
             <option value="todas">Ciudad: Todas</option>
@@ -164,6 +166,7 @@ const exportarContactos = () => exportarContactosExcel(contactosFiltrados.value)
       </div>
       <p v-if="errorContactos" class="mt-1 text-[11px] font-medium text-red-500 dark:text-red-400">{{ errorContactos }}</p>
       <p v-if="errorEliminarContacto" class="mt-1 text-[11px] font-medium text-red-500 dark:text-red-400">{{ errorEliminarContacto }}</p>
+      <p v-if="errorCambiarEstado" class="mt-1 text-[11px] font-medium text-red-500 dark:text-red-400">{{ errorCambiarEstado }}</p>
     </div>
 
     <!-- ── Table ─────────────────────────────────────────────────── -->
@@ -171,9 +174,11 @@ const exportarContactos = () => exportarContactosExcel(contactosFiltrados.value)
       :rows="paginado"
       :pagina-actual="paginaActual"
       :total-paginas="totalPaginas"
+      :cambiando-estado-id="cambiandoEstadoId"
       @editar="abrirEditar"
       @historial="abrirHistorial"
       @seguimiento="abrirSeguimiento"
+      @toggle-estado="alternarEstadoContacto"
       @borrar="pedirBorrarContacto"
       @update:pagina-actual="paginaActual = $event"
     />

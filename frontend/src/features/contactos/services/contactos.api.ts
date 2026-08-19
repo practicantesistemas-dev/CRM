@@ -65,7 +65,6 @@ interface ContactoReadResponse {
 }
 
 const TIPO_DOC_VALIDOS: readonly string[] = TIPOS_DOCUMENTO
-const ESTADO_VALIDOS: readonly string[] = ['Activo', 'Inactivo', 'Prospecto', 'En proceso']
 
 // El formulario solo ofrece Masculino/Femenino; al backend se manda como M/F
 // (mismo código que ya usa Plan Liga para SEXO), no la palabra completa. Como los datos
@@ -120,7 +119,10 @@ function mapContactoResponse(
     departamento: nombreDepartamento,
     ciudadCodigo: municipio?.codigo ?? '',
     departamentoCodigo: depto?.codigo ?? '',
-    estado: (ESTADO_VALIDOS.includes(r.estado ?? '') ? r.estado : fallback.estado ?? FALLBACK.estado) as Contacto['estado'],
+    // Sin whitelist: a diferencia de tipoDocumento, un valor de estado que no sea
+    // Activo/Inactivo (ej. "Prospecto"/"En proceso" de datos viejos mal guardados) se muestra
+    // tal cual llega en vez de reemplazarse por el fallback, para no falsear el dato real.
+    estado: (r.estado ?? fallback.estado ?? FALLBACK.estado) as Contacto['estado'],
     tipoContacto: r.tipo_contacto ?? fallback.tipoContacto ?? FALLBACK.tipoContacto,
     fechaNacimiento: r.fecha_nacimiento ?? '',
     sexo: (r.sexo && SEXO_DESDE_API[r.sexo]) || fallback.sexo || '',
@@ -203,11 +205,9 @@ export async function createContacto(data: ContactoDraft): Promise<Contacto> {
 
 // Actualiza el contacto en el backend real (PUT /api/contactos/{id}, requiere Bearer token).
 // Todos los campos del body son opcionales para el backend (exclude_unset): acá se manda
-// el set completo que ya vive en el draft, EXCEPTO estado.
+// el set completo que ya vive en el draft, incluyendo estado (el form ya lo permite editar).
 // - empresa_id ahora sí viaja: el selector es la fuente real de verdad (a diferencia del
 //   viejo campo de texto libre), así que elegir "Sin empresa asociada" debe poder desasociarla.
-// - estado no forma parte del contrato de este PUT (no está en el form tampoco): se deja que
-//   el backend conserve el que ya tenía.
 export async function updateContacto(id: number, data: ContactoDraft): Promise<Contacto> {
   const { nombre1, nombre2, apellido1, apellido2 } = splitNombreCompleto(data.nombre)
   const body = {
@@ -225,6 +225,7 @@ export async function updateContacto(id: number, data: ContactoDraft): Promise<C
     tipo_contacto: data.tipoContacto,
     fecha_nacimiento: data.fechaNacimiento || null,
     sexo: SEXO_API[data.sexo] ?? null,
+    estado: data.estado || null,
     empresa_id: data.empresaId,
     etiqueta_ids: data.etiquetas.map(e => e.id),
   }
@@ -242,7 +243,26 @@ export async function updateContacto(id: number, data: ContactoDraft): Promise<C
     tipoDocumento: data.tipoDocumento,
     tipoContacto: data.tipoContacto,
     sexo: data.sexo,
+    estado: data.estado,
   })
+}
+
+// Activa/desactiva el contacto (PUT /api/contactos/{id}, requiere Bearer token) mandando
+// solo "estado": el backend usa exclude_unset, así que el resto de los campos del contacto
+// no se toca (mismo patrón que activar/desactivar en Plan Liga, pero sin endpoint dedicado
+// porque acá el estado ya es un campo más del PUT genérico).
+export async function toggleEstadoContacto(id: number, estado: Contacto['estado']): Promise<Contacto> {
+  const response = await fetch(`${API_URL}/api/contactos/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...authHeader() },
+    body: JSON.stringify({ estado }),
+  })
+  if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo cambiar el estado del contacto.')
+  const r: ContactoReadResponse = await response.json()
+
+  const { departamentos, municipios } = useUbicaciones()
+  await esperarUbicaciones()
+  return mapContactoResponse(r, { departamentos: departamentos.value, municipios: municipios.value })
 }
 
 // Elimina el contacto en el backend real (DELETE /api/contactos/{id}, requiere Bearer token).

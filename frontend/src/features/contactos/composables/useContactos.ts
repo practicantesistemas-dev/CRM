@@ -2,7 +2,7 @@ import { ref, computed, watch } from 'vue'
 import type { Contacto, ContactoDraft, Etiqueta, EtiquetaDraft, HistorialItem } from '../types/contacto'
 import {
   getContactos, createContacto, updateContacto, deleteContacto, getBitacoraContacto,
-  getEtiquetas, createEtiqueta,
+  getEtiquetas, createEtiqueta, toggleEstadoContacto,
 } from '../services/contactos.api'
 import type { Empresa } from '@/features/empresas/types/empresa'
 import { getEmpresas } from '@/features/empresas/services/empresas.api'
@@ -28,6 +28,7 @@ export function useContactos() {
 
   const buscar             = ref('')
   const filtroEstado       = ref('todos')
+  const filtroTipoContacto = ref('todos')
   const filtroCiudad       = ref('todas')
   const filtroDepartamento = ref('todos')
   const filtroResponsable  = ref('todos')
@@ -48,6 +49,7 @@ export function useContactos() {
       const q = buscar.value.toLowerCase()
       return (!q || [c.nombre, c.correo, c.empresaNombre, c.documento].some(f => f.toLowerCase().includes(q)))
         && (filtroEstado.value       === 'todos'  || c.estado === filtroEstado.value)
+        && (filtroTipoContacto.value === 'todos'  || c.tipoContacto === filtroTipoContacto.value)
         && (filtroCiudad.value       === 'todas'  || c.ciudad === filtroCiudad.value)
         && (filtroDepartamento.value === 'todos'  || c.departamento === filtroDepartamento.value)
         && (filtroResponsable.value  === 'todos'  || c.responsable === filtroResponsable.value)
@@ -60,13 +62,14 @@ export function useContactos() {
   const departamentosLista = computed(() => [...new Set(contactos.value.map(c => c.departamento))].sort())
   const responsables   = computed(() => [...new Set(contactos.value.map(c => c.responsable))].sort())
   const filtrosActivos = computed(() =>
-    [filtroEstado.value !== 'todos', filtroCiudad.value !== 'todas', filtroDepartamento.value !== 'todos',
-     filtroResponsable.value !== 'todos', filtroSexo.value !== 'todos',
+    [filtroEstado.value !== 'todos', filtroTipoContacto.value !== 'todos', filtroCiudad.value !== 'todas',
+     filtroDepartamento.value !== 'todos', filtroResponsable.value !== 'todos', filtroSexo.value !== 'todos',
      filtroEdad.value !== 'todos'].filter(Boolean).length
   )
 
   const limpiarFiltros = () => {
     filtroEstado.value       = 'todos'
+    filtroTipoContacto.value = 'todos'
     filtroCiudad.value       = 'todas'
     filtroDepartamento.value = 'todos'
     filtroResponsable.value  = 'todos'
@@ -85,7 +88,7 @@ export function useContactos() {
   // Si cambia la búsqueda o algún filtro, se vuelve a la página 1: si te quedabas en una
   // página que ya no existe (ej. estabas en la 2 y el filtro dejó 6 o menos resultados),
   // "paginado" quedaba vacío por el slice fuera de rango, mostrando "sin resultados" mal.
-  watch([buscar, filtroEstado, filtroCiudad, filtroDepartamento, filtroResponsable, filtroSexo, filtroEdad], () => {
+  watch([buscar, filtroEstado, filtroTipoContacto, filtroCiudad, filtroDepartamento, filtroResponsable, filtroSexo, filtroEdad], () => {
     paginaActual.value = 1
   })
 
@@ -120,6 +123,27 @@ export function useContactos() {
       return false
     } finally {
       guardandoContacto.value = false
+    }
+  }
+
+  // ─── Activar/desactivar (botón visible en la tabla, fuera del formulario) ───
+  const cambiandoEstadoId = ref<number | null>(null)
+  const errorCambiarEstado = ref<string | null>(null)
+
+  const alternarEstadoContacto = async (c: Contacto): Promise<boolean> => {
+    const nuevoEstado = c.estado === 'Activo' ? 'Inactivo' : 'Activo'
+    cambiandoEstadoId.value = c.id
+    errorCambiarEstado.value = null
+    try {
+      const actualizado = await toggleEstadoContacto(c.id, nuevoEstado)
+      const idx = contactos.value.findIndex(x => x.id === c.id)
+      if (idx !== -1) contactos.value[idx] = actualizado
+      return true
+    } catch (e) {
+      errorCambiarEstado.value = e instanceof Error ? e.message : 'No se pudo cambiar el estado del contacto.'
+      return false
+    } finally {
+      cambiandoEstadoId.value = null
     }
   }
 
@@ -213,10 +237,11 @@ export function useContactos() {
 
   return {
     contactos, cargandoContactos, errorContactos, cargarContactos,
-    buscar, filtroEstado, filtroCiudad, filtroDepartamento, filtroResponsable, filtroSexo, filtroEdad,
+    buscar, filtroEstado, filtroTipoContacto, filtroCiudad, filtroDepartamento, filtroResponsable, filtroSexo, filtroEdad,
     contactosFiltrados, ciudades, departamentosLista, responsables, filtrosActivos, limpiarFiltros,
     paginaActual, porPagina, paginado, totalPaginas,
     crearContacto, actualizarContacto, guardandoContacto, errorGuardarContacto,
+    alternarEstadoContacto, cambiandoEstadoId, errorCambiarEstado,
     eliminarContacto, eliminandoContacto, errorEliminarContacto,
     historialActual, cargandoHistorial, errorHistorial, cargarHistorial,
     etiquetas, cargandoEtiquetas, errorEtiquetas, cargarEtiquetas,

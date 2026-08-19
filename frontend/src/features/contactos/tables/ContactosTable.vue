@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Briefcase, MapPin, ClipboardList, Edit2, Clock, Trash2, ChevronLeft, ChevronRight } from 'lucide-vue-next'
+import { Briefcase, MapPin, ClipboardList, Edit2, Clock, Trash2, ToggleRight, ToggleLeft, ChevronLeft, ChevronRight } from 'lucide-vue-next'
 import type { Contacto } from '../types/contacto'
 import { estadoStyle } from '../constants/contactos.constants'
 import ContactoAvatar from '../components/ContactoAvatar.vue'
@@ -8,12 +8,14 @@ defineProps<{
   rows: Contacto[]
   paginaActual: number
   totalPaginas: number
+  cambiandoEstadoId?: number | null
 }>()
 
 const emit = defineEmits<{
   editar: [c: Contacto]
   historial: [c: Contacto]
   seguimiento: [c: Contacto]
+  'toggle-estado': [c: Contacto]
   borrar: [c: Contacto]
   'update:paginaActual': [p: number]
 }>()
@@ -22,7 +24,7 @@ const emit = defineEmits<{
 <template>
   <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
     <div class="overflow-x-auto">
-      <table class="w-full min-w-[860px]">
+      <table class="w-full min-w-[900px]">
         <thead class="bg-[#F8FAFC] dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
           <tr>
             <th class="text-left px-4 py-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-[190px]">Contacto</th>
@@ -32,7 +34,7 @@ const emit = defineEmits<{
             <th class="text-left px-3 py-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Estado</th>
             <th class="text-left px-3 py-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Etiquetas</th>
             <th class="text-left px-3 py-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Responsable</th>
-            <th class="text-right pl-4 pr-6 py-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-[84px]">Acciones</th>
+            <th class="text-right pl-4 pr-6 py-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider w-[124px]">Acciones</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
@@ -84,6 +86,15 @@ const emit = defineEmits<{
                   title="Registrar seguimiento"
                 >
                   <ClipboardList :size="11" />
+                </button>
+                <button
+                  @click="emit('toggle-estado', c)"
+                  :disabled="cambiandoEstadoId === c.id"
+                  class="w-6 h-6 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 flex items-center justify-center transition-all shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                  :class="c.estado === 'Activo' ? 'hover:bg-red-50 dark:hover:bg-red-950/50 hover:text-red-500 dark:hover:text-red-400' : 'hover:bg-emerald-50 dark:hover:bg-emerald-950/50 hover:text-emerald-600 dark:hover:text-emerald-400'"
+                  :title="c.estado === 'Activo' ? 'Desactivar' : 'Activar'"
+                >
+                  <component :is="c.estado === 'Activo' ? ToggleRight : ToggleLeft" :size="12" />
                 </button>
                 <button
                   @click="emit('editar', c)"

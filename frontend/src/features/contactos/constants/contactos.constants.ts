@@ -10,6 +10,12 @@ export const CONTACTO_DRAFT_VACIO: ContactoDraft = {
 // El backend solo admite estos dos valores para TipoContacto (confirmado contra el OpenAPI real).
 export const TIPO_CONTACTO_OPTIONS: Contacto['tipoContacto'][] = ['Cliente', 'Prospecto']
 
+// Solo estos dos son seleccionables: Estado es el ciclo de vida del contacto (activo/inactivo),
+// independiente de TipoContacto (Cliente/Prospecto, qué es el contacto para el negocio).
+// "Prospecto"/"En proceso" siguen pudiendo aparecer en Contacto['estado'] por datos viejos que
+// se guardaron mal en esa columna (ver estadoStyle), pero ya no se ofrecen para elegir.
+export const ESTADO_CONTACTO_OPTIONS: Contacto['estado'][] = ['Activo', 'Inactivo']
+
 export const TIPOS_SEGUIMIENTO_META: Record<TipoSeguimiento, { icono: unknown; color: string; bg: string }> = {
   'Llamada':  { icono: Phone,          color: '#2447F9', bg: '#EEF2FF' },
   'Correo':   { icono: Mail,           color: '#EC4899', bg: '#FCE7F3' },

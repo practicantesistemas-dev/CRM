@@ -3,7 +3,7 @@ from datetime import date, datetime
 from pydantic import BaseModel, ConfigDict
 
 from app.modules.marketing.etiquetas.schemas import EtiquetaRead
-from app.shared.enums import TipoContacto
+from app.shared.enums import EstadoContacto, TipoContacto
 
 
 class ContactoEmpresaResumen(BaseModel):
@@ -41,11 +41,11 @@ class ContactoBase(BaseModel):
     municipio: str | None = None
     departamento: str | None = None
     fecha_nacimiento: date | None = None
-    estado: str | None = None
     empresa_id: int | None = None
 
 
 class ContactoCreate(ContactoBase):
+    estado: EstadoContacto | None = None
     etiqueta_ids: list[int] = []
 
 
@@ -64,7 +64,7 @@ class ContactoUpdate(BaseModel):
     municipio: str | None = None
     departamento: str | None = None
     fecha_nacimiento: date | None = None
-    estado: str | None = None
+    estado: EstadoContacto | None = None
     empresa_id: int | None = None
     etiqueta_ids: list[int] | None = None
 
@@ -73,6 +73,9 @@ class ContactoRead(ContactoBase):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
+    # Suelto (no EstadoContacto): registros viejos pueden traer "Prospecto"/"En proceso"
+    # guardados en ESTADO por un uso histórico incorrecto y deben poder leerse tal cual.
+    estado: str | None = None
     responsable_id: int | None = None
     fecha_creacion: datetime | None = None
     fecha_actualizacion: datetime | None = None
