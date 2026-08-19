@@ -5,6 +5,15 @@ import type { AccesoRapido } from '../types/dashboard'
 defineProps<{ accesos: AccesoRapido[] }>()
 
 const router = useRouter()
+
+// Campañas y Automatizaciones aún no están implementadas (mismo motivo que se ocultan del
+// menú lateral en MainLayout.vue): la tarjeta se sigue mostrando igual que las demás, solo que
+// al hacer clic no navega a ningún lado.
+const RUTAS_SIN_IMPLEMENTAR = new Set(['campanas', 'automatizaciones'])
+const irA = (ruta: string) => {
+  if (RUTAS_SIN_IMPLEMENTAR.has(ruta)) return
+  router.push('/' + ruta)
+}
 </script>
 
 <template>
@@ -14,7 +23,7 @@ const router = useRouter()
       <div
         v-for="item in accesos"
         :key="item.label"
-        @click="router.push('/' + item.ruta)"
+        @click="irA(item.ruta)"
         class="flex flex-col items-center gap-2 p-3 rounded-xl border border-slate-100 dark:border-slate-700 hover:border-slate-200 dark:hover:border-slate-600 hover:shadow-sm transition-all cursor-pointer group"
       >
         <div
