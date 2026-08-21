@@ -48,7 +48,7 @@ const FILA_EJEMPLO_PLANTILLA: Record<Columna, string> = {
   apellido1: 'GOMEZ', apellido2: 'RESTREPO', fechaNacimiento: '14/05/1990', sexo: 'M',
   direccion: 'CR 15 # 20-40 APTO 301', ciudad: 'DOSQUEBRADAS', departamento: 'RISARALDA',
   correo: 'juan.gomez@correo.com', telefono: '3101234567', fechaIngreso: '15/01/2026',
-  empresa: 'COMERCIALIZADORA XYZ SAS', eps: 'NUEVA EPS', otraEps: '', planSalud: 'MEDICINA PREPAGADA', planNombre: 'PLAN LIGA',
+  empresa: 'COMERCIALIZADORA XYZ SAS', eps: 'NUEVA EPS', otraEps: '', planSalud: 'MEDICINA PREPAGADA', planNombre: 'COLMEDICA',
 }
 
 /** Solo detecta la fila de ejemplo sin modificar: si el usuario le cambió aunque sea un campo
@@ -211,7 +211,6 @@ export function agruparFilas(filas: FilaCargaMasiva[], cupoBeneficiarios: number
 }
 
 const REQUERIDOS_TITULAR: { campo: Columna; etiqueta: string }[] = [
-  { campo: 'tipoPlanTexto', etiqueta: 'TIPO_PLAN' },
   { campo: 'tipoDocumento', etiqueta: 'TIPO' },
   { campo: 'documento', etiqueta: 'DOCUMENTO' },
   { campo: 'nombre1', etiqueta: 'NOMBRE1' },
@@ -222,7 +221,6 @@ const REQUERIDOS_TITULAR: { campo: Columna; etiqueta: string }[] = [
   { campo: 'departamento', etiqueta: 'DEPARTAMENTO' },
   { campo: 'fechaIngreso', etiqueta: 'FECHA_INGRESO' },
   { campo: 'eps', etiqueta: 'EPS' },
-  { campo: 'planNombre', etiqueta: 'PLAN_NOMBRE' },
 ]
 
 const REQUERIDOS_BENEFICIARIO: { campo: Columna; etiqueta: string }[] = [

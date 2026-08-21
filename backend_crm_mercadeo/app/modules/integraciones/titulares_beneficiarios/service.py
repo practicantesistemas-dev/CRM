@@ -119,7 +119,10 @@ class TitularesBeneficiariosService:
         if cantidad_actual >= cupo:
             raise CupoBeneficiariosExcedidoError(id_titular)
 
-        fecha_ingreso = date.today()
+        # El beneficiario hereda la fecha de ingreso del titular (mismo criterio que
+        # activar_beneficiario): el frontend nunca manda FECHA_INGRESO al crear un
+        # beneficiario porque asume que el backend hace esto.
+        fecha_ingreso = self.repository.obtener_fecha_ingreso_titular(id_titular)
         orden = self.repository.siguiente_orden_beneficiario(id_titular)
         datos = data.model_dump()
         id_beneficiario = self.repository.crear_beneficiario(

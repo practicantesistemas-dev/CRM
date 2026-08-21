@@ -154,7 +154,7 @@ class TitularCrear(EntradaMayusculas):
     EPS: Optional[str] = None
     OTRAEPS: Optional[str] = None
     PLAN_SALUD: str
-    PLAN_NOMBRE: str
+    PLAN_NOMBRE: Optional[str] = None
     TIPO_PLAN_ID: Optional[int] = None
     FACTURA: Optional[str] = None
 
