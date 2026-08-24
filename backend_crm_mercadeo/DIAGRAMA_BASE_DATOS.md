@@ -14,6 +14,10 @@ erDiagram
     INTRANET_DEPARTAMENTOS ||--o{ INTRANET_USUARIOS : "DEPID = ID_AREA"
     INTRANET_USUARIOS ||--o| INTRANET_COLABORADORES : "NUM_ID = COLNID"
     INTRANET_USUARIOS ||--o| INTRANET_REPORT_USUARIOS : "NUM_ID = IDNUM"
+    INTRANET_USUARIOS ||--o{ INTRANET_SISTEMAS_USUARIO_ROL : "ID = USUARIO_ID"
+    INTRANET_ROLES ||--o{ INTRANET_SISTEMAS_USUARIO_ROL : "ID = ROL_ID"
+    INTRANET_ROLES ||--o{ INTRANET_ROLES_PERMISOS : "ID = ROL_ID"
+    INTRANET_PERMISOS ||--o{ INTRANET_ROLES_PERMISOS : "ID = PERMISO_ID"
 
     INTRANET_USUARIOS {
         number ID PK
@@ -24,6 +28,34 @@ erDiagram
         varchar PORTAL_ROL
         varchar ESTADO
         varchar NOMBRES
+    }
+
+    INTRANET_ROLES {
+        number ID PK
+        varchar NOMBRE
+        varchar SISTEMA "app dueña del rol, ej. 'CRM'"
+        timestamp FECHA_CREADO
+        timestamp FECHA_ACTUALIZADO
+    }
+
+    INTRANET_PERMISOS {
+        number ID PK
+        varchar NOMBRE "ej. 'list_personal', 'edit_rol'"
+        varchar SISTEMA "app dueña del permiso"
+        timestamp FECHA_CREADO
+        timestamp FECHA_ACTUALIZADO
+    }
+
+    INTRANET_ROLES_PERMISOS {
+        number PERMISO_ID FK
+        number ROL_ID FK
+    }
+
+    INTRANET_SISTEMAS_USUARIO_ROL {
+        number USUARIO_ID FK
+        number ROL_ID FK
+        timestamp FECHA_CREADO
+        timestamp FECHA_ACTUALIZADO
     }
 
     INTRANET_DEPARTAMENTOS {
@@ -90,6 +122,53 @@ que **una app tenga varios usuarios** (muchos-a-muchos).
 Catálogo de aplicaciones del portal: `APUSID` (id), `APUSNO` (nombre),
 `APUSLI` (URL) y `PORTAL_ESTADO` (si está activa o inactiva). Se llega a
 ella desde `INTRANET_APP_PERMISOS.PERMAPP = APUSID`.
+
+### 7. `INTRANET_ROLES`
+Catálogo de roles (ej. "Admin", "Navegadora", "Integradora", "Consulta").
+La columna **`SISTEMA` es el nombre de la app dueña de ese rol** (ej.
+`'CRM'`, `'PLANLIGA'`) — no es una FK a `INTRANET_APLICACIONES_USUARIOS`,
+es texto libre. Esto permite que **una sola tabla de roles sirva para
+todas las apps del portal**: cada app filtra sus propios roles por
+`SISTEMA` en vez de tener su propia tabla `ROLES` duplicada.
+
+### 8. `INTRANET_PERMISOS`
+Catálogo de permisos granulares por acción (ej. `list_personal`,
+`edit_rol`, `delete_formulario`). Igual que en roles, `SISTEMA` marca a
+qué app pertenece cada permiso.
+
+### 9. `INTRANET_ROLES_PERMISOS`
+Tabla puente: qué permisos (`PERMISO_ID`) tiene cada rol (`ROL_ID`).
+Relación muchos-a-muchos entre `INTRANET_ROLES` e `INTRANET_PERMISOS`.
+
+### 10. `INTRANET_SISTEMAS_USUARIO_ROL`
+Tabla puente: qué rol(es) (`ROL_ID`) tiene cada usuario (`USUARIO_ID`,
+FK a `INTRANET_USUARIOS.ID`). Relación muchos-a-muchos — un usuario
+puede tener roles distintos en distintos sistemas (ej. "Admin" en CRM y
+"Consulta" en PLANLIGA), porque cada fila de `INTRANET_ROLES` ya viene
+marcada con su propio `SISTEMA`.
+
+**Cómo se diferencia esto de lo que ya existía:**
+- `PORTAL_ROL` (columna en `INTRANET_USUARIOS`): un único rol global de
+  texto libre, sin granularidad por app ni por permiso. Se mantiene por
+  compatibilidad, pero no se relaciona con este nuevo esquema.
+- `INTRANET_APP_PERMISOS`: solo dice **si** un usuario puede entrar a una
+  app (sí/no), no **qué puede hacer** dentro de ella.
+- `INTRANET_ROLES` / `INTRANET_PERMISOS` / `INTRANET_ROLES_PERMISOS` /
+  `INTRANET_SISTEMAS_USUARIO_ROL` (nuevo): sistema de permisos granular
+  por acción y por app, para controlar qué botones/menús/endpoints ve
+  cada usuario dentro de cada sistema al que ya tiene acceso.
+
+Consulta típica (permisos de un usuario dentro de un sistema puntual):
+```sql
+SELECT DISTINCT p.NOMBRE
+FROM INTRANET_USUARIOS u
+JOIN INTRANET_SISTEMAS_USUARIO_ROL sur ON sur.USUARIO_ID = u.ID
+JOIN INTRANET_ROLES r                  ON r.ID = sur.ROL_ID
+JOIN INTRANET_ROLES_PERMISOS rp        ON rp.ROL_ID = r.ID
+JOIN INTRANET_PERMISOS p               ON p.ID = rp.PERMISO_ID
+WHERE u.ID = :id_usuario
+  AND r.SISTEMA = :sistema;
+```
 
 ## Flujo típico (login)
 
