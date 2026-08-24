@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { AutomatizacionDraft } from '../types/automatizacion'
-import { TRIGGERS, ACCIONES, TRIGGER_META, ACCION_META } from '../constants/automatizaciones.constants'
+import { ACCIONES } from '../constants/automatizaciones.constants'
 import { automatizacionSchema } from '../schemas/automatizacion.schema'
 import { useZodForm } from '@/shared/composables/useZodForm'
 import { fieldStateClass } from '@/shared/utils/fieldStateClass'
@@ -37,37 +37,55 @@ defineExpose({ submit: onValidSubmit(() => emit('validSubmit')) })
       />
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <div>
-        <label class="block text-[11px] font-bold text-body mb-1.5 uppercase tracking-wide">Disparador (trigger)</label>
-        <select
-          v-model="draft.trigger"
-          class="w-full h-10 px-3 rounded-lg input-surface text-[12px] outline-none focus:border-[#2447F9] dark:focus:border-[#2447F9] focus:bg-white dark:focus:bg-slate-800 transition-all cursor-pointer"
-        >
-          <option v-for="t in TRIGGERS" :key="t" :value="t">{{ t }}</option>
-        </select>
-      </div>
-      <div>
-        <label class="block text-[11px] font-bold text-body mb-1.5 uppercase tracking-wide">Acción</label>
-        <select
-          v-model="draft.accion"
-          class="w-full h-10 px-3 rounded-lg input-surface text-[12px] outline-none focus:border-[#2447F9] dark:focus:border-[#2447F9] focus:bg-white dark:focus:bg-slate-800 transition-all cursor-pointer"
-        >
-          <option v-for="a in ACCIONES" :key="a" :value="a">{{ a }}</option>
-        </select>
-      </div>
+    <div>
+      <label class="block text-[11px] font-bold text-body mb-1.5 uppercase tracking-wide">Acción</label>
+      <select
+        v-model="draft.accion"
+        class="w-full h-10 px-3 rounded-lg input-surface text-[12px] outline-none focus:border-[#2447F9] dark:focus:border-[#2447F9] focus:bg-white dark:focus:bg-slate-800 transition-all cursor-pointer"
+      >
+        <option v-for="a in ACCIONES" :key="a" :value="a">{{ a }}</option>
+      </select>
     </div>
 
-    <div class="surface-header border border-default rounded-xl px-4 py-3 flex items-center gap-3">
-      <div class="flex items-center gap-1.5 text-[11px] font-semibold" :style="{ color: TRIGGER_META[draft.trigger].color }">
-        <component :is="TRIGGER_META[draft.trigger].icono" :size="13" />
-        {{ draft.trigger }}
-      </div>
-      <div class="text-[11px] text-muted font-bold">→</div>
-      <div class="flex items-center gap-1.5 text-[11px] font-semibold" :style="{ color: ACCION_META[draft.accion].color }">
-        <component :is="ACCION_META[draft.accion].icono" :size="13" />
-        {{ draft.accion }}
-      </div>
+    <div v-if="draft.accion === 'Enviar correo'">
+      <label class="block text-[11px] font-bold text-body mb-1.5 uppercase tracking-wide">Correos destino *</label>
+      <input
+        v-model="draft.correos"
+        @blur="tocar('correos')"
+        placeholder="correo1@dominio.com, correo2@dominio.com"
+        class="w-full h-10 px-4 rounded-lg border bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-[12px] outline-none focus:bg-white dark:focus:bg-slate-800 transition-all"
+        :class="fieldStateClass(esVisible('correos') && !!errors.correos, esVisible('correos') && !errors.correos && !!draft.correos, 'border-slate-200 dark:border-slate-600 focus:border-[#2447F9] dark:focus:border-[#2447F9]')"
+      />
+      <FieldError :message="esVisible('correos') ? errors.correos : undefined" />
+      <p class="text-[10px] text-muted mt-1">Se envían a n8n al guardar la automatización. Separa varios correos con comas.</p>
+    </div>
+
+    <div v-if="draft.accion === 'Enviar correo'">
+      <label class="block text-[11px] font-bold text-body mb-1.5 uppercase tracking-wide">Asunto *</label>
+      <input
+        v-model="draft.asunto"
+        @blur="tocar('asunto')"
+        placeholder="Ej: ¡Bienvenido a Liga Contra el Cáncer!"
+        class="w-full h-10 px-4 rounded-lg border bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-[12px] outline-none focus:bg-white dark:focus:bg-slate-800 transition-all"
+        :class="fieldStateClass(esVisible('asunto') && !!errors.asunto, esVisible('asunto') && !errors.asunto && !!draft.asunto, 'border-slate-200 dark:border-slate-600 focus:border-[#2447F9] dark:focus:border-[#2447F9]')"
+      />
+      <FieldError :message="esVisible('asunto') ? errors.asunto : undefined" />
+    </div>
+
+    <div v-if="draft.accion === 'Enviar correo'">
+      <label class="block text-[11px] font-bold text-body mb-1.5 uppercase tracking-wide">Cuerpo del correo *</label>
+      <textarea
+        v-model="draft.cuerpo"
+        @blur="tocar('cuerpo')"
+        placeholder="Escribe el mensaje que recibirá el destinatario..."
+        rows="4"
+        class="w-full px-4 py-2.5 rounded-lg border bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-[12px] outline-none focus:bg-white dark:focus:bg-slate-800 transition-all resize-none"
+        :class="fieldStateClass(esVisible('cuerpo') && !!errors.cuerpo, esVisible('cuerpo') && !errors.cuerpo && !!draft.cuerpo, 'border-slate-200 dark:border-slate-600 focus:border-[#2447F9] dark:focus:border-[#2447F9]')"
+      />
+      <FieldError :message="esVisible('cuerpo') ? errors.cuerpo : undefined" />
+      <p class="text-[11px] font-bold text-heading mt-1.5">
+        Al final se agrega automáticamente un aviso de "no responder" (es un correo automático).
+      </p>
     </div>
   </div>
 </template>

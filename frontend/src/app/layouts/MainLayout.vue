@@ -6,7 +6,7 @@ import { useTema } from '@/shared/composables/useTema'
 
 import {
   LayoutDashboard, Heart, Users, Building2, Truck,
-  BookOpen, Target, Filter, Wrench, Upload,
+  BookOpen, Target, Filter, Wrench, Upload, Zap,
   ChevronLeft, ChevronRight, LogOut, Settings,
   RefreshCw, X, Menu, Moon, Sun
 } from 'lucide-vue-next'
@@ -82,9 +82,11 @@ const menuGroups: MenuGroup[] = [
     { key: 'embudos',          label: 'Embudos',                   icono: Filter          },
     { key: 'servicios',        label: 'Servicios',                 icono: Wrench          },
   ]},
-  // Campañas y Automatizaciones aún no están implementadas: se oculta el grupo del menú (las
-  // rutas siguen existiendo por si se necesita acceso directo) y se muestra un aviso en su lugar.
-  { label: 'Marketing', items: [] },
+  // Campañas aún no está implementada: se muestra el aviso solo si el grupo queda vacío.
+  // Automatizaciones ya tiene funcionalidad real (envío a webhook de n8n), por eso sí aparece.
+  { label: 'Marketing', items: [
+    { key: 'automatizaciones', label: 'Automatizaciones',           icono: Zap             },
+  ]},
   { label: 'Operaciones', items: [
     { key: 'relacionamiento',  label: 'Bitácora',                  icono: BookOpen        },
     { key: 'importacion',      label: 'Importación',               icono: Upload          },
@@ -275,7 +277,7 @@ const refrescarVistaActual = () => {
             v-if="group.items.length === 0 && !sidebarCollapsed"
             class="mx-2 px-2 py-2 rounded-lg text-[11px] text-white/50 italic select-none"
           >
-            Aún no implementado (Campañas y Automatizaciones)
+            Aún no implementado (Campañas)
           </div>
           <!-- Items -->
           <button

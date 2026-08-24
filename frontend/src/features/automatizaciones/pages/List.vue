@@ -11,6 +11,7 @@ import ConfirmarEliminarDialog from '../dialogs/ConfirmarEliminarDialog.vue'
 const {
   buscar, filtroEstado,
   filtradas, totalActivas, totalEjecuciones, totalError,
+  enviandoWebhook, errorWebhook,
   toggleActivo, eliminar, crearAutomatizacion, actualizarAutomatizacion,
 } = useAutomatizaciones()
 
@@ -28,14 +29,14 @@ const abrirNueva = () => {
 const abrirEditar = (a: Automatizacion) => {
   modalModo.value = 'editar'
   editando.value = a
-  draft.value = { nombre: a.nombre, descripcion: a.descripcion, trigger: a.trigger, accion: a.accion }
+  draft.value = { nombre: a.nombre, descripcion: a.descripcion, accion: a.accion, correos: a.correos, asunto: a.asunto, cuerpo: a.cuerpo }
   modalVisible.value = true
 }
-const guardar = () => {
+const guardar = async () => {
   if (modalModo.value === 'nuevo') {
-    crearAutomatizacion(draft.value)
+    await crearAutomatizacion(draft.value)
   } else if (editando.value) {
-    actualizarAutomatizacion(editando.value.id, draft.value)
+    await actualizarAutomatizacion(editando.value.id, draft.value)
   }
   modalVisible.value = false
 }
@@ -69,6 +70,10 @@ const eliminarConfirmado = () => {
       </button>
     </div>
 
+    <div v-if="errorWebhook" class="rounded-xl border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/40 px-4 py-3 text-[12px] text-red-600 dark:text-red-400">
+      {{ errorWebhook }}
+    </div>
+
     <div class="grid grid-cols-3 gap-4">
       <div class="surface-card rounded-2xl shadow-sm p-5">
         <div class="w-9 h-9 rounded-xl bg-[#D1FAE5] dark:bg-emerald-950/50 flex items-center justify-center mb-3">
@@ -99,7 +104,7 @@ const eliminarConfirmado = () => {
           <Search :size="14" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
           <input
             v-model="buscar"
-            placeholder="Buscar por nombre, trigger o acción..."
+            placeholder="Buscar por nombre o acción..."
             class="w-full h-9 pl-9 pr-4 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-[12px] outline-none focus:border-[#2447F9] dark:focus:border-[#2447F9] focus:bg-white dark:focus:bg-slate-800 transition-all"
           />
         </div>
@@ -141,7 +146,7 @@ const eliminarConfirmado = () => {
       </div>
     </div>
 
-    <AutomatizacionFormDialog v-model:visible="modalVisible" v-model:draft="draft" :modo="modalModo" @submit="guardar" />
+    <AutomatizacionFormDialog v-model:visible="modalVisible" v-model:draft="draft" :modo="modalModo" :guardando="enviandoWebhook" @submit="guardar" />
 
     <ConfirmarEliminarDialog
       :automatizacion="confirmarEliminar"
