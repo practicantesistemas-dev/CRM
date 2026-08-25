@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+import DOMPurify from 'dompurify'
 import { X, BarChart3, Send } from 'lucide-vue-next'
 import type { Campana } from '../types/campana'
 import { VARIABLES_DINAMICAS } from '../constants/campanas.constants'
@@ -7,6 +9,12 @@ defineProps<{ campana: Campana | null }>()
 
 const visible = defineModel<boolean>('visible', { required: true })
 const htmlEditor = defineModel<string>('html', { required: true })
+
+// El HTML lo escribe el usuario libremente (campo de campana.contenido, se
+// guarda en BD) y otros usuarios lo ven en esta misma vista previa: sin
+// sanear, un <script>/onerror guardado ahi se ejecutaria en el navegador de
+// cualquiera que abra la campana (XSS almacenado).
+const htmlSeguro = computed(() => DOMPurify.sanitize(htmlEditor.value))
 
 const insertarVariable = (v: string) => {
   htmlEditor.value += ` ${v}`
@@ -38,7 +46,7 @@ const insertarVariable = (v: string) => {
         </div>
         <div>
           <label class="block text-[11px] font-bold text-body mb-2 uppercase tracking-wide">Vista previa</label>
-          <div class="rounded-xl border border-default bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 p-6 overflow-auto max-h-48" v-html="htmlEditor" />
+          <div class="rounded-xl border border-default bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 p-6 overflow-auto max-h-48" v-html="htmlSeguro" />
         </div>
       </div>
       <div class="flex items-center justify-between gap-2 px-6 py-4 border-t border-default surface-header">

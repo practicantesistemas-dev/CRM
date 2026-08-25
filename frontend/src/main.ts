@@ -6,6 +6,9 @@ import 'primeicons/primeicons.css'
 
 import router from '@/app/router'
 import { installPlugins } from '@/app/plugins'
+import { installHttpInterceptor } from '@/app/httpInterceptor'
+
+installHttpInterceptor()
 
 const app = createApp(App)
 

@@ -27,6 +27,14 @@ const routes: RouteRecordRaw[] = [
     children: authRoutes,
   },
   {
+    // Fuera de MainLayout a proposito: un usuario sin rol no debe ver el
+    // menu/sidebar del CRM, solo este mensaje.
+    path: '/sin-rol',
+    name: 'sin-rol',
+    component: () => import('@/features/auth/pages/SinRolAsignado.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
     path: '/',
     component: MainLayout,
     meta: { requiresAuth: true },
@@ -56,7 +64,7 @@ const router = createRouter({
 })
 
 router.beforeEach((to) => {
-  const { checkSession } = useAuth()
+  const { checkSession, me } = useAuth()
   const authenticated = checkSession()
 
   if (to.meta.requiresAuth && !authenticated) {
@@ -65,6 +73,19 @@ router.beforeEach((to) => {
 
   if (to.path === '/login' && authenticated) {
     return '/'
+  }
+
+  // Autenticado pero sin rol de CRM asignado: bloquea cualquier vista y
+  // manda siempre a la pantalla informativa (excepto si ya está ahí, para
+  // no quedar en bucle de redirects).
+  if (authenticated && !me.value?.role_crm && to.path !== '/sin-rol') {
+    return '/sin-rol'
+  }
+
+  // Ya tiene rol pero intenta entrar a /sin-rol a mano: no tiene sentido, lo
+  // manda al dashboard.
+  if (authenticated && !!me.value?.role_crm && to.path === '/sin-rol') {
+    return '/dashboard'
   }
 })
 

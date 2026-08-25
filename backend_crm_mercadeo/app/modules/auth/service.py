@@ -47,18 +47,19 @@ class AuthService:
         if not _esta_activo(usuario.estado):
             raise UsuarioInactivoError()
 
+        role_crm = self.repository.obtener_rol_crm(usuario.id)
         token = create_access_token(
-            data={"sub": usuario.usuario, "role": _rol(usuario)},
+            data={"sub": usuario.usuario, "role_crm": role_crm},
             expires_delta=timedelta(minutes=settings.access_token_expire_minutes),
         )
         return AuthResponse(
             token=token,
-            role=_rol(usuario),
             username=usuario.usuario or "",
             nombres=usuario.nombres or "",
             portal_role=_rol(usuario),
             id_area=usuario.id_area,
             permisos=self.repository.obtener_permisos(usuario.id),
+            role_crm=role_crm,
         )
 
     def obtener_usuario_actual(self, username: str) -> UserInfo:
@@ -68,8 +69,8 @@ class AuthService:
         return UserInfo(
             username=usuario.usuario or "",
             nombres=usuario.nombres or "",
-            role=_rol(usuario),
             portal_role=_rol(usuario),
             id_area=usuario.id_area,
             permisos=self.repository.obtener_permisos(usuario.id),
+            role_crm=self.repository.obtener_rol_crm(usuario.id),
         )
