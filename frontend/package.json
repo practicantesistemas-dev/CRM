@@ -13,6 +13,7 @@
     "@tableau/embedding-api": "^3.15.1",
     "@vee-validate/zod": "^4.15.1",
     "ant-design-vue": "^4.2.6",
+    "dompurify": "^3.4.14",
     "jose": "^6.2.3",
     "lucide-vue-next": "^1.0.0",
     "primeicons": "^7.0.0",
@@ -26,6 +27,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.0",
+    "@types/dompurify": "^3.0.5",
     "@types/node": "^24.12.3",
     "@vitejs/plugin-vue": "^6.0.6",
     "@vue/tsconfig": "^0.9.1",
