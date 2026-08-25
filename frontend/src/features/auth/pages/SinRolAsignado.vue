@@ -13,7 +13,7 @@ const cerrarSesion = () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 flex items-center justify-center p-6 relative overflow-hidden">
+  <div class="min-h-screen bg-gradient-to-br from-slate-900 via-pink-800 to-slate-900 flex items-center justify-center p-6 relative overflow-hidden">
     <div
       class="absolute inset-0 opacity-[0.07] pointer-events-none select-none"
       style="background-image: url('/logo-liga-50.png'); background-repeat: repeat; background-size: 180px auto;"

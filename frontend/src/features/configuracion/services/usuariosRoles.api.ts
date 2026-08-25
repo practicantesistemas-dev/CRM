@@ -37,6 +37,13 @@ export async function buscarUsuarios(nombre: string): Promise<UsuarioBusqueda[]>
   return data.map(mapUsuario)
 }
 
+export async function getUsuariosConRol(): Promise<UsuarioBusqueda[]> {
+  const response = await fetch(`${API_URL}/api/usuarios-roles/con-rol`, { headers: authHeader() })
+  if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo cargar el listado de usuarios.')
+  const data: UsuarioBusquedaResponse[] = await response.json()
+  return data.map(mapUsuario)
+}
+
 export async function getRolesAsignables(): Promise<RolAsignable[]> {
   const response = await fetch(`${API_URL}/api/usuarios-roles/roles-asignables`, {
     headers: authHeader(),
@@ -52,4 +59,12 @@ export async function asignarRol(usuarioId: number, rolId: number): Promise<void
     body: JSON.stringify({ rol_id: rolId }),
   })
   if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo asignar el rol.')
+}
+
+export async function eliminarRol(usuarioId: number): Promise<void> {
+  const response = await fetch(`${API_URL}/api/usuarios-roles/${usuarioId}/rol`, {
+    method: 'DELETE',
+    headers: authHeader(),
+  })
+  if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo quitar el rol.')
 }

@@ -29,6 +29,19 @@ class UsuariosRolesRepository:
     def obtener_usuario(self, usuario_id: int) -> Usuario | None:
         return self.db.query(Usuario).filter(Usuario.id == usuario_id).first()
 
+    # Todos los usuarios que ya tienen algun rol asignado en CRM_MERCADEO,
+    # junto con ese rol (id, nombre).
+    def listar_usuarios_con_rol(self, limit: int = 200) -> list[tuple[Usuario, int, str]]:
+        return (
+            self.db.query(Usuario, RolApp.id, RolApp.nombre)
+            .join(UsuarioRolApp, UsuarioRolApp.usuario_id == Usuario.id)
+            .join(RolApp, RolApp.id == UsuarioRolApp.rol_id)
+            .filter(UsuarioRolApp.sistema == SISTEMA_CRM, RolApp.sistema == SISTEMA_CRM)
+            .order_by(Usuario.nombres)
+            .limit(limit)
+            .all()
+        )
+
     # Rol que el usuario ya tiene en CRM_MERCADEO (id, nombre) o None.
     def rol_actual(self, usuario_id: int) -> tuple[int, str] | None:
         return (
@@ -80,4 +93,15 @@ class UsuariosRolesRepository:
                 fecha_actualizado=ahora,
             )
         )
+        self.db.commit()
+
+    # Quita el rol de CRM_MERCADEO que tenga el usuario (borra la fila de
+    # INTRANET_USUARIO_ROL_APP). Sin fila, fecha_ultimo_cambio_rol devuelve
+    # None y get_current_username bloquea su proximo request como "sin rol"
+    # (app/core/dependencies.py) - no hace falta ningun watermark aqui.
+    def eliminar_rol(self, usuario_id: int) -> None:
+        self.db.query(UsuarioRolApp).filter(
+            UsuarioRolApp.usuario_id == usuario_id,
+            UsuarioRolApp.sistema == SISTEMA_CRM,
+        ).delete()
         self.db.commit()
