@@ -1,15 +1,5 @@
 export type EstadoAutomatizacion = 'Activa' | 'Pausada' | 'Error'
 
-export type TipoTrigger =
-  | 'Nuevo contacto'
-  | 'Cambio de etapa'
-  | 'Fecha de seguimiento'
-  | 'Sin actividad 7 días'
-  | 'Campaña enviada'
-  | 'Formulario completado'
-  | 'Nuevo beneficiario'
-  | 'Inscripción Plan Liga'
-
 export type TipoAccion =
   | 'Enviar correo'
   | 'Crear tarea'
@@ -23,8 +13,12 @@ export interface Automatizacion {
   id: number
   nombre: string
   descripcion: string
-  trigger: TipoTrigger
   accion: TipoAccion
+  /** Correos destino (separados por coma), solo aplica cuando accion === 'Enviar correo'. */
+  correos: string
+  /** Asunto y cuerpo del correo, solo aplican cuando accion === 'Enviar correo'. */
+  asunto: string
+  cuerpo: string
   estado: EstadoAutomatizacion
   ejecuciones: number
   ultimaEjecucion: string | null
@@ -36,6 +30,8 @@ export interface Automatizacion {
 export interface AutomatizacionDraft {
   nombre: string
   descripcion: string
-  trigger: TipoTrigger
   accion: TipoAccion
+  correos: string
+  asunto: string
+  cuerpo: string
 }

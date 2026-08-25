@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { AlertTriangle, Play, Pause, Edit2, Trash2, Zap, Clock } from 'lucide-vue-next'
 import type { Automatizacion } from '../types/automatizacion'
-import { TRIGGER_META, ACCION_META, ESTADO_STYLE, formatDate } from '../constants/automatizaciones.constants'
+import { ACCION_META, ESTADO_STYLE, formatDate } from '../constants/automatizaciones.constants'
 
 defineProps<{ automatizacion: Automatizacion }>()
 const emit = defineEmits<{
@@ -26,9 +26,9 @@ const emit = defineEmits<{
     <div class="flex items-start gap-4 p-5">
       <div
         class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5"
-        :style="{ backgroundColor: TRIGGER_META[automatizacion.trigger].bg }"
+        :style="{ backgroundColor: '#EEF2FF' }"
       >
-        <component :is="TRIGGER_META[automatizacion.trigger].icono" :size="17" :style="{ color: TRIGGER_META[automatizacion.trigger].color }" />
+        <component :is="ACCION_META[automatizacion.accion].icono" :size="17" :style="{ color: ACCION_META[automatizacion.accion].color }" />
       </div>
 
       <div class="flex-1 min-w-0">
@@ -72,11 +72,6 @@ const emit = defineEmits<{
         </div>
 
         <div class="flex items-center gap-2 mt-3 flex-wrap">
-          <div class="flex items-center gap-1.5 surface-sunken border border-default rounded-lg px-2.5 py-1">
-            <component :is="TRIGGER_META[automatizacion.trigger].icono" :size="11" :style="{ color: TRIGGER_META[automatizacion.trigger].color }" />
-            <span class="text-[10px] font-semibold text-body">{{ automatizacion.trigger }}</span>
-          </div>
-          <div class="text-[10px] text-muted font-bold">→</div>
           <div class="flex items-center gap-1.5 surface-sunken border border-default rounded-lg px-2.5 py-1">
             <component :is="ACCION_META[automatizacion.accion].icono" :size="11" :style="{ color: ACCION_META[automatizacion.accion].color }" />
             <span class="text-[10px] font-semibold text-body">{{ automatizacion.accion }}</span>
