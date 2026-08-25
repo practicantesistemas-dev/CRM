@@ -53,25 +53,20 @@ SCSE_DB_DATABASE=your_service_name
 
 ## 4. Migraciones con Alembic (solo cuando aplique)
 
-Alembic no se ejecuta en cada arranque del servidor: solo entra en juego cuando el **esquema de la base de datos** (las tablas definidas en `app/models.py`) cambia o está desactualizado respecto al código. Si la base de datos ya está al día, puedes saltar directo al paso 5.
+Alembic no se ejecuta en cada arranque del servidor: solo entra en juego cuando el **esquema de la base de datos** (las tablas definidas en `app/models.py`) cambia o está desactualizado respecto al código.
 
-**¿Cuándo sí necesitas usarlo?**
+```mermaid
+flowchart TD
+    A[¿La base de datos<br/>ya está al día?] -- si --> B[Salta al paso 5]
+    A -- no se --> C{¿Por qué cambió?}
+    C -- "primera vez / git pull<br/>trajo migraciones nuevas" --> D["alembic upgrade head"]
+    C -- "yo modifiqué<br/>app/models.py" --> E["alembic revision --autogenerate -m '...'"]
+    E --> D
+    D --> F[Servidor listo para<br/>el paso 5]
+```
 
-- **Primera vez que configuras el proyecto**, o después de traer cambios de otro desarrollador que agregó migraciones nuevas (por ejemplo, tras un `git pull`). En ese caso solo aplicas lo que ya existe:
-
-  ```powershell
-  alembic upgrade head
-  ```
-
-  Esto compara el estado actual de la base de datos contra el historial de migraciones en `alembic/` y aplica las que falten. Si no hay ninguna pendiente, no hace nada.
-- **Modificaste tú mismo `app/models.py`** (agregaste/quitaste una tabla o columna). Ahí sí generas una migración nueva y la aplicas:
-
-  ```powershell
-  alembic revision --autogenerate -m "descripcion del cambio"
-  alembic upgrade head
-  ```
-
-  El primer comando compara tus modelos contra la base de datos y genera un archivo en `alembic/versions/` con el `ALTER TABLE`/`CREATE TABLE` correspondiente (conviene revisarlo antes de aplicarlo, el autogenerate no siempre es perfecto). El segundo lo ejecuta contra la base de datos.
+- `alembic upgrade head` compara la base de datos contra el historial en `alembic/` y aplica las migraciones que falten (si no hay ninguna pendiente, no hace nada).
+- `alembic revision --autogenerate` compara tus modelos contra la base de datos y genera el `ALTER TABLE`/`CREATE TABLE` en `alembic/versions/` — revísalo antes de aplicarlo, el autogenerate no siempre es perfecto.
 
 **Comandos útiles para consultar el estado** (no modifican nada):
 
@@ -99,6 +94,7 @@ backend_crm_mercadeo/
 ├── app/
 │   ├── database.py      # Configuración de conexión SQLAlchemy/Oracle
 │   └── models.py        # Modelos ORM (tablas)
+├── readme/              # Este archivo, diagrama de base de datos, consultas SQL de referencia
 ├── main.py              # Punto de entrada de la app FastAPI
 ├── requirements.txt      # Dependencias
 ├── alembic.ini           # Configuración de Alembic

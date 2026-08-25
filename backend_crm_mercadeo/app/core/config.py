@@ -15,7 +15,11 @@ class Settings(BaseSettings):
     app_name: str = "Backend CRM Mercadeo"
     api_prefix: str = "/api"
 
-    secret_key: str = "cambia-esta-clave-en-produccion-liga-2026"
+    # Sin default: debe venir de .env / variables de entorno. Tiene que ser
+    # identico al SECRET_KEY del backend Login/SSO (firma los mismos tokens
+    # JWT que este backend valida) - un default aqui esconderia el error si
+    # algun ambiente se queda sin configurar, en vez de fallar al arrancar.
+    secret_key: str
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 480
 

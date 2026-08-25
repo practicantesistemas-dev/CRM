@@ -48,6 +48,13 @@ export function authHeader(): Record<string, string> {
   return session.value ? { Authorization: `Bearer ${session.value.token}` } : {}
 }
 
+// Punto único para consultar permisos en toda la app: "modulo:accion", ej.
+// tienePermiso('contactos:gestionar'). Vienen del login (y de /me al
+// refrescar), ver AuthRepository.obtener_permisos en el backend.
+export function tienePermiso(permiso: string): boolean {
+  return session.value?.permisos.includes(permiso) ?? false
+}
+
 export function useAuth() {
   const login = async (credentials: LoginRequest) => {
     const result = await loginRequest(credentials)

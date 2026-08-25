@@ -58,6 +58,7 @@ class AuthService:
             nombres=usuario.nombres or "",
             portal_role=_rol(usuario),
             id_area=usuario.id_area,
+            permisos=self.repository.obtener_permisos(usuario.id),
         )
 
     def obtener_usuario_actual(self, username: str) -> UserInfo:
@@ -70,4 +71,5 @@ class AuthService:
             role=_rol(usuario),
             portal_role=_rol(usuario),
             id_area=usuario.id_area,
+            permisos=self.repository.obtener_permisos(usuario.id),
         )
