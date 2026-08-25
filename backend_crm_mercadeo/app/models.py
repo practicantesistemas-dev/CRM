@@ -474,3 +474,55 @@ class Importacion(Base):
     )
 
     usuario: Mapped["Usuario | None"] = relationship(back_populates="importaciones")
+
+
+# ---------------------------------------------------------------------------
+# Modulo: Permisos (esquema compartido del Intranet, ver DIAGRAMA_BASE_DATOS.md)
+#
+# Estas 4 tablas ya existen en Oracle (las administra el Intranet/SSO, no
+# este backend) y son compartidas entre apps via la columna SISTEMA - aqui
+# solo se mapean para poder leerlas. El punto de entrada para consultarlas
+# es AuthRepository.obtener_permisos() en app/modules/auth/repository.py.
+# ---------------------------------------------------------------------------
+
+
+class RolApp(Base):
+    __tablename__ = "intranet_roles_app"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    nombre: Mapped[str] = mapped_column(String(100))
+    sistema: Mapped[str] = mapped_column(String(50))
+    fecha_creado: Mapped[datetime | None] = mapped_column(DateTime)
+    fecha_actualizado: Mapped[datetime | None] = mapped_column(DateTime)
+
+
+class PermisoApp(Base):
+    __tablename__ = "intranet_permisos_app"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    sistema: Mapped[str] = mapped_column(String(50))
+    modulo: Mapped[str] = mapped_column(String(100))
+    accion: Mapped[str] = mapped_column(String(50))
+    fecha_creado: Mapped[datetime | None] = mapped_column(DateTime)
+    fecha_actualizado: Mapped[datetime | None] = mapped_column(DateTime)
+
+
+class RolPermisoApp(Base):
+    __tablename__ = "intranet_roles_permisos_app"
+
+    permiso_id: Mapped[int] = mapped_column(
+        ForeignKey("intranet_permisos_app.id"), primary_key=True
+    )
+    rol_id: Mapped[int] = mapped_column(ForeignKey("intranet_roles_app.id"), primary_key=True)
+
+
+class UsuarioRolApp(Base):
+    __tablename__ = "intranet_usuario_rol_app"
+
+    usuario_id: Mapped[int] = mapped_column(
+        ForeignKey("intranet_usuarios.id"), primary_key=True
+    )
+    rol_id: Mapped[int] = mapped_column(ForeignKey("intranet_roles_app.id"), primary_key=True)
+    sistema: Mapped[str] = mapped_column(String(50), primary_key=True)
+    fecha_creado: Mapped[datetime | None] = mapped_column(DateTime)
+    fecha_actualizado: Mapped[datetime | None] = mapped_column(DateTime)

@@ -15,6 +15,9 @@ class AuthResponse(BaseModel):
     id_area: int | None = None
     area_name: str = ""
     email: str = ""
+    # Permisos granulares del CRM como "modulo:accion" (ej. "contactos:ver").
+    # Ver AuthRepository.obtener_permisos para de donde salen.
+    permisos: list[str] = []
 
 
 class UserInfo(BaseModel):
@@ -25,3 +28,4 @@ class UserInfo(BaseModel):
     id_area: int | None = None
     area_name: str = ""
     email: str = ""
+    permisos: list[str] = []
