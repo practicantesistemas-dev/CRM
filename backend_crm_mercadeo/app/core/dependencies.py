@@ -17,15 +17,36 @@ def _con_tz_utc(momento: datetime) -> datetime:
     return momento if momento.tzinfo else momento.replace(tzinfo=timezone.utc)
 
 
-def get_current_username(
-    credentials: HTTPAuthorizationCredentials = Depends(_bearer_scheme),
-    db: Session = Depends(get_db),
-) -> str:
+def _decodificar(credentials: HTTPAuthorizationCredentials) -> dict:
     payload = decode_access_token(credentials.credentials)
     if payload is None or not payload.get("sub"):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Token invalido o expirado"
         )
+    return payload
+
+
+# Version liviana: solo valida que el token sea real y no haya expirado, sin
+# exigir rol ni chequear si quedo desactualizado. La usa exclusivamente
+# GET /auth/me (ver modules/auth/router.py) - ese endpoint es justo el que el
+# frontend usa para preguntar "¿cual es mi estado actual?" (para decidir si
+# mandar a /sin-rol, o para revisar si ya le asignaron rol despues de un
+# rato sin tenerlo). Si aplicara las mismas reglas que get_current_username
+# quedaria bloqueado por su propio chequeo justo cuando mas se necesita: la
+# regla de "token viejo" de mas abajo se dispara tambien la PRIMERA vez que
+# a alguien le asignan rol (fecha_actualizado del rol siempre queda despues
+# del iat de un token emitido cuando todavia no tenia ninguno).
+def get_username_liviano(
+    credentials: HTTPAuthorizationCredentials = Depends(_bearer_scheme),
+) -> str:
+    return _decodificar(credentials)["sub"]
+
+
+def get_current_username(
+    credentials: HTTPAuthorizationCredentials = Depends(_bearer_scheme),
+    db: Session = Depends(get_db),
+) -> str:
+    payload = _decodificar(credentials)
     username: str = payload["sub"]
 
     # Import local para evitar que este modulo "core" dependa de un modulo de
@@ -60,4 +81,4 @@ def get_current_username(
     return username
 
 
-__all__ = ["get_db", "get_current_username"]
+__all__ = ["get_db", "get_current_username", "get_username_liviano"]
