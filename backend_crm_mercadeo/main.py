@@ -6,6 +6,7 @@ from app.core.logging import setup_logging
 from app.core.middleware import setup_middlewares
 from app.modules.administracion.bitacora.router import router as bitacora_router
 from app.modules.administracion.importaciones.router import router as importaciones_router
+from app.modules.administracion.usuarios_roles.router import router as usuarios_roles_router
 from app.modules.auth.router import router as auth_router
 from app.modules.comercial.contactos.router import router as contactos_router
 from app.modules.comercial.empresas.router import router as empresas_router
@@ -40,6 +41,7 @@ app.include_router(servicios_router, prefix=settings.api_prefix)
 app.include_router(tablero_router, prefix=settings.api_prefix)
 app.include_router(ubicaciones_router, prefix=settings.api_prefix)
 app.include_router(titulares_beneficiarios_router, prefix=settings.api_prefix)
+app.include_router(usuarios_roles_router, prefix=settings.api_prefix)
 
 
 @app.get("/health")

@@ -1,6 +1,9 @@
 <script setup lang="ts">
-import { useAuth } from '@/features/auth/composables/useAuth'
+import { useAuth, tienePermiso } from '@/features/auth/composables/useAuth'
+import AsignarRolUsuario from '../components/AsignarRolUsuario.vue'
+
 const { me } = useAuth()
+const puedeAsignarRoles = tienePermiso('configuracion:gestionar')
 </script>
 
 <template>
@@ -11,7 +14,10 @@ const { me } = useAuth()
       <div><span class="text-slate-400 dark:text-slate-500 font-semibold">Usuario:</span> {{ me?.username }}</div>
       <div><span class="text-slate-400 dark:text-slate-500 font-semibold">Correo:</span> {{ me?.email }}</div>
       <div><span class="text-slate-400 dark:text-slate-500 font-semibold">Rol:</span> {{ me?.portal_role }}</div>
+      <div><span class="text-slate-400 dark:text-slate-500 font-semibold">Rol en el CRM:</span> {{ me?.role_crm }}</div>
       <div><span class="text-slate-400 dark:text-slate-500 font-semibold">Área:</span> {{ me?.area_name }}</div>
     </div>
+
+    <AsignarRolUsuario v-if="puedeAsignarRoles" />
   </div>
 </template>

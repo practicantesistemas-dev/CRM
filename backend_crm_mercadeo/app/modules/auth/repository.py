@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
@@ -30,6 +32,23 @@ class AuthRepository:
             self.db.query(Usuario)
             .filter(func.upper(func.trim(Usuario.usuario)) == username.strip().upper())
             .first()
+        )
+
+    # Ultima vez que le cambiaron el rol de CRM_MERCADEO a este usuario (o le
+    # asignaron uno por primera vez). None si nunca ha tenido rol. Se usa para
+    # invalidar tokens emitidos ANTES de ese cambio - ver get_current_username
+    # en app/core/dependencies.py.
+    def fecha_ultimo_cambio_rol(self, username: str) -> datetime | None:
+        return (
+            self.db.query(UsuarioRolApp.fecha_actualizado)
+            .join(Usuario, Usuario.id == UsuarioRolApp.usuario_id)
+            .filter(
+                func.upper(func.trim(Usuario.usuario)) == username.strip().upper(),
+                UsuarioRolApp.sistema == SISTEMA_CRM,
+            )
+            .order_by(UsuarioRolApp.fecha_actualizado.desc())
+            .limit(1)
+            .scalar()
         )
 
     # NOMBRE del rol (INTRANET_ROLES_APP) que tiene el usuario en CRM_MERCADEO

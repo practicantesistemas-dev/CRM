@@ -13,10 +13,11 @@ from app.core.config import settings
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
     to_encode = data.copy()
-    expira = datetime.now(timezone.utc) + (
+    ahora = datetime.now(timezone.utc)
+    to_encode["iat"] = ahora
+    to_encode["exp"] = ahora + (
         expires_delta or timedelta(minutes=settings.access_token_expire_minutes)
     )
-    to_encode["exp"] = expira
     return jwt.encode(to_encode, settings.secret_key, algorithm=settings.algorithm)
 
 
