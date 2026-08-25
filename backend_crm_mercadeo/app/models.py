@@ -477,7 +477,7 @@ class Importacion(Base):
 
 
 # ---------------------------------------------------------------------------
-# Modulo: Permisos (esquema compartido del Intranet, ver DIAGRAMA_BASE_DATOS.md)
+# Modulo: Permisos (esquema compartido del Intranet, ver readme/DIAGRAMA_BASE_DATOS.md)
 #
 # Estas 4 tablas ya existen en Oracle (las administra el Intranet/SSO, no
 # este backend) y son compartidas entre apps via la columna SISTEMA - aqui

@@ -32,7 +32,7 @@ class AuthRepository:
 
     # Permisos granulares del usuario para este sistema, como strings
     # "modulo:accion" (ej. "contactos:gestionar", "configuracion:ver").
-    # Ver DIAGRAMA_BASE_DATOS.md para el modelo entidad-relacion completo.
+    # Ver readme/DIAGRAMA_BASE_DATOS.md para el modelo entidad-relacion completo.
     def obtener_permisos(self, usuario_id: int) -> list[str]:
         filas = (
             self.db.query(PermisoApp.modulo, PermisoApp.accion)
