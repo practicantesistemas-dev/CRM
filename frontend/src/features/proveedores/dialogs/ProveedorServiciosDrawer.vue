@@ -84,8 +84,8 @@ const formatoMoneda = (n: number) => n.toLocaleString('es-CO', { style: 'currenc
 </script>
 
 <template>
-  <div v-if="visible" class="fixed inset-0 z-[9999]" @click.self="visible = false">
-    <div class="fixed inset-0 bg-black/30 backdrop-blur-sm" @click="visible = false" />
+  <div v-if="visible" class="fixed inset-0 z-[9999]">
+    <div class="fixed inset-0 bg-black/30 backdrop-blur-sm" />
     <div class="fixed right-0 top-0 h-full w-full max-w-md bg-white dark:bg-slate-800 shadow-2xl flex flex-col z-10">
       <div class="flex items-center justify-between px-5 py-4 border-b border-default surface-header">
         <div>

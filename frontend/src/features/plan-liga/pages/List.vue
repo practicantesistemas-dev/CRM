@@ -269,7 +269,7 @@ const modalImportVisible = ref(false)
           <Heart :size="20" class="text-[#EC4899]" />
           Plan Liga · Afiliaciones
         </h2>
-        <p class="text-[12px] text-slate-500 dark:text-slate-400 mt-0.5">Gestión de titulares y beneficiarios del programa Plan Liga Ama Salvar Vidas</p>
+        <p class="text-[12px] text-slate-500 dark:text-slate-400 mt-0.5">Gestión de titulares y beneficiarios del programa Plan Liga</p>
         <p v-if="errorExportar" class="text-[11px] text-red-600 dark:text-red-400 mt-1">{{ errorExportar }}</p>
       </div>
       <div class="flex items-center gap-2 flex-wrap">
@@ -279,7 +279,7 @@ const modalImportVisible = ref(false)
         </button>
         <button v-if="puedeGestionar" @click="modalFechaGrupoVisible = true"
           class="flex items-center gap-1.5 h-9 px-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-[11px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all">
-          <CalendarClock :size="13" /> Fecha por grupo
+          <CalendarClock :size="13" /> Fecha de ingreso por grupo o empresa
         </button>
         <button @click="exportarListado" :disabled="exportando"
           class="flex items-center gap-1.5 h-9 px-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-[11px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-60 disabled:cursor-not-allowed transition-all">

@@ -26,7 +26,7 @@ const confirmar = () => emit('confirmar', documento.value.trim())
 </script>
 
 <template>
-  <div v-if="visible" class="fixed inset-0 z-[999999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" @click.self="cerrar">
+  <div v-if="visible" class="fixed inset-0 z-[999999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
     <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
       <template v-if="paso === 'formulario'">
         <div class="p-6 text-center">

@@ -52,7 +52,7 @@ const cerrar = () => { visible.value = false }
 
 const pedirConfirmacion = async () => {
   if (!empresaSeleccionada.value) {
-    error.value = 'Elige una empresa.'
+    error.value = 'Elige una empresa o grupo.'
     return
   }
   error.value = null
@@ -88,14 +88,14 @@ const aplicarCambio = async () => {
 </script>
 
 <template>
-  <div v-if="visible" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" @click.self="cerrar">
+  <div v-if="visible" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
     <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-sm flex flex-col">
       <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700 bg-[#F8FAFC] dark:bg-slate-900 rounded-t-2xl">
         <div>
           <h3 class="text-[14px] font-bold text-[#0F172A] dark:text-slate-100 flex items-center gap-2">
             <CalendarClock :size="15" class="text-[#2447F9]" />Cambiar fecha de ingreso por grupo
           </h3>
-          <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">Aplica a todos los titulares y beneficiarios activos de la empresa elegida</p>
+          <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">Aplica a todos los titulares y beneficiarios activos de la empresa o grupo elegido</p>
         </div>
         <button @click="cerrar" class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 flex items-center justify-center text-slate-500 dark:text-slate-400"><X :size="14" /></button>
       </div>
@@ -103,13 +103,13 @@ const aplicarCambio = async () => {
       <div class="p-6 space-y-4">
         <template v-if="!confirmando && !resultado">
           <div>
-            <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1.5 uppercase tracking-wide">Empresa *</label>
+            <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1.5 uppercase tracking-wide">Empresa / grupo *</label>
             <BuscadorEntidad
               v-model="empresaIdSeleccionada"
               :opciones="opcionesEmpresas"
               :disabled="cargandoEmpresas"
-              :placeholder="cargandoEmpresas ? 'Cargando...' : 'Busca una empresa por nombre'"
-              vacio="No se encontraron empresas"
+              :placeholder="cargandoEmpresas ? 'Cargando...' : 'Busca una empresa o grupo por nombre'"
+              vacio="No se encontraron empresas o grupos"
             />
           </div>
 

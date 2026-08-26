@@ -10,7 +10,6 @@ const emit = defineEmits<{ confirmar: []; cancelar: [] }>()
   <div
     v-if="actividad"
     class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
-    @click.self="emit('cancelar')"
   >
     <div class="surface-card rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
       <div class="p-6 text-center">

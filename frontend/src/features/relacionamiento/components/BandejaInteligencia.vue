@@ -567,7 +567,7 @@ const textoEdadActiva = computed(() => {
     </template>
   </div>
 
-  <div v-if="confirmarDesactivarAbierto" class="fixed inset-0 z-[999999] bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4" @click.self="cancelarCargaDesactivar">
+  <div v-if="confirmarDesactivarAbierto" class="fixed inset-0 z-[999999] bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
     <div class="surface-card rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-150">
       <div class="p-5 text-center">
         <div class="w-11 h-11 rounded-2xl bg-amber-50 dark:bg-amber-950/40 flex items-center justify-center mx-auto mb-3 text-lg">⚠️</div>
