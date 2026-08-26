@@ -63,8 +63,8 @@ const router = createRouter({
   routes,
 })
 
-router.beforeEach((to, from) => {
-  const { checkSession, me, logout } = useAuth()
+router.beforeEach(async (to, from) => {
+  const { checkSession, me, logout, fetchMe } = useAuth()
   const authenticated = checkSession()
 
   if (to.meta.requiresAuth && !authenticated) {
@@ -83,6 +83,28 @@ router.beforeEach((to, from) => {
   if (authenticated && to.path === '/sin-rol' && from.matched.length === 0) {
     logout()
     return '/login'
+  }
+
+  // Antes de decidir con el rol, se refresca contra /auth/me: el rol que
+  // quedo guardado en localStorage al loguearse puede estar desactualizado
+  // si un admin se lo cambio o se lo quito despues (el JWT en si no siempre
+  // permite detectar esto - un token emitido por el portal SSO externo no
+  // trae "iat", asi que el chequeo de "token viejo" del backend no aplica
+  // ahi). Se hace en cada navegacion protegida para que un cambio de rol se
+  // note "al ver un menu", no solo cuando el usuario dispara una accion.
+  if (authenticated && to.meta.requiresAuth) {
+    const rolAntes = me.value?.role_crm ?? null
+    await fetchMe()
+    const rolAhora = me.value?.role_crm ?? null
+
+    // Ya tenia un rol y ahora es distinto (se lo cambiaron) o desaparecio (se
+    // lo quitaron): a diferencia del caso "nunca tuvo rol", aqui no tiene
+    // sentido mostrar la pantalla informativa - hay que cerrar la sesion
+    // vieja y que vuelva a loguearse con lo que le corresponda ahora.
+    if (rolAntes !== null && rolAntes !== rolAhora) {
+      logout()
+      return '/login'
+    }
   }
 
   // Autenticado pero sin rol de CRM asignado (incluye justo despues de
