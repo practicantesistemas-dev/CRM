@@ -6,6 +6,10 @@ import type { ActividadServicio, ActividadServicioDraft } from '../types/activid
 import { useActividadesProveedor } from '../composables/useActividadesProveedor'
 import ActividadServicioFormDialog from './ActividadServicioFormDialog.vue'
 import ConfirmDialog from '@/shared/components/ConfirmDialog.vue'
+import { permisosDeModulo } from '@/features/auth/composables/useAuth'
+
+// Las actividades no tienen modulo de permisos propio: cuelgan de proveedores.
+const { gestionar: puedeGestionar, eliminar: puedeEliminar } = permisosDeModulo('proveedores')
 
 const props = defineProps<{ proveedor: Proveedor | null }>()
 const visible = defineModel<boolean>('visible', { required: true })
@@ -80,8 +84,8 @@ const formatoMoneda = (n: number) => n.toLocaleString('es-CO', { style: 'currenc
 </script>
 
 <template>
-  <div v-if="visible" class="fixed inset-0 z-[9999]" @click.self="visible = false">
-    <div class="fixed inset-0 bg-black/30 backdrop-blur-sm" @click="visible = false" />
+  <div v-if="visible" class="fixed inset-0 z-[9999]">
+    <div class="fixed inset-0 bg-black/30 backdrop-blur-sm" />
     <div class="fixed right-0 top-0 h-full w-full max-w-md bg-white dark:bg-slate-800 shadow-2xl flex flex-col z-10">
       <div class="flex items-center justify-between px-5 py-4 border-b border-default surface-header">
         <div>
@@ -97,7 +101,7 @@ const formatoMoneda = (n: number) => n.toLocaleString('es-CO', { style: 'currenc
           <input v-model="buscar" placeholder="Buscar por nombre o descripción..."
             class="w-full h-9 pl-8 pr-3 rounded-lg input-surface text-[12px] outline-none focus:border-[#2447F9] focus:bg-white dark:focus:bg-slate-800 transition-all" />
         </div>
-        <button @click="abrirNuevo" class="w-full flex items-center justify-center gap-1.5 h-9 rounded-lg bg-[#2447F9] text-white text-[11px] font-bold shadow hover:bg-[#1D3DD9] transition-all">
+        <button v-if="puedeGestionar" @click="abrirNuevo" class="w-full flex items-center justify-center gap-1.5 h-9 rounded-lg bg-[#2447F9] text-white text-[11px] font-bold shadow hover:bg-[#1D3DD9] transition-all">
           <Plus :size="14" /> Nueva actividad
         </button>
       </div>
@@ -125,10 +129,10 @@ const formatoMoneda = (n: number) => n.toLocaleString('es-CO', { style: 'currenc
                 </div>
               </div>
               <div class="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button @click="abrirEditar(a)" class="w-6 h-6 rounded-lg bg-white dark:bg-slate-800 hover:bg-[#EEF2FF] dark:hover:bg-blue-950/50 hover:text-[#2447F9] dark:hover:text-blue-400 text-slate-500 dark:text-slate-400 flex items-center justify-center transition-all" title="Editar">
+                <button v-if="puedeGestionar" @click="abrirEditar(a)" class="w-6 h-6 rounded-lg bg-white dark:bg-slate-800 hover:bg-[#EEF2FF] dark:hover:bg-blue-950/50 hover:text-[#2447F9] dark:hover:text-blue-400 text-slate-500 dark:text-slate-400 flex items-center justify-center transition-all" title="Editar">
                   <Edit2 :size="11" />
                 </button>
-                <button @click="pedirBorrar(a)" class="w-6 h-6 rounded-lg bg-white dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-950/50 hover:text-red-600 dark:hover:text-red-400 text-slate-500 dark:text-slate-400 flex items-center justify-center transition-all" title="Eliminar">
+                <button v-if="puedeEliminar" @click="pedirBorrar(a)" class="w-6 h-6 rounded-lg bg-white dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-950/50 hover:text-red-600 dark:hover:text-red-400 text-slate-500 dark:text-slate-400 flex items-center justify-center transition-all" title="Eliminar">
                   <Trash2 :size="11" />
                 </button>
               </div>

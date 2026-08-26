@@ -119,13 +119,50 @@ export async function updateTitular(id: number, data: TitularDraft): Promise<Tit
   return { ...data, id }
 }
 
-export async function activarTitular(idTitular: number, fechaIngreso: string): Promise<void> {
+export async function activarTitular(
+  idTitular: number,
+  fechaIngreso: string,
+  aplicarAGrupo = true,
+): Promise<void> {
   const response = await fetch(`${API_URL}/api/titulares-beneficiarios/${idTitular}/activar`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...authHeader() },
-    body: JSON.stringify({ FECHA_INGRESO: fechaIngreso }),
+    body: JSON.stringify({ FECHA_INGRESO: fechaIngreso, APLICAR_A_GRUPO: aplicarAGrupo }),
   })
   if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo activar el titular.')
+}
+
+export interface CambioFechaIngresoGrupoResultado {
+  titularesActualizados: number
+  beneficiariosActualizados: number
+}
+
+// Cuenta cuantos titulares/beneficiarios activos de esa empresa se verian
+// afectados, sin modificar nada: para el mensaje de confirmacion antes de aplicar.
+export async function contarGrupoActivo(empresa: string): Promise<CambioFechaIngresoGrupoResultado> {
+  const response = await fetch(
+    `${API_URL}/api/titulares-beneficiarios/grupo/conteo?empresa=${encodeURIComponent(empresa)}`,
+    { headers: authHeader() },
+  )
+  if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo calcular cuántos registros se verían afectados.')
+  const r = await response.json()
+  return { titularesActualizados: r.titulares_actualizados, beneficiariosActualizados: r.beneficiarios_actualizados }
+}
+
+// Cambia FECHA_INGRESO a todos los titulares activos de esa empresa y a los
+// beneficiarios activos de esos titulares, de una sola vez.
+export async function cambiarFechaIngresoGrupo(
+  empresa: string,
+  fechaIngreso: string,
+): Promise<CambioFechaIngresoGrupoResultado> {
+  const response = await fetch(`${API_URL}/api/titulares-beneficiarios/grupo/fecha-ingreso`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeader() },
+    body: JSON.stringify({ EMPRESA: empresa, FECHA_INGRESO: fechaIngreso }),
+  })
+  if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo cambiar la fecha de ingreso del grupo.')
+  const r = await response.json()
+  return { titularesActualizados: r.titulares_actualizados, beneficiariosActualizados: r.beneficiarios_actualizados }
 }
 
 export async function desactivarTitular(idTitular: number): Promise<void> {

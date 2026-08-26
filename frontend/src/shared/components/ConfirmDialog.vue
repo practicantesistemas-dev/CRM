@@ -22,7 +22,7 @@ const confirmar = () => {
 </script>
 
 <template>
-  <div v-if="visible" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" @click.self="visible = false">
+  <div v-if="visible" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
     <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
       <div class="p-6 flex flex-col items-center text-center gap-3">
         <div class="w-11 h-11 rounded-full bg-red-50 dark:bg-red-950/50 flex items-center justify-center shrink-0">

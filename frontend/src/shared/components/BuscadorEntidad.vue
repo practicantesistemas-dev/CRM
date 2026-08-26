@@ -56,10 +56,8 @@ watch(query, (q) => {
 const filtradas = computed(() => {
   if (props.buscar) return resultadosRemotos.value
   const q = query.value.trim().toLowerCase()
-  const base = !q
-    ? props.opciones
-    : props.opciones.filter(o => o.label.toLowerCase().includes(q) || o.sublabel?.toLowerCase().includes(q))
-  return base.slice(0, 8)
+  if (!q) return props.opciones
+  return props.opciones.filter(o => o.label.toLowerCase().includes(q) || o.sublabel?.toLowerCase().includes(q))
 })
 
 function elegir(o: OpcionBuscador) {

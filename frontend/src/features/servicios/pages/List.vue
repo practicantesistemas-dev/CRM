@@ -7,6 +7,9 @@ import {
 } from '../services/servicios.api'
 import { PLAN_DRAFT_VACIO } from '../constants/servicios.constants'
 import PlanFormDialog from '../dialogs/PlanFormDialog.vue'
+import { permisosDeModulo } from '@/features/auth/composables/useAuth'
+
+const { gestionar: puedeGestionar } = permisosDeModulo('servicios')
 
 const servicios = ref<string[]>([])
 const cargando = ref(false)
@@ -104,7 +107,7 @@ const guardar = async () => {
         </h2>
         <p class="text-[12px] text-muted mt-0.5">Categorías de servicio registradas en el portal</p>
       </div>
-      <button @click="abrirNuevoServicio" class="flex items-center gap-1.5 h-9 px-4 rounded-lg bg-[#2447F9] text-white text-[11px] font-bold shadow hover:bg-[#1D3DD9] transition-all shrink-0">
+      <button v-if="puedeGestionar" @click="abrirNuevoServicio" class="flex items-center gap-1.5 h-9 px-4 rounded-lg bg-[#2447F9] text-white text-[11px] font-bold shadow hover:bg-[#1D3DD9] transition-all shrink-0">
         <Plus :size="14" /> Agregar servicio
       </button>
     </div>
@@ -169,6 +172,7 @@ const guardar = async () => {
               <FileText :size="13" /> Sin planes registrados en esta categoría.
             </div>
             <button
+              v-if="puedeGestionar"
               type="button"
               @click="abrirNuevoPlan(s)"
               class="w-full flex items-center justify-center gap-1.5 h-9 rounded-xl border border-dashed border-[#2447F9]/40 dark:border-blue-400/30 text-[11px] font-semibold text-[#2447F9] dark:text-blue-400 hover:bg-[#EEF2FF] dark:hover:bg-blue-950/30 transition-all cursor-pointer"

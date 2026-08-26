@@ -9,6 +9,7 @@ const props = defineProps<{
   color: EtapaColor
   dragging: boolean
   dropIndicator?: 'before' | 'after' | null
+  puedeGestionar: boolean
 }>()
 const emit = defineEmits<{
   dragstart: [e: DragEvent]
@@ -37,7 +38,7 @@ const onDragOverCard = (e: DragEvent) => {
 
 <template>
   <div
-    :draggable="true"
+    :draggable="puedeGestionar"
     data-kanban-card
     @dragstart="emit('dragstart', $event)"
     @dragend="emit('dragend')"
@@ -45,7 +46,7 @@ const onDragOverCard = (e: DragEvent) => {
     class="relative surface-card rounded-xl shadow-sm p-3 transition-all select-none"
     :class="dragging
       ? 'opacity-40 scale-[.97] shadow-none cursor-grabbing'
-      : 'hover:shadow-md cursor-grab'"
+      : puedeGestionar ? 'hover:shadow-md cursor-grab' : ''"
   >
     <div
       v-if="dropIndicator === 'before'"

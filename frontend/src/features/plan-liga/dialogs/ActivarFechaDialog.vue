@@ -15,7 +15,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  confirmar: [fechaIngreso: string]
+  confirmar: [fechaIngreso: string, aplicarAGrupo: boolean]
   cancelar: []
 }>()
 
@@ -27,18 +27,25 @@ const hoy = new Date()
 const dosMesesAtras = new Date()
 dosMesesAtras.setMonth(dosMesesAtras.getMonth() - 2)
 const fechaIngresoDate = ref<Date>(hoy)
-watch(visible, (v) => { if (v) fechaIngresoDate.value = new Date() })
+// Mismo comportamiento de siempre por defecto (aplicar a todo el grupo);
+// aquí se puede desmarcar para activar solo al titular.
+const aplicarAGrupo = ref(true)
+watch(visible, (v) => { if (v) { fechaIngresoDate.value = new Date(); aplicarAGrupo.value = true } })
 
 const cerrar = () => {
   visible.value = false
   emit('cancelar')
 }
 
-const confirmar = () => emit('confirmar', props.pedirFecha ? formatFechaLocal(fechaIngresoDate.value) : fechaIngresoMaxima())
+const confirmar = () => emit(
+  'confirmar',
+  props.pedirFecha ? formatFechaLocal(fechaIngresoDate.value) : fechaIngresoMaxima(),
+  aplicarAGrupo.value,
+)
 </script>
 
 <template>
-  <div v-if="visible" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" @click.self="cerrar">
+  <div v-if="visible" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
     <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-sm flex flex-col">
       <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700 bg-[#F8FAFC] dark:bg-slate-900 rounded-t-2xl">
         <div>
@@ -53,7 +60,6 @@ const confirmar = () => emit('confirmar', props.pedirFecha ? formatFechaLocal(fe
           <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1.5 uppercase tracking-wide">Fecha de ingreso *</label>
           <DatePicker
             v-model="fechaIngresoDate"
-            :max-date="hoy"
             :min-date="dosMesesAtras"
             date-format="dd/mm/yy"
             show-icon
@@ -62,6 +68,10 @@ const confirmar = () => emit('confirmar', props.pedirFecha ? formatFechaLocal(fe
             placeholder="Selecciona una fecha"
             input-class="w-full h-11 pl-4 pr-10 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-[12px] font-medium text-slate-700 dark:text-slate-100 outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-50 dark:focus:ring-emerald-900/40 focus:bg-white dark:focus:bg-slate-800 transition-all"
           />
+          <label class="flex items-center gap-2 mt-3 cursor-pointer select-none">
+            <input type="checkbox" v-model="aplicarAGrupo" class="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-emerald-600 focus:ring-emerald-500" />
+            <span class="text-[11px] text-slate-600 dark:text-slate-300">Aplicar esta fecha también a los beneficiarios de este titular</span>
+          </label>
         </div>
         <p v-if="props.error" class="text-[11px] text-red-600 dark:text-red-400 font-medium">{{ props.error }}</p>
       </div>

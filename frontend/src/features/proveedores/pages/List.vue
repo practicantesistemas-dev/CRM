@@ -9,6 +9,9 @@ import ProveedorFormDialog from '../dialogs/ProveedorFormDialog.vue'
 import ProveedoresTable from '../tables/ProveedoresTable.vue'
 import ProveedorServiciosDrawer from '../dialogs/ProveedorServiciosDrawer.vue'
 import ConfirmDialog from '@/shared/components/ConfirmDialog.vue'
+import { permisosDeModulo } from '@/features/auth/composables/useAuth'
+
+const { gestionar: puedeGestionar, eliminar: puedeEliminar } = permisosDeModulo('proveedores')
 
 const {
   proveedores, cargandoProveedores, errorProveedores, cargarProveedores,
@@ -84,7 +87,7 @@ const exportar = () => exportarProveedoresExcel(
         <button @click="exportar" class="flex items-center gap-1.5 h-9 px-4 rounded-lg border-default surface-card text-[11px] font-semibold text-body surface-hover transition-all">
           <Download :size="13" /> Exportar
         </button>
-        <button @click="abrirNuevo" class="flex items-center gap-1.5 h-9 px-4 rounded-lg bg-[#2447F9] text-white text-[11px] font-bold shadow hover:bg-[#1D3DD9] transition-all">
+        <button v-if="puedeGestionar" @click="abrirNuevo" class="flex items-center gap-1.5 h-9 px-4 rounded-lg bg-[#2447F9] text-white text-[11px] font-bold shadow hover:bg-[#1D3DD9] transition-all">
           <Plus :size="14" /> Nuevo proveedor
         </button>
       </div>
@@ -116,7 +119,14 @@ const exportar = () => exportarProveedoresExcel(
       <p v-if="errorEliminarProveedor" class="mt-1 text-[11px] font-medium text-red-500 dark:text-red-400">{{ errorEliminarProveedor }}</p>
     </div>
 
-    <ProveedoresTable :rows="proveedoresFiltrados" @editar="abrirEditar" @borrar="pedirBorrarProveedor" @servicios="abrirServicios" />
+    <ProveedoresTable
+      :rows="proveedoresFiltrados"
+      :puede-gestionar="puedeGestionar"
+      :puede-eliminar="puedeEliminar"
+      @editar="abrirEditar"
+      @borrar="pedirBorrarProveedor"
+      @servicios="abrirServicios"
+    />
 
     <ProveedorFormDialog
       v-model:visible="modalVisible"

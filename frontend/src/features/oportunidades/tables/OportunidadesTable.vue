@@ -3,7 +3,7 @@ import { Building2, User, Award, Layers, DollarSign, Edit2, Trophy, XCircle } fr
 import type { Oportunidad } from '../types/oportunidad'
 import { estadoStyle } from '../constants/oportunidades.constants'
 
-defineProps<{ rows: Oportunidad[] }>()
+defineProps<{ rows: Oportunidad[]; puedeGestionar: boolean }>()
 const emit = defineEmits<{
   editar: [o: Oportunidad]
   ganar: [o: Oportunidad]
@@ -66,9 +66,9 @@ const clienteSecundario = (o: Oportunidad) => {
             </td>
             <td class="px-5 py-3.5 text-right">
               <div class="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button @click="emit('editar', o)" class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-[#EEF2FF] dark:hover:bg-blue-950/50 hover:text-[#2447F9] dark:hover:text-blue-400 text-slate-500 dark:text-slate-400 flex items-center justify-center transition-all" title="Editar"><Edit2 :size="12" /></button>
-                <button v-if="!['Ganada','Perdida'].includes(o.estado)" @click="emit('ganar', o)" class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 hover:text-emerald-600 dark:hover:text-emerald-400 text-slate-500 dark:text-slate-400 flex items-center justify-center transition-all" title="Marcar ganada"><Trophy :size="12" /></button>
-                <button v-if="!['Ganada','Perdida'].includes(o.estado)" @click="emit('perder', o)" class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-red-50 dark:hover:bg-red-950/50 hover:text-red-500 dark:hover:text-red-400 text-slate-500 dark:text-slate-400 flex items-center justify-center transition-all" title="Marcar perdida"><XCircle :size="12" /></button>
+                <button v-if="puedeGestionar" @click="emit('editar', o)" class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-[#EEF2FF] dark:hover:bg-blue-950/50 hover:text-[#2447F9] dark:hover:text-blue-400 text-slate-500 dark:text-slate-400 flex items-center justify-center transition-all" title="Editar"><Edit2 :size="12" /></button>
+                <button v-if="puedeGestionar && !['Ganada','Perdida'].includes(o.estado)" @click="emit('ganar', o)" class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 hover:text-emerald-600 dark:hover:text-emerald-400 text-slate-500 dark:text-slate-400 flex items-center justify-center transition-all" title="Marcar ganada"><Trophy :size="12" /></button>
+                <button v-if="puedeGestionar && !['Ganada','Perdida'].includes(o.estado)" @click="emit('perder', o)" class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-red-50 dark:hover:bg-red-950/50 hover:text-red-500 dark:hover:text-red-400 text-slate-500 dark:text-slate-400 flex items-center justify-center transition-all" title="Marcar perdida"><XCircle :size="12" /></button>
               </div>
             </td>
           </tr>

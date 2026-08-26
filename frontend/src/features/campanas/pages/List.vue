@@ -4,6 +4,7 @@ import { Plus } from 'lucide-vue-next'
 import type { Campana, CampanaDraft } from '../types/campana'
 import { CAMPANA_DRAFT_VACIO, HTML_EDITOR_DEFAULT } from '../constants/campanas.constants'
 import { useCampanas } from '../composables/useCampanas'
+import { permisosDeModulo } from '@/features/auth/composables/useAuth'
 import KpiResumenCampanas from '../components/KpiResumenCampanas.vue'
 import CampanaListItem from '../components/CampanaListItem.vue'
 import CampanaFormDialog from '../dialogs/CampanaFormDialog.vue'
@@ -13,6 +14,9 @@ const {
   campanas, totalEnviados, totalAperturas, totalClics, totalRebotes,
   crearCampana,
 } = useCampanas()
+
+// "gestionar" cubre crear y editar; no hay accion "eliminar" en este modulo.
+const { gestionar: puedeGestionar } = permisosDeModulo('campanas')
 
 const modalVisible = ref(false)
 const draft = ref<CampanaDraft>({ ...CAMPANA_DRAFT_VACIO })
@@ -47,7 +51,7 @@ const abrirEditor = (c: Campana) => {
         </h2>
         <p class="text-[12px] text-body mt-0.5">Envíos masivos por segmento · métricas de apertura y clics</p>
       </div>
-      <button @click="abrirNuevo" class="flex items-center gap-1.5 h-9 px-4 rounded-lg bg-[#2447F9] text-white text-[11px] font-bold shadow hover:bg-[#1D3DD9] transition-all">
+      <button v-if="puedeGestionar" @click="abrirNuevo" class="flex items-center gap-1.5 h-9 px-4 rounded-lg bg-[#2447F9] text-white text-[11px] font-bold shadow hover:bg-[#1D3DD9] transition-all">
         <Plus :size="14" /> Nueva campaña
       </button>
     </div>

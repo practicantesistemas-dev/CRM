@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { useAuth } from '@/features/auth/composables/useAuth'
+import { useAuth, tienePermiso } from '@/features/auth/composables/useAuth'
 import { useTema } from '@/shared/composables/useTema'
 
 import {
   LayoutDashboard, Heart, Users, Building2, Truck,
-  BookOpen, Target, Filter, Wrench, Upload, Zap,
+  BookOpen, Target, Filter, Wrench, Upload, Zap, Send,
   ChevronLeft, ChevronRight, LogOut, Settings,
   RefreshCw, X, Menu, Moon, Sun
 } from 'lucide-vue-next'
@@ -42,56 +42,49 @@ type Vista =
   | 'servicios' | 'oportunidades' | 'embudos'
   | 'relacionamiento' | 'campanas' | 'importacion' | 'automatizaciones'
 
-interface Tab { key: Vista; label: string; icono: any }
+interface Tab { key: Vista; label: string; icono: any; modulo: string }
 
 // ── Menu ──────────────────────────────────────────────────────────
 interface MenuGroup { label?: string; items: Tab[] }
 
-// Producción: temporalmente solo se muestran estos módulos en el menú (a pedido del
-// negocio); el resto de las vistas/rutas siguen existiendo y accesibles por URL directa.
-// const menuGroups: MenuGroup[] = [
-//   { items: [
-//     { key: 'dashboard',        label: 'Dashboard',                 icono: LayoutDashboard },
-//   ]},
-//   { label: 'Plan Liga', items: [
-//     { key: 'plan-liga',       label: 'Titulares y Beneficiarios', icono: Heart           },
-//   ]},
-//   { label: 'Comercial', items: [
-//     { key: 'contactos',        label: 'Contactos',                 icono: Users           },
-//     { key: 'empresas',         label: 'Empresas',                  icono: Building2       },
-//     { key: 'proveedores',      label: 'Proveedores',               icono: Truck           },
-//   ]},
-//   { label: 'Operaciones', items: [
-//     { key: 'relacionamiento',  label: 'Bitácora',                  icono: BookOpen        },
-//   ]},
-// ]
-
-// Local: se muestran todos los módulos existentes en el menú.
+// `modulo` es la clave de permisos de cada ítem (coincide con MODULO en
+// INTRANET_PERMISOS_APP: "contactos", "bitacora", etc. - ver
+// readme/CONSULTAS_EJEMPLO_PERMISOS_APP.md). Un ítem solo se muestra si el
+// usuario tiene "<modulo>:ver" en sus permisos (filtrado más abajo en
+// menuGroupsVisibles), así que el menú entero queda armado según su rol sin
+// tocar esta lista a mano por ambiente/negocio.
 const menuGroups: MenuGroup[] = [
   { items: [
-    { key: 'dashboard',        label: 'Dashboard',                 icono: LayoutDashboard },
+    { key: 'dashboard',        label: 'Dashboard',                 icono: LayoutDashboard, modulo: 'dashboard'       },
   ]},
   { label: 'Plan Liga', items: [
-    { key: 'plan-liga',        label: 'Titulares y Beneficiarios', icono: Heart           },
+    { key: 'plan-liga',        label: 'Titulares y Beneficiarios', icono: Heart,           modulo: 'planliga'        },
   ]},
   { label: 'Comercial', items: [
-    { key: 'contactos',        label: 'Contactos',                 icono: Users           },
-    { key: 'empresas',         label: 'Empresas',                  icono: Building2       },
-    { key: 'proveedores',      label: 'Proveedores',               icono: Truck           },
-    { key: 'oportunidades',    label: 'Oportunidades',             icono: Target          },
-    { key: 'embudos',          label: 'Embudos',                   icono: Filter          },
-    { key: 'servicios',        label: 'Servicios',                 icono: Wrench          },
+    { key: 'contactos',        label: 'Contactos',                 icono: Users,           modulo: 'contactos'       },
+    { key: 'empresas',         label: 'Empresas',                  icono: Building2,       modulo: 'empresas'        },
+    { key: 'proveedores',      label: 'Proveedores',               icono: Truck,           modulo: 'proveedores'     },
+    { key: 'oportunidades',    label: 'Oportunidades',             icono: Target,          modulo: 'oportunidades'   },
+    { key: 'embudos',          label: 'Embudos',                   icono: Filter,          modulo: 'embudos'         },
+    { key: 'servicios',        label: 'Servicios',                 icono: Wrench,          modulo: 'servicios'       },
   ]},
-  // Campañas aún no está implementada: se muestra el aviso solo si el grupo queda vacío.
-  // Automatizaciones ya tiene funcionalidad real (envío a webhook de n8n), por eso sí aparece.
   { label: 'Marketing', items: [
-    { key: 'automatizaciones', label: 'Automatizaciones',           icono: Zap             },
+    { key: 'campanas',         label: 'Campañas',                  icono: Send,            modulo: 'campanas'        },
+    { key: 'automatizaciones', label: 'Automatizaciones',           icono: Zap,             modulo: 'automatizaciones'},
   ]},
   { label: 'Operaciones', items: [
-    { key: 'relacionamiento',  label: 'Bitácora',                  icono: BookOpen        },
-    { key: 'importacion',      label: 'Importación',               icono: Upload          },
+    { key: 'relacionamiento',  label: 'Bitácora',                  icono: BookOpen,        modulo: 'bitacora'        },
+    { key: 'importacion',      label: 'Importación',               icono: Upload,          modulo: 'importacion'     },
   ]},
 ]
+
+// Solo grupos/ítems donde el usuario tiene "<modulo>:ver". Un grupo que
+// queda sin ítems visibles no se muestra (ni su encabezado).
+const menuGroupsVisibles = computed<MenuGroup[]>(() =>
+  menuGroups
+    .map((g) => ({ ...g, items: g.items.filter((i) => tienePermiso(`${i.modulo}:ver`)) }))
+    .filter((g) => g.items.length > 0),
+)
 
 // ── Tabs ──────────────────────────────────────────────────────────
 const MAX_TABS = 4
@@ -260,7 +253,7 @@ const refrescarVistaActual = () => {
 
       <!-- Nav -->
       <nav class="flex-1 overflow-y-auto py-3 scrollbar-sidebar">
-        <template v-for="group in menuGroups" :key="group.label ?? '__root__'">
+        <template v-for="group in menuGroupsVisibles" :key="group.label ?? '__root__'">
           <!-- Divider for collapsed state -->
           <div v-if="group.label && sidebarCollapsed" class="px-3 py-2">
             <div class="h-px bg-white/15 rounded" />
@@ -271,13 +264,6 @@ const refrescarVistaActual = () => {
             class="px-4 pt-4 pb-1.5 text-[10px] font-bold uppercase tracking-widest text-white opacity-100 select-none"
           >
             {{ group.label }}
-          </div>
-          <!-- Grupo sin módulos implementados todavía: aviso en vez de botones de navegación -->
-          <div
-            v-if="group.items.length === 0 && !sidebarCollapsed"
-            class="mx-2 px-2 py-2 rounded-lg text-[11px] text-white/50 italic select-none"
-          >
-            Aún no implementado (Campañas)
           </div>
           <!-- Items -->
           <button

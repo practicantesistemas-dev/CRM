@@ -63,8 +63,8 @@ const router = createRouter({
   routes,
 })
 
-router.beforeEach((to) => {
-  const { checkSession, me } = useAuth()
+router.beforeEach((to, from) => {
+  const { checkSession, me, logout } = useAuth()
   const authenticated = checkSession()
 
   if (to.meta.requiresAuth && !authenticated) {
@@ -75,9 +75,20 @@ router.beforeEach((to) => {
     return '/'
   }
 
-  // Autenticado pero sin rol de CRM asignado: bloquea cualquier vista y
-  // manda siempre a la pantalla informativa (excepto si ya está ahí, para
-  // no quedar en bucle de redirects).
+  // from.matched vacio = esta es la primera navegacion despues de una carga
+  // de pagina real (F5, URL escrita a mano, etc.), no una navegacion dentro
+  // de la SPA. Recargar estando en /sin-rol siempre manda a login, sin
+  // importar si mientras tanto le asignaron rol o no - simplemente tiene
+  // que volver a loguearse para entrar con lo que tenga en ese momento.
+  if (authenticated && to.path === '/sin-rol' && from.matched.length === 0) {
+    logout()
+    return '/login'
+  }
+
+  // Autenticado pero sin rol de CRM asignado (incluye justo despues de
+  // loguearse): bloquea cualquier vista y manda a la pantalla informativa,
+  // sin cerrarle la sesion sola (excepto si ya esta ahi, para no quedar en
+  // bucle de redirects).
   if (authenticated && !me.value?.role_crm && to.path !== '/sin-rol') {
     return '/sin-rol'
   }

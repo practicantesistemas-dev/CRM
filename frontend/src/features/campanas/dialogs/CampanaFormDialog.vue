@@ -13,7 +13,7 @@ const formRef = ref<InstanceType<typeof CampanaForm>>()
 </script>
 
 <template>
-  <div v-if="visible" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" @click.self="visible = false">
+  <div v-if="visible" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
     <div class="surface-card rounded-2xl shadow-2xl w-full max-w-lg flex flex-col overflow-hidden">
       <div class="flex items-center justify-between px-6 py-4 border-b border-default surface-header">
         <div>

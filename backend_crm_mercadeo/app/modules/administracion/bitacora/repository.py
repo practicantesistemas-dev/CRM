@@ -6,6 +6,7 @@ from app.shared.database.base_repository import BaseRepository
 
 ServicioOportunidad = aliased(PlanLigaTipoPlan)
 TipoPlanTitular = aliased(PlanLigaTipoPlan)
+UsuarioActualizacion = aliased(Usuario)
 
 
 class BitacoraRepository(BaseRepository[Bitacora]):
@@ -13,13 +14,17 @@ class BitacoraRepository(BaseRepository[Bitacora]):
 
     def _query_base(self):
         return (
-            select(Bitacora, Contacto, Usuario, Oportunidad, ServicioOportunidad, PlanLiga, TipoPlanTitular)
+            select(
+                Bitacora, Contacto, Usuario, Oportunidad, ServicioOportunidad, PlanLiga,
+                TipoPlanTitular, UsuarioActualizacion,
+            )
             .outerjoin(Contacto, Bitacora.contacto_id == Contacto.id)
             .outerjoin(Usuario, Bitacora.usuario_id == Usuario.id)
             .outerjoin(Oportunidad, Bitacora.oportunidad_id == Oportunidad.id)
             .outerjoin(ServicioOportunidad, Oportunidad.servicio_id == ServicioOportunidad.id)
             .outerjoin(PlanLiga, Bitacora.titular_id == PlanLiga.id)
             .outerjoin(TipoPlanTitular, PlanLiga.tipo_plan_id == TipoPlanTitular.id)
+            .outerjoin(UsuarioActualizacion, Bitacora.usuario_actualizacion_id == UsuarioActualizacion.id)
         )
 
     def _filtros(

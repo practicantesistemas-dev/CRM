@@ -2,9 +2,12 @@
 import { Mail, Users, ChevronRight } from 'lucide-vue-next'
 import type { Campana } from '../types/campana'
 import { estadoStyle, tasaApertura, tasaClic } from '../constants/campanas.constants'
+import { permisosDeModulo } from '@/features/auth/composables/useAuth'
 
 defineProps<{ campana: Campana }>()
 const emit = defineEmits<{ editar: [] }>()
+
+const { gestionar: puedeGestionar } = permisosDeModulo('campanas')
 </script>
 
 <template>
@@ -43,7 +46,11 @@ const emit = defineEmits<{ editar: [] }>()
       </div>
     </div>
 
-    <button @click="emit('editar')" class="flex items-center gap-1 h-8 px-3 rounded-lg border border-default bg-white dark:bg-slate-800 text-[11px] font-semibold text-body hover:bg-slate-50 dark:hover:bg-slate-700 opacity-0 group-hover:opacity-100 transition-all flex-shrink-0">
+    <button
+      v-if="puedeGestionar"
+      @click="emit('editar')"
+      class="flex items-center gap-1 h-8 px-3 rounded-lg border border-default bg-white dark:bg-slate-800 text-[11px] font-semibold text-body hover:bg-slate-50 dark:hover:bg-slate-700 opacity-0 group-hover:opacity-100 transition-all flex-shrink-0"
+    >
       Editar <ChevronRight :size="11" />
     </button>
   </div>

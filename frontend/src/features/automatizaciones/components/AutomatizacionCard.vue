@@ -2,8 +2,10 @@
 import { AlertTriangle, Play, Pause, Edit2, Trash2, Zap, Clock } from 'lucide-vue-next'
 import type { Automatizacion } from '../types/automatizacion'
 import { ACCION_META, ESTADO_STYLE, formatDate } from '../constants/automatizaciones.constants'
+import { permisosDeModulo } from '@/features/auth/composables/useAuth'
 
 defineProps<{ automatizacion: Automatizacion }>()
+const { gestionar: puedeGestionar, eliminar: puedeEliminar } = permisosDeModulo('automatizaciones')
 const emit = defineEmits<{
   'toggle-activo': []
   editar: []
@@ -45,6 +47,7 @@ const emit = defineEmits<{
 
           <div class="flex items-center gap-1 shrink-0">
             <button
+              v-if="puedeGestionar"
               @click="emit('toggle-activo')"
               class="w-8 h-8 rounded-lg flex items-center justify-center transition-all"
               :class="automatizacion.activo
@@ -55,6 +58,7 @@ const emit = defineEmits<{
               <component :is="automatizacion.activo ? Pause : Play" :size="13" />
             </button>
             <button
+              v-if="puedeGestionar"
               @click="emit('editar')"
               class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-[#EEF2FF] dark:hover:bg-blue-950/40 hover:text-[#2447F9] dark:hover:text-blue-400 text-slate-500 dark:text-slate-400 flex items-center justify-center transition-all"
               title="Editar"
@@ -62,6 +66,7 @@ const emit = defineEmits<{
               <Edit2 :size="12" />
             </button>
             <button
+              v-if="puedeEliminar"
               @click="emit('eliminar')"
               class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-red-500 dark:hover:text-red-400 text-slate-500 dark:text-slate-400 flex items-center justify-center transition-all"
               title="Eliminar"

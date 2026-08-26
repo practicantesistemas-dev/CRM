@@ -27,13 +27,46 @@ export function installHttpInterceptor(): void {
     const url = urlDeLaPeticion(args[0])
     const esApiPropia = API_URLS.some((base) => url.startsWith(base))
     const esLogin = url.includes('/auth/login')
+    // /auth/me la usa fetchMe() para refrescar datos "best effort" (ver
+    // useAuth.ts: si falla, se queda con lo último conocido y no revienta
+    // nada) - la usa tambien el router para chequear si a alguien sin rol
+    // ya se lo asignaron. Si esta llamada puntual devuelve 403 "sin rol"
+    // (porque todavia no le asignan nada) NO debe forzar un logout: el
+    // router es quien decide a donde mandarlo en ese caso (ver
+    // router/index.ts). El logout automatico es solo para acciones reales
+    // del usuario contra otros endpoints.
+    const esAuthMe = url.includes('/auth/me')
 
-    if (response.status === 401 && esApiPropia && !esLogin && !yaRedirigiendo) {
-      yaRedirigiendo = true
-      useAuth().logout()
-      window.location.href = '/login'
+    if (esApiPropia && !esLogin && !esAuthMe && !yaRedirigiendo) {
+      if (response.status === 401) {
+        cerrarSesionYRedirigir()
+      } else if (response.status === 403 && (await esSinRolAsignado(response))) {
+        // Estaba adentro con un rol valido y se lo quitaron a mitad de
+        // sesion: el navegador todavia no lo sabe (el login no se repite
+        // solo), asi que la primera peticion que falla con este 403
+        // puntual es la señal de sacarlo - a diferencia de "sin rol" en el
+        // login, aqui no tiene sentido mostrarle la pantalla informativa,
+        // se manda directo a /login (ver router/index.ts para el otro caso).
+        cerrarSesionYRedirigir()
+      }
     }
 
     return response
   }
+}
+
+function cerrarSesionYRedirigir(): void {
+  yaRedirigiendo = true
+  useAuth().logout()
+  window.location.href = '/login'
+}
+
+// Distingue el 403 de "ya no tiene rol" de otros 403 de reglas de negocio
+// (ej. "ese rol no se puede asignar") que no deben cerrar la sesion.
+async function esSinRolAsignado(response: Response): Promise<boolean> {
+  const body = await response
+    .clone()
+    .json()
+    .catch(() => null)
+  return typeof body?.detail === 'string' && body.detail.includes('no tiene un rol asignado')
 }

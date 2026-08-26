@@ -822,10 +822,7 @@ class TitularesBeneficiariosRepository:
     def activar_beneficiarios(self, id_titular: int, fecha_ingreso: date) -> int:
         stmt = (
             update(PlanLigaBeneficiario)
-            .where(
-                PlanLigaBeneficiario.planliga_id == id_titular,
-                PlanLigaBeneficiario.estado == ESTADO_ACTIVO,
-            )
+            .where(PlanLigaBeneficiario.planliga_id == id_titular)
             .values(
                 fecha_ingreso=fecha_ingreso,
                 renovado="S",
@@ -834,6 +831,56 @@ class TitularesBeneficiariosRepository:
         resultado = self.db.execute(stmt)
         self.db.commit()
         return resultado.rowcount
+
+    # Cuenta cuantos titulares/beneficiarios ACTIVOS de esa empresa se verian
+    # afectados por cambiar_fecha_ingreso_grupo, sin modificar nada: es el
+    # preview que se muestra en el dialogo de confirmacion antes de aplicar.
+    def contar_grupo_activo(self, empresa: str) -> tuple[int, int]:
+        total_titulares = self.db.scalar(
+            select(func.count())
+            .select_from(PlanLiga)
+            .where(PlanLiga.empresa == empresa, PlanLiga.estado == ESTADO_ACTIVO)
+        )
+        ids_titulares = select(PlanLiga.id).where(
+            PlanLiga.empresa == empresa, PlanLiga.estado == ESTADO_ACTIVO
+        )
+        total_beneficiarios = self.db.scalar(
+            select(func.count())
+            .select_from(PlanLigaBeneficiario)
+            .where(
+                PlanLigaBeneficiario.planliga_id.in_(ids_titulares),
+                PlanLigaBeneficiario.estado == ESTADO_ACTIVO,
+            )
+        )
+        return total_titulares or 0, total_beneficiarios or 0
+
+    # Cambia FECHA_INGRESO a todos los titulares ACTIVOS de esa empresa y a
+    # los beneficiarios ACTIVOS de esos titulares (coincidencia exacta con
+    # EMPRESA, no LIKE: el valor viene del selector de razon_social del
+    # catalogo de Empresas, que se importa desde este mismo texto).
+    def cambiar_fecha_ingreso_grupo(self, empresa: str, fecha_ingreso: date) -> tuple[int, int]:
+        stmt_titulares = (
+            update(PlanLiga)
+            .where(PlanLiga.empresa == empresa, PlanLiga.estado == ESTADO_ACTIVO)
+            .values(fecha_ingreso=fecha_ingreso)
+        )
+        resultado_titulares = self.db.execute(stmt_titulares)
+
+        ids_titulares = select(PlanLiga.id).where(
+            PlanLiga.empresa == empresa, PlanLiga.estado == ESTADO_ACTIVO
+        )
+        stmt_beneficiarios = (
+            update(PlanLigaBeneficiario)
+            .where(
+                PlanLigaBeneficiario.planliga_id.in_(ids_titulares),
+                PlanLigaBeneficiario.estado == ESTADO_ACTIVO,
+            )
+            .values(fecha_ingreso=fecha_ingreso)
+        )
+        resultado_beneficiarios = self.db.execute(stmt_beneficiarios)
+
+        self.db.commit()
+        return resultado_titulares.rowcount, resultado_beneficiarios.rowcount
 
     def desactivar_titular(self, id_titular: int) -> bool:
         titular = self.db.get(PlanLiga, id_titular)

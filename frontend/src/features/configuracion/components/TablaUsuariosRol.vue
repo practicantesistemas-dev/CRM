@@ -133,7 +133,7 @@ const eliminar = async () => {
     <ConfirmDialog
       v-model:visible="confirmarEliminar"
       titulo="Eliminar rol"
-      :mensaje="`¿Eliminar el rol de CRM de ${usuarioAEliminar?.nombres}? Se queda sin acceso al sistema hasta que le asignes uno nuevo.`"
+      :mensaje="`¿Eliminar el rol de CRM de ${usuarioAEliminar?.nombres}? Se queda sin rol en el sistema hasta que le asignes uno nuevo.`"
       texto-confirmar="Eliminar"
       @confirmar="eliminar"
     />

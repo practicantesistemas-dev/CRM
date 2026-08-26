@@ -218,14 +218,14 @@ export function usePlanLiga() {
       guardandoTitular.value = false
     }
   }
-  const toggleEstadoTitular = async (t: Titular, fechaIngreso?: string) => {
+  const toggleEstadoTitular = async (t: Titular, fechaIngreso?: string, aplicarAGrupo = true) => {
     const activando = t.estado !== 'Activo'
     const nuevoEstado = activando ? 'Activo' : 'Inactivo'
     guardandoTitular.value = true
     errorGuardarTitular.value = null
     try {
       if (activando) {
-        await activarTitular(t.id, fechaIngreso!)
+        await activarTitular(t.id, fechaIngreso!, aplicarAGrupo)
       } else {
         await desactivarTitular(t.id)
       }

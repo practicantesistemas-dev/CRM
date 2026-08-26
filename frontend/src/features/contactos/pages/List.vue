@@ -10,6 +10,9 @@ import SeguimientoDialog from '../dialogs/SeguimientoDialog.vue'
 import HistorialDrawer from '../dialogs/HistorialDrawer.vue'
 import ContactosTable from '../tables/ContactosTable.vue'
 import ConfirmDialog from '@/shared/components/ConfirmDialog.vue'
+import { permisosDeModulo } from '@/features/auth/composables/useAuth'
+
+const { gestionar: puedeGestionar, eliminar: puedeEliminar } = permisosDeModulo('contactos')
 
 const {
   contactos, cargandoContactos, errorContactos, cargarContactos,
@@ -104,7 +107,7 @@ const exportarContactos = () => exportarContactosExcel(contactosFiltrados.value)
         <button @click="exportarContactos" class="flex items-center gap-1.5 h-9 px-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-[11px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all">
           <Download :size="13" /> Exportar
         </button>
-        <button @click="abrirNuevo" class="flex items-center gap-1.5 h-9 px-4 rounded-lg bg-[#2447F9] text-white text-[11px] font-bold shadow hover:bg-[#1D3DD9] transition-all">
+        <button v-if="puedeGestionar" @click="abrirNuevo" class="flex items-center gap-1.5 h-9 px-4 rounded-lg bg-[#2447F9] text-white text-[11px] font-bold shadow hover:bg-[#1D3DD9] transition-all">
           <Plus :size="14" /> Nuevo contacto
         </button>
       </div>
@@ -175,6 +178,8 @@ const exportarContactos = () => exportarContactosExcel(contactosFiltrados.value)
       :pagina-actual="paginaActual"
       :total-paginas="totalPaginas"
       :cambiando-estado-id="cambiandoEstadoId"
+      :puede-gestionar="puedeGestionar"
+      :puede-eliminar="puedeEliminar"
       @editar="abrirEditar"
       @historial="abrirHistorial"
       @seguimiento="abrirSeguimiento"
