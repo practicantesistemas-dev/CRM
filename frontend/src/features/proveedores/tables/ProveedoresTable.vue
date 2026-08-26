@@ -3,7 +3,7 @@ import { Mail, Phone, Edit2, Trash2, Wrench } from 'lucide-vue-next'
 import type { Proveedor } from '../types/proveedor'
 import { categoriaColor } from '../constants/proveedores.constants'
 
-defineProps<{ rows: Proveedor[] }>()
+defineProps<{ rows: Proveedor[]; puedeGestionar: boolean; puedeEliminar: boolean }>()
 const emit = defineEmits<{ editar: [p: Proveedor]; borrar: [p: Proveedor]; servicios: [p: Proveedor] }>()
 </script>
 
@@ -50,10 +50,10 @@ const emit = defineEmits<{ editar: [p: Proveedor]; borrar: [p: Proveedor]; servi
                 <button @click="emit('servicios', p)" class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 hover:text-emerald-600 dark:hover:text-emerald-400 text-slate-500 dark:text-slate-400 flex items-center justify-center transition-all" title="Actividades">
                   <Wrench :size="12" />
                 </button>
-                <button @click="emit('editar', p)" class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-[#EEF2FF] dark:hover:bg-blue-950/50 hover:text-[#2447F9] dark:hover:text-blue-400 text-slate-500 dark:text-slate-400 flex items-center justify-center transition-all" title="Editar">
+                <button v-if="puedeGestionar" @click="emit('editar', p)" class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-[#EEF2FF] dark:hover:bg-blue-950/50 hover:text-[#2447F9] dark:hover:text-blue-400 text-slate-500 dark:text-slate-400 flex items-center justify-center transition-all" title="Editar">
                   <Edit2 :size="12" />
                 </button>
-                <button @click="emit('borrar', p)" class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-red-50 dark:hover:bg-red-950/50 hover:text-red-600 dark:hover:text-red-400 text-slate-500 dark:text-slate-400 flex items-center justify-center transition-all" title="Eliminar">
+                <button v-if="puedeEliminar" @click="emit('borrar', p)" class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-red-50 dark:hover:bg-red-950/50 hover:text-red-600 dark:hover:text-red-400 text-slate-500 dark:text-slate-400 flex items-center justify-center transition-all" title="Eliminar">
                   <Trash2 :size="12" />
                 </button>
               </div>

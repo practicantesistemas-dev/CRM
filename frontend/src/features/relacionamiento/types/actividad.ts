@@ -26,6 +26,12 @@ export interface Actividad {
    *  formulario deje editar directamente (ver construirBody en relacionamiento.api.ts). Se
    *  puede cambiar a 'realizado' sin tocar el resto vía completarActividad(). */
   estado: EstadoActividad
+  /** Quien hizo el último cambio (editar/completar), y cuándo. '' si nunca se ha editado. */
+  usuarioActualizacion: string
+  fechaActualizacion: string
 }
 
-export type ActividadDraft = Omit<Actividad, 'id' | 'usuario' | 'estado'>
+export type ActividadDraft = Omit<
+  Actividad,
+  'id' | 'usuario' | 'estado' | 'usuarioActualizacion' | 'fechaActualizacion'
+>

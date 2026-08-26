@@ -55,6 +55,20 @@ export function tienePermiso(permiso: string): boolean {
   return session.value?.permisos.includes(permiso) ?? false
 }
 
+// Atajo para gatear una pantalla/tabla completa: si el módulo no tiene
+// `ver`, ni siquiera debería mostrarse en el menú (eso se resuelve aparte
+// en MainLayout). `gestionar` cubre crear/editar; `eliminar` es su propio
+// permiso porque algunos roles pueden editar pero no borrar (ej. Publicidad
+// en campañas: ver/gestionar/eliminar; Comunicaciones en bitácora: solo
+// ver/eliminar, sin gestionar).
+export function permisosDeModulo(modulo: string) {
+  return {
+    ver: tienePermiso(`${modulo}:ver`),
+    gestionar: tienePermiso(`${modulo}:gestionar`),
+    eliminar: tienePermiso(`${modulo}:eliminar`),
+  }
+}
+
 export function useAuth() {
   const login = async (credentials: LoginRequest) => {
     const result = await loginRequest(credentials)

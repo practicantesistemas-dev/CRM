@@ -9,6 +9,8 @@ defineProps<{
   paginaActual: number
   totalPaginas: number
   cambiandoEstadoId?: number | null
+  puedeGestionar: boolean
+  puedeEliminar: boolean
 }>()
 
 const emit = defineEmits<{
@@ -81,6 +83,7 @@ const emit = defineEmits<{
             <td class="px-3 py-3 text-right">
               <div class="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
+                  v-if="puedeGestionar"
                   @click="emit('seguimiento', c)"
                   class="w-6 h-6 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-[#D1FAE5] dark:hover:bg-emerald-950/50 hover:text-[#059669] dark:hover:text-emerald-400 text-slate-500 dark:text-slate-400 flex items-center justify-center transition-all shrink-0"
                   title="Registrar seguimiento"
@@ -88,6 +91,7 @@ const emit = defineEmits<{
                   <ClipboardList :size="11" />
                 </button>
                 <button
+                  v-if="puedeGestionar"
                   @click="emit('toggle-estado', c)"
                   :disabled="cambiandoEstadoId === c.id"
                   class="w-6 h-6 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 flex items-center justify-center transition-all shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -97,6 +101,7 @@ const emit = defineEmits<{
                   <component :is="c.estado === 'Activo' ? ToggleRight : ToggleLeft" :size="12" />
                 </button>
                 <button
+                  v-if="puedeGestionar"
                   @click="emit('editar', c)"
                   class="w-6 h-6 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-[#EEF2FF] dark:hover:bg-blue-950/50 hover:text-[#2447F9] dark:hover:text-blue-400 text-slate-500 dark:text-slate-400 flex items-center justify-center transition-all shrink-0"
                   title="Editar"
@@ -111,6 +116,7 @@ const emit = defineEmits<{
                   <Clock :size="11" />
                 </button>
                 <button
+                  v-if="puedeEliminar"
                   @click="emit('borrar', c)"
                   class="w-6 h-6 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-red-50 dark:hover:bg-red-950/50 hover:text-red-600 dark:hover:text-red-400 text-slate-500 dark:text-slate-400 flex items-center justify-center transition-all shrink-0"
                   title="Eliminar"

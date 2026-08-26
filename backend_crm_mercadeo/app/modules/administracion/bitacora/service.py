@@ -40,6 +40,7 @@ def _item(
     servicio_oportunidad: PlanLigaTipoPlan | None,
     titular: PlanLiga | None,
     tipo_plan_titular: PlanLigaTipoPlan | None,
+    usuario_actualizacion: Usuario | None,
 ) -> BitacoraItem:
     plan_nombre = servicio_oportunidad.nombre if servicio_oportunidad else None
     if plan_nombre is None and tipo_plan_titular is not None:
@@ -60,6 +61,8 @@ def _item(
         oportunidad_id=bitacora.oportunidad_id,
         titular_id=bitacora.titular_id,
         plan_nombre=plan_nombre,
+        fecha_actualizacion=bitacora.fecha_actualizacion,
+        usuario_actualizacion_nombre=usuario_actualizacion.nombres if usuario_actualizacion else None,
     )
 
 

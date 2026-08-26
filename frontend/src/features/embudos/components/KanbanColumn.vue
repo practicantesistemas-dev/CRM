@@ -14,6 +14,7 @@ defineProps<{
   isDropTarget: boolean
   draggingId: number | null
   dropIndicator: { id: number; position: 'before' | 'after' } | null
+  puedeGestionar: boolean
 }>()
 
 const emit = defineEmits<{
@@ -31,9 +32,9 @@ const emit = defineEmits<{
   <div
     class="flex-shrink-0 w-64 flex flex-col gap-2 rounded-xl transition-all duration-150 p-1 -m-1"
     :class="isDropTarget && draggingId !== null ? 'ring-2 ring-[#2447F9] ring-offset-1' : ''"
-    @dragover="emit('dragover', $event)"
+    @dragover="puedeGestionar && emit('dragover', $event)"
     @dragleave="emit('dragleave', $event)"
-    @drop="emit('drop', $event)"
+    @drop="puedeGestionar && emit('drop', $event)"
   >
     <div
       class="flex items-center justify-between px-3 py-2 rounded-xl border"
@@ -67,12 +68,14 @@ const emit = defineEmits<{
         :color="color"
         :dragging="draggingId === o.id"
         :drop-indicator="dropIndicator && dropIndicator.id === o.id ? dropIndicator.position : null"
+        :puede-gestionar="puedeGestionar"
         @dragstart="emit('dragstart', $event, o.id)"
         @dragend="emit('dragend')"
         @dragover-card="(id, pos) => emit('dragoverCard', id, pos)"
       />
 
       <button
+        v-if="puedeGestionar"
         @click="emit('add')"
         class="flex items-center justify-center gap-1 w-full py-2 rounded-xl border border-dashed border-slate-300 dark:border-slate-600 text-slate-400 dark:text-slate-500 text-[11px] hover:border-[#2447F9] hover:text-[#2447F9] transition-all"
       >

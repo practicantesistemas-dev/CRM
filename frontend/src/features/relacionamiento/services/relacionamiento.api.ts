@@ -21,6 +21,8 @@ interface BitacoraApiItem {
   nombre_empresa: string | null
   oportunidad_id: number | null
   titular_id: number | null
+  fecha_actualizacion: string | null
+  usuario_actualizacion_nombre: string | null
 }
 
 interface BitacoraListadoResponse {
@@ -94,6 +96,8 @@ function mapItem(r: BitacoraApiItem, titularNombre: string): Actividad {
     usuario: r.usuario_nombre ?? '',
     oportunidadId: r.oportunidad_id,
     estado: r.estado === 'realizado' ? 'realizado' : 'pendiente',
+    usuarioActualizacion: r.usuario_actualizacion_nombre ?? '',
+    fechaActualizacion: r.fecha_actualizacion ? r.fecha_actualizacion.split('T')[0] : '',
   }
 }
 

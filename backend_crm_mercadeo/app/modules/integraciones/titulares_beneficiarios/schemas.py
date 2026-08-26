@@ -101,6 +101,20 @@ class TitularUpdate(EntradaMayusculas):
 
 class TitularActivar(BaseModel):
     FECHA_INGRESO: date
+    # Si es True (default, el comportamiento de siempre), la fecha tambien se
+    # aplica a los beneficiarios activos de este titular. En False, solo
+    # cambia la fecha del titular.
+    APLICAR_A_GRUPO: bool = True
+
+
+class CambioFechaIngresoGrupo(BaseModel):
+    EMPRESA: str
+    FECHA_INGRESO: date
+
+
+class CambioFechaIngresoGrupoResultado(BaseModel):
+    titulares_actualizados: int
+    beneficiarios_actualizados: int
 
 
 class ReemplazoPersona(EntradaMayusculas):

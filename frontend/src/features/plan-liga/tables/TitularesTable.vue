@@ -9,6 +9,8 @@ defineProps<{
   rows: Titular[]
   activosPorTitular: (id: number) => number
   cargandoEditarId?: number | null
+  puedeGestionar: boolean
+  puedeDesactivar: boolean
 }>()
 
 const emit = defineEmits<{
@@ -78,18 +80,18 @@ const cuposTitular = (t: Titular, activosLocal: number) => ({
             </td>
             <td class="px-5 py-3.5 text-right">
               <div class="flex items-center justify-end gap-1 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
-                <button @click="emit('seguimiento', t)"
+                <button v-if="puedeGestionar" @click="emit('seguimiento', t)"
                   class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-[#D1FAE5] dark:hover:bg-emerald-950/50 hover:text-[#059669] dark:hover:text-emerald-400 text-slate-500 dark:text-slate-400 flex items-center justify-center transition-all"
                   title="Registrar seguimiento">
                   <ClipboardList :size="12" />
                 </button>
-                <button @click="emit('editar', t)" :disabled="cargandoEditarId === t.id"
+                <button v-if="puedeGestionar" @click="emit('editar', t)" :disabled="cargandoEditarId === t.id"
                   class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-[#EEF2FF] dark:hover:bg-blue-950/50 hover:text-[#2447F9] dark:hover:text-blue-400 text-slate-500 dark:text-slate-400 flex items-center justify-center transition-all disabled:opacity-60"
                   title="Editar">
                   <Loader2 v-if="cargandoEditarId === t.id" :size="12" class="animate-spin" />
                   <Edit2 v-else :size="12" />
                 </button>
-                <button @click="emit('toggle-estado', t)"
+                <button v-if="t.estado === 'Activo' ? puedeDesactivar : puedeGestionar" @click="emit('toggle-estado', t)"
                   class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 flex items-center justify-center transition-all"
                   :class="t.estado === 'Activo' ? 'hover:bg-red-50 dark:hover:bg-red-950/50 hover:text-red-500 dark:hover:text-red-400' : 'hover:bg-emerald-50 dark:hover:bg-emerald-950/50 hover:text-emerald-600 dark:hover:text-emerald-400'"
                   :title="t.estado === 'Activo' ? 'Desactivar' : 'Activar'">
@@ -98,7 +100,7 @@ const cuposTitular = (t: Titular, activosLocal: number) => ({
                 <button @click="emit('beneficiarios', t)"
                   class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-[#FCE7F3] dark:hover:bg-pink-950/50 hover:text-[#EC4899] text-slate-500 dark:text-slate-400 flex items-center justify-center transition-all"
                   title="Beneficiarios"><Users :size="12" /></button>
-                <button v-if="t.estado === 'Activo'" @click="emit('reemplazar', t)"
+                <button v-if="puedeGestionar && t.estado === 'Activo'" @click="emit('reemplazar', t)"
                   class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-amber-50 dark:hover:bg-amber-950/50 hover:text-amber-600 dark:hover:text-amber-400 text-slate-500 dark:text-slate-400 flex items-center justify-center transition-all"
                   title="Reemplazar"><RefreshCw :size="12" /></button>
               </div>

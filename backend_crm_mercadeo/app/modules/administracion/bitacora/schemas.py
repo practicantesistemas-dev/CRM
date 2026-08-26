@@ -68,6 +68,8 @@ class BitacoraItem(BaseModel):
     oportunidad_id: int | None = None
     titular_id: int | None = None
     plan_nombre: str | None = None
+    fecha_actualizacion: datetime | None = None
+    usuario_actualizacion_nombre: str | None = None
 
 
 class BitacoraListado(BaseModel):

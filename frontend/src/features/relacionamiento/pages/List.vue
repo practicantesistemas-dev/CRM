@@ -11,6 +11,9 @@ import TimelineItem from '../components/TimelineItem.vue'
 import PendientesAlerta from '../components/PendientesAlerta.vue'
 import ActividadFormDialog from '../dialogs/ActividadFormDialog.vue'
 import ConfirmarEliminarActividadDialog from '../dialogs/ConfirmarEliminarActividadDialog.vue'
+import { permisosDeModulo } from '@/features/auth/composables/useAuth'
+
+const { gestionar: puedeGestionar } = permisosDeModulo('bitacora')
 
 const {
   actividades, cargando, filtroTipo, filtroUsuario, buscar,
@@ -82,7 +85,7 @@ const confirmarEliminar = async () => {
         </h2>
         <p class="text-[12px] text-body mt-0.5">Historial completo de interacciones · llamadas, correos, reuniones</p>
       </div>
-      <button @click="abrirNuevo" class="flex items-center gap-1.5 h-9 px-4 rounded-lg bg-[#2447F9] text-white text-[11px] font-bold shadow hover:bg-[#1D3DD9] transition-all">
+      <button v-if="puedeGestionar" @click="abrirNuevo" class="flex items-center gap-1.5 h-9 px-4 rounded-lg bg-[#2447F9] text-white text-[11px] font-bold shadow hover:bg-[#1D3DD9] transition-all">
         <Plus :size="14" /> Registrar actividad
       </button>
     </div>

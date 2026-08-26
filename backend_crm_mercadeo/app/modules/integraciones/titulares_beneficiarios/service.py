@@ -25,6 +25,8 @@ from app.modules.integraciones.titulares_beneficiarios.schemas import (
     BeneficiarioCrear,
     BeneficiarioDetalle,
     BeneficiarioUpdate,
+    CambioFechaIngresoGrupo,
+    CambioFechaIngresoGrupoResultado,
     CreacionBeneficiarioResultado,
     CreacionTitularResultado,
     DesactivacionBeneficiarioResultado,
@@ -364,11 +366,15 @@ class TitularesBeneficiariosService:
         return self.desactivar_beneficiario(fila["PLANLIGA_ID"], fila["ID"])
 
     def activar_titular(
-        self, id_titular: int, fecha_ingreso: date
+        self, id_titular: int, fecha_ingreso: date, aplicar_a_grupo: bool = True
     ) -> ActivacionTitularResultado:
         if not self.repository.activar_titular(id_titular, fecha_ingreso):
             raise TitularNotFoundError(id_titular)
-        num_beneficiarios = self.repository.activar_beneficiarios(id_titular, fecha_ingreso)
+        num_beneficiarios = (
+            self.repository.activar_beneficiarios(id_titular, fecha_ingreso)
+            if aplicar_a_grupo
+            else 0
+        )
         fila = self.repository.obtener_titular(id_titular)
         num_incle = self.legacy_repository.desmarcar_registros_incle(
             fila["TIPO_DOCUMENTO"], fila["DOCUMENTO"]
@@ -377,6 +383,24 @@ class TitularesBeneficiariosService:
             titular=TitularDetalle(**fila),
             beneficiarios_activados=num_beneficiarios,
             registros_incle_desmarcados=num_incle,
+        )
+
+    def contar_grupo_activo(self, empresa: str) -> CambioFechaIngresoGrupoResultado:
+        titulares, beneficiarios = self.repository.contar_grupo_activo(empresa)
+        return CambioFechaIngresoGrupoResultado(
+            titulares_actualizados=titulares,
+            beneficiarios_actualizados=beneficiarios,
+        )
+
+    def cambiar_fecha_ingreso_grupo(
+        self, data: CambioFechaIngresoGrupo
+    ) -> CambioFechaIngresoGrupoResultado:
+        titulares, beneficiarios = self.repository.cambiar_fecha_ingreso_grupo(
+            data.EMPRESA, data.FECHA_INGRESO
+        )
+        return CambioFechaIngresoGrupoResultado(
+            titulares_actualizados=titulares,
+            beneficiarios_actualizados=beneficiarios,
         )
 
     def desactivar_titular(self, id_titular: int) -> DesactivacionTitularResultado:

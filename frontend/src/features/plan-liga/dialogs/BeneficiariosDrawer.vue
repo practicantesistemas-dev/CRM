@@ -12,6 +12,8 @@ defineProps<{
   puedeAgregar: boolean
   cargando?: boolean
   error?: string | null
+  puedeGestionar: boolean
+  puedeDesactivar: boolean
 }>()
 
 const emit = defineEmits<{
@@ -64,6 +66,8 @@ const errLimite = defineModel<boolean>('errLimite', { required: true })
             v-for="b in beneficiarios"
             :key="b.id"
             :beneficiario="b"
+            :puede-gestionar="puedeGestionar"
+            :puede-desactivar="puedeDesactivar"
             @editar="emit('editar', b)"
             @activar="emit('activar', b)"
             @desactivar="emit('desactivar', b)"
@@ -77,7 +81,7 @@ const errLimite = defineModel<boolean>('errLimite', { required: true })
         </template>
       </div>
       <div class="px-4 py-4 border-t border-slate-200 dark:border-slate-700 shrink-0">
-        <button @click="emit('agregar-nuevo')" :disabled="!puedeAgregar"
+        <button v-if="puedeGestionar" @click="emit('agregar-nuevo')" :disabled="!puedeAgregar"
           class="w-full flex items-center justify-center gap-2 h-10 rounded-xl text-[12px] font-bold shadow transition-all"
           :class="puedeAgregar ? 'bg-[#EC4899] text-white hover:bg-[#D61F69]' : 'bg-slate-200 dark:bg-slate-700 text-slate-400 dark:text-slate-500 cursor-not-allowed'">
           <Plus :size="14" />

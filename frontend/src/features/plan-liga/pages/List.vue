@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { Heart, Users, Plus, Search, Download, Upload, ChevronLeft, ChevronRight, Loader2, CheckCircle2, X } from 'lucide-vue-next'
+import { Heart, Users, Plus, Search, Download, Upload, CalendarClock, ChevronLeft, ChevronRight, Loader2, CheckCircle2, X } from 'lucide-vue-next'
 import type { Beneficiario, BeneficiarioDraft, Titular, TitularDraft, ReemplazoPersonaDraft } from '../types/plan-liga'
 import { BENEFICIARIO_DRAFT_VACIO, TITULAR_DRAFT_VACIO, REEMPLAZO_PERSONA_DRAFT_VACIO, cupoMaximoTitular } from '../constants/plan-liga.constants'
 import { usePlanLiga } from '../composables/usePlanLiga'
@@ -14,6 +14,14 @@ import ReemplazarPersonaDialog from '../dialogs/ReemplazarPersonaDialog.vue'
 import CambiarTitularDialog from '../dialogs/CambiarTitularDialog.vue'
 import SeguimientoDialog from '../dialogs/SeguimientoDialog.vue'
 import ImportacionPlanLigaDialog from '../dialogs/ImportacionPlanLigaDialog.vue'
+import CambiarFechaGrupoDialog from '../dialogs/CambiarFechaGrupoDialog.vue'
+import { tienePermiso, permisosDeModulo } from '@/features/auth/composables/useAuth'
+
+// El catalogo de permisos de este modulo usa "desactivar" en vez de "eliminar".
+const { gestionar: puedeGestionar } = permisosDeModulo('planliga')
+const puedeDesactivar = tienePermiso('planliga:desactivar')
+
+const modalFechaGrupoVisible = ref(false)
 
 const {
   buscar, filtroEstado, filtroPlan, filtroSexo, filtroEdad,
@@ -90,9 +98,9 @@ const toggleEstadoTitularConFecha = (t: Titular) => {
   titularActivando.value = t
   modalActivarTitularVisible.value = true
 }
-const confirmarActivarTitular = async (fechaIngreso: string) => {
+const confirmarActivarTitular = async (fechaIngreso: string, aplicarAGrupo: boolean) => {
   if (!titularActivando.value) return
-  await toggleEstadoTitular(titularActivando.value, fechaIngreso)
+  await toggleEstadoTitular(titularActivando.value, fechaIngreso, aplicarAGrupo)
   if (!errorGuardarTitular.value) modalActivarTitularVisible.value = false
 }
 const confirmarDesactivarTitular = async () => {
@@ -265,9 +273,13 @@ const modalImportVisible = ref(false)
         <p v-if="errorExportar" class="text-[11px] text-red-600 dark:text-red-400 mt-1">{{ errorExportar }}</p>
       </div>
       <div class="flex items-center gap-2 flex-wrap">
-        <button @click="modalImportVisible = true"
+        <button v-if="puedeGestionar" @click="modalImportVisible = true"
           class="flex items-center gap-1.5 h-9 px-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-[11px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all">
           <Upload :size="13" /> Importar Excel
+        </button>
+        <button v-if="puedeGestionar" @click="modalFechaGrupoVisible = true"
+          class="flex items-center gap-1.5 h-9 px-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-[11px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all">
+          <CalendarClock :size="13" /> Fecha por grupo
         </button>
         <button @click="exportarListado" :disabled="exportando"
           class="flex items-center gap-1.5 h-9 px-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-[11px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-60 disabled:cursor-not-allowed transition-all">
@@ -275,7 +287,7 @@ const modalImportVisible = ref(false)
           <Download v-else :size="13" />
           {{ exportando ? 'Exportando...' : 'Exportar' }}
         </button>
-        <button @click="abrirNuevoTitular"
+        <button v-if="puedeGestionar" @click="abrirNuevoTitular"
           class="flex items-center gap-1.5 h-9 px-4 rounded-lg bg-[#EC4899] text-white text-[11px] font-bold shadow hover:bg-[#D61F69] transition-all">
           <Plus :size="14" /> Nuevo titular
         </button>
@@ -345,6 +357,8 @@ const modalImportVisible = ref(false)
       :rows="titulares"
       :activos-por-titular="activosPorTitular"
       :cargando-editar-id="cargandoEditarId"
+      :puede-gestionar="puedeGestionar"
+      :puede-desactivar="puedeDesactivar"
       @seguimiento="abrirSeguimiento"
       @editar="abrirEditarTitular"
       @toggle-estado="toggleEstadoTitularConFecha"
@@ -378,6 +392,8 @@ const modalImportVisible = ref(false)
       :activos-actual="activosActual"
       :cupo-maximo="cupoMaximoActual"
       :puede-agregar="puedeAgregarActual"
+      :puede-gestionar="puedeGestionar"
+      :puede-desactivar="puedeDesactivar"
       :error="errorEstadoBeneficiario"
       @editar="abrirEditarBeneficiario"
       @activar="activarBeneficiario"
@@ -474,5 +490,7 @@ const modalImportVisible = ref(false)
     <SeguimientoDialog v-model:visible="modalSegVisible" :titular="titularSegActual" :beneficiario="beneficiarioSegActual" />
 
     <ImportacionPlanLigaDialog v-model:visible="modalImportVisible" />
+
+    <CambiarFechaGrupoDialog v-model:visible="modalFechaGrupoVisible" />
   </div>
 </template>

@@ -5,6 +5,9 @@ import type { Actividad } from '../types/actividad'
 import { TIPO_META } from '../constants/relacionamiento.constants'
 import type { Oportunidad } from '@/features/oportunidades/types/oportunidad'
 import { clienteLabel } from '@/features/oportunidades/constants/oportunidades.constants'
+import { permisosDeModulo } from '@/features/auth/composables/useAuth'
+
+const { gestionar: puedeGestionar, eliminar: puedeEliminar } = permisosDeModulo('bitacora')
 
 // `oportunidades` viaja por prop (cargada una sola vez en la página List.vue) en vez de
 // pedirla acá: este componente se repite una vez por actividad, así que hacerlo local
@@ -58,12 +61,12 @@ const estadoProximoPaso = computed<'vencido' | 'hoy' | 'proximo' | 'realizado' |
             <span class="text-[10px] text-muted">{{ actividad.usuario }}</span>
           </div>
           <span class="w-px h-5 bg-slate-200 dark:bg-slate-700 shrink-0" />
-          <button @click="emit('editar')"
+          <button v-if="puedeGestionar" @click="emit('editar')"
             class="w-7 h-7 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:border-blue-200 dark:hover:border-blue-800 hover:text-[#2447F9] dark:hover:text-blue-400 text-slate-500 dark:text-slate-400 flex items-center justify-center transition-colors shrink-0"
             title="Editar actividad">
             <Pencil :size="12" />
           </button>
-          <button @click="emit('eliminar')"
+          <button v-if="puedeEliminar" @click="emit('eliminar')"
             class="w-7 h-7 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:bg-red-50 dark:hover:bg-red-950/40 hover:border-red-200 dark:hover:border-red-800 hover:text-red-500 dark:hover:text-red-400 text-slate-500 dark:text-slate-400 flex items-center justify-center transition-colors shrink-0"
             title="Eliminar actividad">
             <Trash2 :size="13" />
@@ -72,6 +75,11 @@ const estadoProximoPaso = computed<'vencido' | 'hoy' | 'proximo' | 'realizado' |
       </div>
 
       <p class="text-[12px] text-slate-700 dark:text-slate-300 mb-1 truncate">{{ actividad.accion }}</p>
+
+      <p v-if="actividad.usuarioActualizacion" class="text-[10px] text-muted italic mb-1">
+        Editado por <strong class="not-italic">{{ actividad.usuarioActualizacion }}</strong>
+        <template v-if="actividad.fechaActualizacion"> · {{ actividad.fechaActualizacion }}</template>
+      </p>
 
       <div v-if="oportunidad" class="flex items-center gap-1.5 mb-1">
         <Target :size="11" class="text-[#2447F9] dark:text-blue-400 flex-shrink-0" />

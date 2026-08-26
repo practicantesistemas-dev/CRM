@@ -8,6 +8,9 @@ import { exportarOportunidadesExcel } from '../utils/exportarOportunidadesExcel'
 import EtapasResumen from '../components/EtapasResumen.vue'
 import OportunidadFormDialog from '../dialogs/OportunidadFormDialog.vue'
 import OportunidadesTable from '../tables/OportunidadesTable.vue'
+import { permisosDeModulo } from '@/features/auth/composables/useAuth'
+
+const { gestionar: puedeGestionar } = permisosDeModulo('oportunidades')
 
 const {
   oportunidades, buscar, filtroEstado, filtroResponsable,
@@ -67,7 +70,7 @@ const exportar = () => exportarOportunidadesExcel(
         <button @click="exportar" class="flex items-center gap-1.5 h-9 px-4 rounded-lg border-default surface-card text-[11px] font-semibold text-body surface-hover transition-all">
           <Download :size="13" /> Exportar
         </button>
-        <button @click="abrirNuevo" class="flex items-center gap-1.5 h-9 px-4 rounded-lg bg-[#2447F9] text-white text-[11px] font-bold shadow hover:bg-[#1D3DD9] transition-all">
+        <button v-if="puedeGestionar" @click="abrirNuevo" class="flex items-center gap-1.5 h-9 px-4 rounded-lg bg-[#2447F9] text-white text-[11px] font-bold shadow hover:bg-[#1D3DD9] transition-all">
           <Plus :size="14" /> Nueva oportunidad
         </button>
       </div>
@@ -94,7 +97,13 @@ const exportar = () => exportarOportunidadesExcel(
       </div>
     </div>
 
-    <OportunidadesTable :rows="oportunidadesFiltradas" @editar="abrirEditar" @ganar="marcarGanada" @perder="marcarPerdida" />
+    <OportunidadesTable
+      :rows="oportunidadesFiltradas"
+      :puede-gestionar="puedeGestionar"
+      @editar="abrirEditar"
+      @ganar="marcarGanada"
+      @perder="marcarPerdida"
+    />
 
     <OportunidadFormDialog
       v-model:visible="modalVisible"

@@ -7,6 +7,9 @@ import { useAutomatizaciones } from '../composables/useAutomatizaciones'
 import AutomatizacionCard from '../components/AutomatizacionCard.vue'
 import AutomatizacionFormDialog from '../dialogs/AutomatizacionFormDialog.vue'
 import ConfirmarEliminarDialog from '../dialogs/ConfirmarEliminarDialog.vue'
+import { permisosDeModulo } from '@/features/auth/composables/useAuth'
+
+const { gestionar: puedeGestionar } = permisosDeModulo('automatizaciones')
 
 const {
   buscar, filtroEstado,
@@ -63,6 +66,7 @@ const eliminarConfirmado = () => {
         </p>
       </div>
       <button
+        v-if="puedeGestionar"
         @click="abrirNueva"
         class="flex items-center gap-1.5 h-9 px-4 rounded-lg bg-[#2447F9] text-white text-[11px] font-bold shadow hover:bg-[#1D3DD9] transition-all"
       >
@@ -138,6 +142,7 @@ const eliminarConfirmado = () => {
         <p class="text-[13px] font-semibold text-subtle">No hay automatizaciones</p>
         <p class="text-[11px] text-muted mt-1">Crea una nueva para automatizar tus procesos.</p>
         <button
+          v-if="puedeGestionar"
           @click="abrirNueva"
           class="mt-4 flex items-center gap-1.5 h-9 px-5 rounded-lg bg-[#2447F9] text-white text-[11px] font-bold shadow hover:bg-[#1D3DD9] transition-all mx-auto"
         >

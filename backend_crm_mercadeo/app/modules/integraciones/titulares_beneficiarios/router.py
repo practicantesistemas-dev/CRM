@@ -17,6 +17,8 @@ from app.modules.integraciones.titulares_beneficiarios.schemas import (
     BeneficiarioCrear,
     BeneficiarioDetalle,
     BeneficiarioUpdate,
+    CambioFechaIngresoGrupo,
+    CambioFechaIngresoGrupoResultado,
     CambioTitularBeneficiario,
     CreacionBeneficiarioResultado,
     CreacionTitularResultado,
@@ -134,6 +136,22 @@ def get_nombres_planes(
     service: TitularesBeneficiariosService = Depends(get_titulares_beneficiarios_service),
 ) -> list[PlanNombre]:
     return service.listar_nombres_planes()
+
+
+@router.get("/grupo/conteo", response_model=CambioFechaIngresoGrupoResultado)
+def get_conteo_grupo_activo(
+    empresa: str,
+    service: TitularesBeneficiariosService = Depends(get_titulares_beneficiarios_service),
+) -> CambioFechaIngresoGrupoResultado:
+    return service.contar_grupo_activo(empresa)
+
+
+@router.post("/grupo/fecha-ingreso", response_model=CambioFechaIngresoGrupoResultado)
+def cambiar_fecha_ingreso_grupo(
+    data: CambioFechaIngresoGrupo,
+    service: TitularesBeneficiariosService = Depends(get_titulares_beneficiarios_service),
+) -> CambioFechaIngresoGrupoResultado:
+    return service.cambiar_fecha_ingreso_grupo(data)
 
 
 @router.get("/{id_titular}/beneficiarios", response_model=list[BeneficiarioDetalle])
@@ -289,7 +307,7 @@ def activar_titular(
     data: TitularActivar,
     service: TitularesBeneficiariosService = Depends(get_titulares_beneficiarios_service),
 ) -> ActivacionTitularResultado:
-    return service.activar_titular(id_titular, data.FECHA_INGRESO)
+    return service.activar_titular(id_titular, data.FECHA_INGRESO, data.APLICAR_A_GRUPO)
 
 
 @router.post("/{id_titular}/desactivar", response_model=DesactivacionTitularResultado)

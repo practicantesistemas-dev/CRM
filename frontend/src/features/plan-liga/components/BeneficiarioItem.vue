@@ -4,7 +4,7 @@ import type { Beneficiario } from '../types/plan-liga'
 import { estadoBeneStyle, formatearFechaCorta } from '../constants/plan-liga.constants'
 import PersonaAvatar from './PersonaAvatar.vue'
 
-defineProps<{ beneficiario: Beneficiario }>()
+defineProps<{ beneficiario: Beneficiario; puedeGestionar: boolean; puedeDesactivar: boolean }>()
 const emit = defineEmits<{
   editar: []
   activar: []
@@ -59,12 +59,12 @@ const emit = defineEmits<{
       </div>
     </div>
     <div class="flex flex-wrap items-center gap-1 mt-3 pt-3 border-t border-slate-100 dark:border-slate-700 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
-      <button @click="emit('seguimiento')" class="flex items-center gap-1 h-7 px-2.5 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-[#D1FAE5] dark:hover:bg-emerald-950/50 hover:text-[#059669] dark:hover:text-emerald-400 text-slate-500 dark:text-slate-400 text-[10px] font-semibold transition-all"><ClipboardList :size="10" /> Seguimiento</button>
-      <button @click="emit('editar')" class="flex items-center gap-1 h-7 px-2.5 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-[#EEF2FF] dark:hover:bg-blue-950/50 hover:text-[#2447F9] dark:hover:text-blue-400 text-slate-500 dark:text-slate-400 text-[10px] font-semibold transition-all"><Edit2 :size="10" /> Editar</button>
-      <button v-if="beneficiario.estado === 'Activo'" @click="emit('desactivar')" class="flex items-center gap-1 h-7 px-2.5 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-red-50 dark:hover:bg-red-950/50 hover:text-red-500 dark:hover:text-red-400 text-slate-500 dark:text-slate-400 text-[10px] font-semibold transition-all"><ToggleLeft :size="10" /> Desactivar</button>
-      <button v-else-if="beneficiario.estado === 'Inactivo'" @click="emit('activar')" class="flex items-center gap-1 h-7 px-2.5 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 hover:text-emerald-600 dark:hover:text-emerald-400 text-slate-500 dark:text-slate-400 text-[10px] font-semibold transition-all"><ToggleRight :size="10" /> Activar</button>
-      <button v-if="beneficiario.estado === 'Activo'" @click="emit('reemplazar')" class="flex items-center gap-1 h-7 px-2.5 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-amber-50 dark:hover:bg-amber-950/50 hover:text-amber-600 dark:hover:text-amber-400 text-slate-500 dark:text-slate-400 text-[10px] font-semibold transition-all"><RefreshCw :size="10" /> Reemplazar</button>
-      <button v-if="beneficiario.estado !== 'Retirado' && beneficiario.estado !== 'Reemplazado'" @click="emit('cambiar-titular')" class="flex items-center gap-1 h-7 px-2.5 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-[#EEF2FF] dark:hover:bg-blue-950/50 hover:text-[#2447F9] dark:hover:text-blue-400 text-slate-500 dark:text-slate-400 text-[10px] font-semibold transition-all"><ArrowLeftRight :size="10" /> Cambiar titular</button>
+      <button v-if="puedeGestionar" @click="emit('seguimiento')" class="flex items-center gap-1 h-7 px-2.5 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-[#D1FAE5] dark:hover:bg-emerald-950/50 hover:text-[#059669] dark:hover:text-emerald-400 text-slate-500 dark:text-slate-400 text-[10px] font-semibold transition-all"><ClipboardList :size="10" /> Seguimiento</button>
+      <button v-if="puedeGestionar" @click="emit('editar')" class="flex items-center gap-1 h-7 px-2.5 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-[#EEF2FF] dark:hover:bg-blue-950/50 hover:text-[#2447F9] dark:hover:text-blue-400 text-slate-500 dark:text-slate-400 text-[10px] font-semibold transition-all"><Edit2 :size="10" /> Editar</button>
+      <button v-if="puedeDesactivar && beneficiario.estado === 'Activo'" @click="emit('desactivar')" class="flex items-center gap-1 h-7 px-2.5 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-red-50 dark:hover:bg-red-950/50 hover:text-red-500 dark:hover:text-red-400 text-slate-500 dark:text-slate-400 text-[10px] font-semibold transition-all"><ToggleLeft :size="10" /> Desactivar</button>
+      <button v-else-if="puedeGestionar && beneficiario.estado === 'Inactivo'" @click="emit('activar')" class="flex items-center gap-1 h-7 px-2.5 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 hover:text-emerald-600 dark:hover:text-emerald-400 text-slate-500 dark:text-slate-400 text-[10px] font-semibold transition-all"><ToggleRight :size="10" /> Activar</button>
+      <button v-if="puedeGestionar && beneficiario.estado === 'Activo'" @click="emit('reemplazar')" class="flex items-center gap-1 h-7 px-2.5 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-amber-50 dark:hover:bg-amber-950/50 hover:text-amber-600 dark:hover:text-amber-400 text-slate-500 dark:text-slate-400 text-[10px] font-semibold transition-all"><RefreshCw :size="10" /> Reemplazar</button>
+      <button v-if="puedeGestionar && beneficiario.estado !== 'Retirado' && beneficiario.estado !== 'Reemplazado'" @click="emit('cambiar-titular')" class="flex items-center gap-1 h-7 px-2.5 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-[#EEF2FF] dark:hover:bg-blue-950/50 hover:text-[#2447F9] dark:hover:text-blue-400 text-slate-500 dark:text-slate-400 text-[10px] font-semibold transition-all"><ArrowLeftRight :size="10" /> Cambiar titular</button>
     </div>
   </div>
 </template>

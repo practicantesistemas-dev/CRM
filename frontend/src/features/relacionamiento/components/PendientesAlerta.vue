@@ -2,6 +2,9 @@
 import { computed, ref, watch } from 'vue'
 import { AlarmClock, Check, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Loader2 } from 'lucide-vue-next'
 import type { Actividad } from '../types/actividad'
+import { permisosDeModulo } from '@/features/auth/composables/useAuth'
+
+const { gestionar: puedeGestionar } = permisosDeModulo('bitacora')
 
 const props = defineProps<{ pendientes: Actividad[]; completando?: number | null }>()
 const emit = defineEmits<{ abrir: [Actividad]; completar: [Actividad] }>()
@@ -54,7 +57,7 @@ const vencidos = computed(() => props.pendientes.filter(a => estadoDe(a) === 've
     <div v-if="abierto" class="divide-y divide-slate-100 dark:divide-slate-700">
       <div v-for="a in pendientesPaginados" :key="a.id"
         class="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
-        <button type="button" title="Marcar como realizado" :disabled="completando === a.id"
+        <button v-if="puedeGestionar" type="button" title="Marcar como realizado" :disabled="completando === a.id"
           @click="emit('completar', a)"
           class="w-5 h-5 rounded-full border border-slate-300 dark:border-slate-600 flex items-center justify-center flex-shrink-0 text-transparent hover:text-emerald-600 dark:hover:text-emerald-400 hover:border-emerald-500 dark:hover:border-emerald-500 transition-colors disabled:opacity-50">
           <Loader2 v-if="completando === a.id" :size="11" class="animate-spin text-slate-400 dark:text-slate-500" />

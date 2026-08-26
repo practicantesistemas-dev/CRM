@@ -6,6 +6,9 @@ import DropZoneArchivo from '../components/DropZoneArchivo.vue'
 import ResultadoImportacionPanel from '../components/ResultadoImportacionPanel.vue'
 import HistorialImportacionesTable from '../tables/HistorialImportacionesTable.vue'
 import FechaInput from '@/shared/components/FechaInput.vue'
+import { permisosDeModulo } from '@/features/auth/composables/useAuth'
+
+const { gestionar: puedeGestionar } = permisosDeModulo('importacion')
 
 const {
   historial, cargandoHistorial, errorHistorial, cargarHistorial,
@@ -38,6 +41,7 @@ const hoy = new Date().toISOString().split('T')[0]
     </div>
 
     <DropZoneArchivo
+      v-if="puedeGestionar"
       v-model:tipo="tipoImportacion"
       :archivo-seleccionado="archivoSeleccionado"
       :procesando="procesando"

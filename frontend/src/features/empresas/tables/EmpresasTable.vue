@@ -4,7 +4,7 @@ import type { Empresa } from '../types/empresa'
 import { estadoStyle, estadoLabel } from '../constants/empresas.constants'
 import EmpresaAvatar from '../components/EmpresaAvatar.vue'
 
-defineProps<{ rows: Empresa[] }>()
+defineProps<{ rows: Empresa[]; puedeGestionar: boolean; puedeEliminar: boolean }>()
 const emit = defineEmits<{ editar: [e: Empresa]; historial: [e: Empresa]; borrar: [e: Empresa] }>()
 </script>
 
@@ -49,13 +49,13 @@ const emit = defineEmits<{ editar: [e: Empresa]; historial: [e: Empresa]; borrar
             </td>
             <td class="px-5 py-3.5 text-right">
               <div class="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button @click="emit('editar', e)" class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-[#EEF2FF] dark:hover:bg-blue-950/50 hover:text-[#2447F9] dark:hover:text-blue-400 text-slate-500 dark:text-slate-400 flex items-center justify-center transition-all" title="Editar">
+                <button v-if="puedeGestionar" @click="emit('editar', e)" class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-[#EEF2FF] dark:hover:bg-blue-950/50 hover:text-[#2447F9] dark:hover:text-blue-400 text-slate-500 dark:text-slate-400 flex items-center justify-center transition-all" title="Editar">
                   <Edit2 :size="12" />
                 </button>
                 <button @click="emit('historial', e)" class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-amber-50 dark:hover:bg-amber-950/50 hover:text-amber-600 dark:hover:text-amber-400 text-slate-500 dark:text-slate-400 flex items-center justify-center transition-all" title="Historial">
                   <Clock :size="12" />
                 </button>
-                <button @click="emit('borrar', e)" class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-red-50 dark:hover:bg-red-950/50 hover:text-red-600 dark:hover:text-red-400 text-slate-500 dark:text-slate-400 flex items-center justify-center transition-all" title="Eliminar">
+                <button v-if="puedeEliminar" @click="emit('borrar', e)" class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-red-50 dark:hover:bg-red-950/50 hover:text-red-600 dark:hover:text-red-400 text-slate-500 dark:text-slate-400 flex items-center justify-center transition-all" title="Eliminar">
                   <Trash2 :size="12" />
                 </button>
               </div>

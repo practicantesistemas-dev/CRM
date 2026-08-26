@@ -10,6 +10,9 @@ import HistorialDrawer from '../dialogs/HistorialDrawer.vue'
 import SeguimientoDialog from '../dialogs/SeguimientoDialog.vue'
 import EmpresasTable from '../tables/EmpresasTable.vue'
 import ConfirmDialog from '@/shared/components/ConfirmDialog.vue'
+import { permisosDeModulo } from '@/features/auth/composables/useAuth'
+
+const { gestionar: puedeGestionar, eliminar: puedeEliminar } = permisosDeModulo('empresas')
 
 const {
   empresas, cargandoEmpresas, errorEmpresas, cargarEmpresas,
@@ -95,6 +98,7 @@ const exportar = () => exportarEmpresasExcel(
       </div>
       <div class="flex items-center gap-2">
         <button
+          v-if="puedeGestionar"
           @click="importarDesdePlanLiga"
           :disabled="importandoPlanLiga"
           class="flex items-center gap-1.5 h-9 px-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-[11px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-60 disabled:cursor-not-allowed transition-all"
@@ -107,7 +111,7 @@ const exportar = () => exportarEmpresasExcel(
         <button @click="exportar" class="flex items-center gap-1.5 h-9 px-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-[11px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all">
           <Download :size="13" /> Exportar
         </button>
-        <button @click="abrirNuevo" class="flex items-center gap-1.5 h-9 px-4 rounded-lg bg-[#2447F9] text-white text-[11px] font-bold shadow hover:bg-[#1D3DD9] transition-all">
+        <button v-if="puedeGestionar" @click="abrirNuevo" class="flex items-center gap-1.5 h-9 px-4 rounded-lg bg-[#2447F9] text-white text-[11px] font-bold shadow hover:bg-[#1D3DD9] transition-all">
           <Plus :size="14" /> Nueva empresa
         </button>
       </div>
@@ -150,7 +154,14 @@ const exportar = () => exportarEmpresasExcel(
       <p v-if="errorEliminarEmpresa" class="mt-1 text-[11px] font-medium text-red-500 dark:text-red-400">{{ errorEliminarEmpresa }}</p>
     </div>
 
-    <EmpresasTable :rows="empresasPaginadas" @editar="abrirEditar" @historial="abrirHistorial" @borrar="pedirBorrarEmpresa" />
+    <EmpresasTable
+      :rows="empresasPaginadas"
+      :puede-gestionar="puedeGestionar"
+      :puede-eliminar="puedeEliminar"
+      @editar="abrirEditar"
+      @historial="abrirHistorial"
+      @borrar="pedirBorrarEmpresa"
+    />
 
     <div v-if="empresasFiltradas.length > 0" class="flex items-center justify-center gap-3 px-1">
       <button @click="paginaAnterior" :disabled="!hayPaginaAnterior"

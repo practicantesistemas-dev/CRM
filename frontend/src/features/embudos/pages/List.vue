@@ -8,6 +8,9 @@ import OportunidadFormDialog from '@/features/oportunidades/dialogs/OportunidadF
 import { ETAPA_COLOR } from '../constants/embudos.constants'
 import { useEmbudos } from '../composables/useEmbudos'
 import KanbanColumn from '../components/KanbanColumn.vue'
+import { permisosDeModulo } from '@/features/auth/composables/useAuth'
+
+const { gestionar: puedeGestionar } = permisosDeModulo('embudos')
 
 const { oportunidades, crearOportunidad, cambiarEtapa } = useOportunidades()
 
@@ -83,6 +86,7 @@ const resetZoom = () => { zoom.value = 1 }
           </button>
         </div>
         <button
+          v-if="puedeGestionar"
           @click="abrirNueva('Lead')"
           class="flex items-center gap-1.5 h-9 px-4 rounded-lg bg-[#2447F9] text-white text-[11px] font-bold shadow hover:bg-[#1D3DD9] transition-all"
         >
@@ -104,6 +108,7 @@ const resetZoom = () => { zoom.value = 1 }
           :is-drop-target="dropTarget === etapa"
           :dragging-id="draggingId"
           :drop-indicator="dropIndicator"
+          :puede-gestionar="puedeGestionar"
           @dragover="onDragOver($event, etapa)"
           @dragleave="onDragLeave($event)"
           @drop="onDrop($event, etapa)"
