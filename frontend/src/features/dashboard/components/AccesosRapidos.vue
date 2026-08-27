@@ -6,9 +6,8 @@ defineProps<{ accesos: AccesoRapido[] }>()
 
 const router = useRouter()
 
-// Campañas y Automatizaciones aún no están implementadas (mismo motivo que se ocultan del
-// menú lateral en MainLayout.vue): la tarjeta se sigue mostrando igual que las demás, solo que
-// al hacer clic no navega a ningún lado.
+// Campañas y Automatizaciones aún no están listas para producción: la tarjeta se sigue
+// mostrando igual que las demás, solo que al hacer clic no navega a ningún lado.
 const RUTAS_SIN_IMPLEMENTAR = new Set(['campanas', 'automatizaciones'])
 const irA = (ruta: string) => {
   if (RUTAS_SIN_IMPLEMENTAR.has(ruta)) return

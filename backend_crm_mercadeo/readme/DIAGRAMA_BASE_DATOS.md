@@ -94,18 +94,19 @@ erDiagram
 
 ## Qué hace cada tabla
 
-| Tabla | Qué guarda | Se une por |
-|---|---|---|
-| `INTRANET_USUARIOS` | Tabla central de login: usuario, contraseña, área, `PORTAL_ROL`, estado | punto de partida de todo lo demás |
-| `INTRANET_DEPARTAMENTOS` | Nombre legible del área (`DEPDES`) | `ID_AREA = DEPID` |
-| `INTRANET_COLABORADORES` | Correos laboral/personal, tipo de colaborador | `NUM_ID` (texto) `= COLNID` — opcional (`LEFT JOIN`) |
-| `INTRANET_REPORT_USUARIOS` | Credenciales de un sistema de reportes aparte | `NUM_ID` (texto) `= IDNUM` — opcional (`LEFT JOIN`) |
-| `INTRANET_APP_PERMISOS` | Puente usuario ↔ aplicación: **si** puede entrar (sí/no), no **qué** puede hacer | `PERMUSU = USUARIO`, `PERMAPP = APUSID` |
-| `INTRANET_APLICACIONES_USUARIOS` | Catálogo de apps del portal (nombre, URL, activa/inactiva) | `APUSID` |
-| `INTRANET_ROLES_APP` | Catálogo de roles (ej. "Admin", "Jefe"). `SISTEMA` = app dueña del rol — una sola tabla sirve para todas las apps | filtra por `SISTEMA` |
-| `INTRANET_PERMISOS_APP` | Catálogo de permisos granulares por `MODULO` + `ACCION` (ej. `contactos` / `gestionar`) | filtra por `SISTEMA` |
-| `INTRANET_ROLES_PERMISOS_APP` | Puente rol ↔ permiso (muchos a muchos) | `ROL_ID`, `PERMISO_ID` |
-| `INTRANET_USUARIO_ROL_APP` | Puente usuario ↔ rol. Un usuario puede tener roles distintos en distintos sistemas | `USUARIO_ID`, `ROL_ID`, `SISTEMA` |
+
+| Tabla                            | Qué guarda                                                                                                         | Se une por                                            |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| `INTRANET_USUARIOS`              | Tabla central de login: usuario, contraseña, área,`PORTAL_ROL`, estado                                            | punto de partida de todo lo demás                    |
+| `INTRANET_DEPARTAMENTOS`         | Nombre legible del área (`DEPDES`)                                                                                 | `ID_AREA = DEPID`                                     |
+| `INTRANET_COLABORADORES`         | Correos laboral/personal, tipo de colaborador                                                                       | `NUM_ID` (texto) `= COLNID` — opcional (`LEFT JOIN`) |
+| `INTRANET_REPORT_USUARIOS`       | Credenciales de un sistema de reportes aparte                                                                       | `NUM_ID` (texto) `= IDNUM` — opcional (`LEFT JOIN`)  |
+| `INTRANET_APP_PERMISOS`          | Puente usuario ↔ aplicación:**si** puede entrar (sí/no), no **qué** puede hacer                                 | `PERMUSU = USUARIO`, `PERMAPP = APUSID`               |
+| `INTRANET_APLICACIONES_USUARIOS` | Catálogo de apps del portal (nombre, URL, activa/inactiva)                                                         | `APUSID`                                              |
+| `INTRANET_ROLES_APP`             | Catálogo de roles (ej. "Admin", "Jefe").`SISTEMA` = app dueña del rol — una sola tabla sirve para todas las apps | filtra por`SISTEMA`                                   |
+| `INTRANET_PERMISOS_APP`          | Catálogo de permisos granulares por`MODULO` + `ACCION` (ej. `contactos` / `gestionar`)                             | filtra por`SISTEMA`                                   |
+| `INTRANET_ROLES_PERMISOS_APP`    | Puente rol ↔ permiso (muchos a muchos)                                                                             | `ROL_ID`, `PERMISO_ID`                                |
+| `INTRANET_USUARIO_ROL_APP`       | Puente usuario ↔ rol. Un usuario puede tener roles distintos en distintos sistemas                                 | `USUARIO_ID`, `ROL_ID`, `SISTEMA`                     |
 
 **`PORTAL_ROL` vs. este esquema nuevo:** `PORTAL_ROL` es un único rol global
 de texto libre en `INTRANET_USUARIOS`, sin granularidad — se mantiene por
@@ -155,5 +156,5 @@ flowchart TD
     L -- no --> R3["Solo los permisos que el<br/>rol tiene asignados explícitamente"]
 ```
 
-Ver [`CONSULTAS_EJEMPLO_PERMISOS_APP.md`](CONSULTAS_EJEMPLO_PERMISOS_APP.md)
+Ver [`CONSULTAS_EJEMPLO_PERquiMISOS_APP.md`](CONSULTAS_EJEMPLO_PERMISOS_APP.md)
 para las consultas SQL de referencia de este mismo flujo.
