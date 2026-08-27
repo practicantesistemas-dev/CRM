@@ -50,6 +50,25 @@ class Settings(BaseSettings):
     scse_db_port: int = 1521
     scse_db_database: str = ""
 
+    # Envio de correo (campañas/automatizaciones). Con Gmail: smtp_user es la cuenta
+    # completa (ej. "algo@gmail.com") y smtp_password es una "contraseña de aplicacion"
+    # de 16 caracteres (myaccount.google.com/security -> Verificacion en dos pasos ->
+    # Contraseñas de aplicaciones), NUNCA la contraseña normal de la cuenta.
+    # Vacio por defecto (como scse_db_*): el backend arranca igual sin esto configurado,
+    # solo falla al intentar mandar un correo.
+    smtp_host: str = "smtp.gmail.com"
+    smtp_port: int = 587
+    smtp_user: str = ""
+    smtp_password: str = ""
+    smtp_from_name: str = "CRM Mercadeo LaLiga"
+
+    # Envio de correo via Gmail API (OAuth2) - reemplaza el SMTP de arriba. El
+    # refresh_token se obtiene una sola vez con scripts/obtener_refresh_token_gmail.py.
+    gmail_sender_email: str = ""
+    gmail_oauth_client_id: str = ""
+    gmail_oauth_client_secret: str = ""
+    gmail_oauth_refresh_token: str = ""
+
     @property
     def database_url(self) -> str:
         return (
