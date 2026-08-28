@@ -53,7 +53,9 @@ function fechaApiAIso(fecha: string | null): string {
 const ESTADO_TITULAR_API: Record<Titular['estado'], string> = { Activo: 'A', Inactivo: 'I' }
 const SEXO_TITULAR_API: Record<Titular['sexo'], string | null> = { Masculino: 'M', Femenino: 'F', '': null }
 
-export async function createTitular(data: TitularDraft): Promise<void> {
+// enviarCorreoRegistro en false solo desde la carga masiva por Excel (cargaMasiva.ts):
+// un alta manual individual si manda el correo, una importacion de muchos no.
+export async function createTitular(data: TitularDraft, enviarCorreoRegistro = true): Promise<void> {
   const { nombre1, nombre2, apellido1, apellido2 } = splitNombreCompleto(data.nombre)
   const body = {
     TIPO_PLAN: data.tipoPlan,
@@ -80,6 +82,7 @@ export async function createTitular(data: TitularDraft): Promise<void> {
     // null es el Plan Estándar (cupo 4): se manda tal cual, no se convierte a 0.
     TIPO_PLAN_ID: data.tipoPlanId,
     FACTURA: data.factura || null,
+    ENVIAR_CORREO_REGISTRO: enviarCorreoRegistro,
   }
   // El backend resuelve el usuario creador (USUARIO_ID en INTRANET_PREPLANLIGA) a partir
   // del Bearer token, igual que /api/bitacora/: sin este header, get_current_username falla.
@@ -223,7 +226,9 @@ const ESTADO_BENEFICIARIO_API: Record<Beneficiario['estado'], string> = {
 }
 const SEXO_BENEFICIARIO_API: Record<Beneficiario['sexo'], string | null> = { Masculino: 'M', Femenino: 'F', '': null }
 
-export async function createBeneficiario(idTitular: number, data: BeneficiarioDraft): Promise<void> {
+// enviarCorreoBienvenida en false solo desde la carga masiva por Excel (cargaMasiva.ts):
+// un alta manual individual si manda el correo, una importacion de muchos no.
+export async function createBeneficiario(idTitular: number, data: BeneficiarioDraft, enviarCorreoBienvenida = true): Promise<void> {
   const { nombre1, nombre2, apellido1, apellido2 } = splitNombreCompleto(data.nombre)
   const body = {
     TIPO_DOCUMENTO: data.tipoDocumento,
@@ -245,6 +250,7 @@ export async function createBeneficiario(idTitular: number, data: BeneficiarioDr
     PLAN_SALUD: data.planSalud,
     PLAN_NOMBRE: data.planNombre,
     // FECHA_INGRESO no se manda: el backend la hereda automáticamente de la del titular.
+    ENVIAR_CORREO_BIENVENIDA: enviarCorreoBienvenida,
   }
   const response = await fetch(`${API_URL}/api/titulares-beneficiarios/${idTitular}/beneficiarios`, {
     method: 'POST',

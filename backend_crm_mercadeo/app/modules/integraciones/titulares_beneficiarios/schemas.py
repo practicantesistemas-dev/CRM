@@ -171,6 +171,9 @@ class TitularCrear(EntradaMayusculas):
     PLAN_NOMBRE: Optional[str] = None
     TIPO_PLAN_ID: Optional[int] = None
     FACTURA: Optional[str] = None
+    # False solo desde la carga masiva por Excel (ver frontend: cargaMasiva.ts): un alta
+    # manual individual si manda el correo de registro, una importacion de muchos no.
+    ENVIAR_CORREO_REGISTRO: bool = True
 
 
 class CreacionTitularResultado(BaseModel):
@@ -239,6 +242,9 @@ class BeneficiarioCrear(EntradaMayusculas):
     EPS: Optional[str] = None
     OTRAEPS: Optional[str] = None
     PLAN_SALUD: Optional[str] = None
+    # False solo desde la carga masiva por Excel (ver frontend: cargaMasiva.ts): un alta
+    # manual individual si manda el correo de bienvenida, una importacion de muchos no.
+    ENVIAR_CORREO_BIENVENIDA: bool = True
 
 
 class CreacionBeneficiarioResultado(BaseModel):

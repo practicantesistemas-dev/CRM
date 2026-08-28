@@ -1,8 +1,10 @@
+import logging
 from datetime import date
 from typing import Iterator
 
 from sqlalchemy.orm import Session
 
+from app.core.email import enviar_correo_plantilla
 from app.modules.integraciones.titulares_beneficiarios.exceptions import (
     BeneficiarioInactivoError,
     BeneficiarioNotFoundError,
@@ -43,6 +45,12 @@ from app.modules.integraciones.titulares_beneficiarios.schemas import (
     TitularDetalle,
     TitularUpdate,
 )
+
+logger = logging.getLogger(__name__)
+
+# Nombres de archivo en app/templates/emails/ (ver app/core/email.py).
+PLANTILLA_CORREO_REGISTRO = "Registro (1).html"
+PLANTILLA_CORREO_BIENVENIDA = "Bienvenida (1).html"
 
 
 class TitularesBeneficiariosService:
@@ -96,6 +104,22 @@ class TitularesBeneficiariosService:
             data.TIPO_DOCUMENTO, data.DOCUMENTO, nombre_completo
         )
 
+        # Correo de registro al titular nuevo (best-effort): si Gmail falla o el
+        # titular no tiene correo, no debe tumbar la creacion, que ya quedo hecha. No se
+        # manda en carga masiva (ENVIAR_CORREO_REGISTRO en False ahi), solo alta manual.
+        if data.CORREO and data.ENVIAR_CORREO_REGISTRO:
+            try:
+                enviar_correo_plantilla(
+                    destinatarios=[data.CORREO],
+                    asunto="Completa tu registro - Membresía Plan Liga",
+                    plantilla=PLANTILLA_CORREO_REGISTRO,
+                    variables={"nombre": nombre_completo},
+                )
+            except Exception:
+                logger.exception(
+                    "No se pudo enviar el correo de registro al titular %s", id_titular
+                )
+
         fila = self.repository.obtener_titular(id_titular)
         return CreacionTitularResultado(
             titular=TitularDetalle(**fila),
@@ -148,6 +172,23 @@ class TitularesBeneficiariosService:
         marcado_incle = self.legacy_repository.marcar_nuevo_beneficiario_incle(
             data.TIPO_DOCUMENTO, data.DOCUMENTO, nombre_completo
         )
+
+        # Correo de bienvenida al beneficiario nuevo (best-effort, igual que el de
+        # registro del titular): si Gmail falla o no dejo correo, no debe tumbar la
+        # creacion, que ya quedo hecha. No se manda en carga masiva (ENVIAR_CORREO_BIENVENIDA
+        # en False ahi), solo en alta manual individual.
+        if data.CORREO and data.ENVIAR_CORREO_BIENVENIDA:
+            try:
+                enviar_correo_plantilla(
+                    destinatarios=[data.CORREO],
+                    asunto="Bienvenido(a) a la membresía Plan Liga",
+                    plantilla=PLANTILLA_CORREO_BIENVENIDA,
+                    variables={"lista": f'<li style="margin: 0 0 8px 0;">{nombre_completo}</li>'},
+                )
+            except Exception:
+                logger.exception(
+                    "No se pudo enviar el correo de bienvenida al beneficiario %s", id_beneficiario
+                )
 
         fila = self.repository.obtener_beneficiario(id_titular, id_beneficiario)
         return CreacionBeneficiarioResultado(
@@ -313,7 +354,11 @@ class TitularesBeneficiariosService:
         )
 
     def activar_beneficiario(
-        self, id_titular: int, id_beneficiario: int, fecha_ingreso: date | None = None
+        self,
+        id_titular: int,
+        id_beneficiario: int,
+        fecha_ingreso: date | None = None,
+        enviar_correo_bienvenida: bool = True,
     ) -> ActivacionBeneficiarioResultado:
         titular = self.repository.obtener_titular(id_titular)
         if titular is None:
@@ -330,6 +375,27 @@ class TitularesBeneficiariosService:
         num_incle = self.legacy_repository.desmarcar_registros_incle(
             fila["TIPO_DOCUMENTO"], fila["DOCUMENTO"]
         )
+
+        # Correo de bienvenida al reactivar (estaba inactivo): mismo criterio best-effort
+        # que al crearlo, no tumba la activacion si Gmail falla. No se manda desde la
+        # activacion masiva por Excel (ver activar_beneficiario_sin_titular mas abajo).
+        if fila["CORREO"] and enviar_correo_bienvenida:
+            try:
+                nombre_completo = " ".join(
+                    parte for parte in [fila["NOMBRE1"], fila["NOMBRE2"], fila["APELLIDO1"], fila["APELLIDO2"]]
+                    if parte
+                )
+                enviar_correo_plantilla(
+                    destinatarios=[fila["CORREO"]],
+                    asunto="Bienvenido(a) a la membresía Plan Liga",
+                    plantilla=PLANTILLA_CORREO_BIENVENIDA,
+                    variables={"lista": f'<li style="margin: 0 0 8px 0;">{nombre_completo}</li>'},
+                )
+            except Exception:
+                logger.exception(
+                    "No se pudo enviar el correo de bienvenida al activar el beneficiario %s", id_beneficiario
+                )
+
         return ActivacionBeneficiarioResultado(
             beneficiario=BeneficiarioDetalle(**fila),
             registros_incle_desmarcados=num_incle,
@@ -352,10 +418,14 @@ class TitularesBeneficiariosService:
     def activar_beneficiario_sin_titular(
         self, documento: str, fecha_ingreso: date
     ) -> ActivacionBeneficiarioResultado:
+        # Solo la usa la activacion masiva por Excel (accionMasivaBeneficiarios.ts): por eso
+        # enviar_correo_bienvenida=False, no manda el correo por cada fila del archivo.
         fila = self.repository.buscar_beneficiario_por_documento(documento)
         if fila is None:
             raise BeneficiarioNotFoundError(documento)
-        return self.activar_beneficiario(fila["PLANLIGA_ID"], fila["ID"], fecha_ingreso)
+        return self.activar_beneficiario(
+            fila["PLANLIGA_ID"], fila["ID"], fecha_ingreso, enviar_correo_bienvenida=False
+        )
 
     def desactivar_beneficiario_sin_titular(
         self, documento: str

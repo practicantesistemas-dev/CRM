@@ -27,10 +27,10 @@ const hoy = new Date()
 const dosMesesAtras = new Date()
 dosMesesAtras.setMonth(dosMesesAtras.getMonth() - 2)
 const fechaIngresoDate = ref<Date>(hoy)
-// Mismo comportamiento de siempre por defecto (aplicar a todo el grupo);
-// aquí se puede desmarcar para activar solo al titular.
-const aplicarAGrupo = ref(true)
-watch(visible, (v) => { if (v) { fechaIngresoDate.value = new Date(); aplicarAGrupo.value = true } })
+// Desmarcado por defecto: hay que elegirlo a propósito para aplicar la fecha
+// también a los beneficiarios de este titular.
+const aplicarAGrupo = ref(false)
+watch(visible, (v) => { if (v) { fechaIngresoDate.value = new Date(); aplicarAGrupo.value = false } })
 
 const cerrar = () => {
   visible.value = false
