@@ -46,7 +46,6 @@ defineExpose({ submit: onValidSubmit(() => { if (!apellidoFaltante.value) emit('
 // solo lectura en edición para evitar registrar cambios que nunca se guardan.
 // El estado solo se cambia desde el botón de activar/desactivar en la tabla.
 const soloLecturaEnEdicion = computed(() => props.modo === 'editar')
-const hoy = new Date().toISOString().split('T')[0]
 </script>
 
 <template>
@@ -166,7 +165,7 @@ const hoy = new Date().toISOString().split('T')[0]
     </div>
     <div>
       <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1.5 uppercase tracking-wide">Fecha de inscripción *</label>
-      <FechaInput v-model="draft.fechaInscripcion" @blur="tocar('fechaInscripcion')" :max="hoy" :disabled="soloLecturaEnEdicion"
+      <FechaInput v-model="draft.fechaInscripcion" @blur="tocar('fechaInscripcion')" :disabled="soloLecturaEnEdicion"
         :invalid="esVisible('fechaInscripcion') && !!errors.fechaInscripcion"
         :valid="esVisible('fechaInscripcion') && !errors.fechaInscripcion && !!draft.fechaInscripcion" />
       <FieldError :message="esVisible('fechaInscripcion') ? errors.fechaInscripcion : undefined" />
