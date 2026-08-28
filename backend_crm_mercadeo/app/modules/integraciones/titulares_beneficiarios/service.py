@@ -173,22 +173,25 @@ class TitularesBeneficiariosService:
             data.TIPO_DOCUMENTO, data.DOCUMENTO, nombre_completo
         )
 
-        # Correo de bienvenida al beneficiario nuevo (best-effort, igual que el de
-        # registro del titular): si Gmail falla o no dejo correo, no debe tumbar la
-        # creacion, que ya quedo hecha. No se manda en carga masiva (ENVIAR_CORREO_BIENVENIDA
-        # en False ahi), solo en alta manual individual.
-        if data.CORREO and data.ENVIAR_CORREO_BIENVENIDA:
-            try:
-                enviar_correo_plantilla(
-                    destinatarios=[data.CORREO],
-                    asunto="Bienvenido(a) a la membresía Plan Liga",
-                    plantilla=PLANTILLA_CORREO_BIENVENIDA,
-                    variables={"lista": f'<li style="margin: 0 0 8px 0;">{nombre_completo}</li>'},
-                )
-            except Exception:
-                logger.exception(
-                    "No se pudo enviar el correo de bienvenida al beneficiario %s", id_beneficiario
-                )
+        # Correo de bienvenida al agregar un beneficiario nuevo (best-effort: si Gmail
+        # falla, no tumba la creacion, que ya quedo hecha). Se manda al beneficiario Y al
+        # titular de su grupo (para que el titular vea que se agrego alguien nuevo) -
+        # a quien tenga correo cargado de los dos, no falla si a alguno le falta. No se
+        # manda en carga masiva (ENVIAR_CORREO_BIENVENIDA en False ahi), solo alta manual.
+        if data.ENVIAR_CORREO_BIENVENIDA:
+            destinatarios = [c for c in {data.CORREO, titular.get("CORREO")} if c]
+            if destinatarios:
+                try:
+                    enviar_correo_plantilla(
+                        destinatarios=destinatarios,
+                        asunto="Bienvenido(a) a la membresía Plan Liga",
+                        plantilla=PLANTILLA_CORREO_BIENVENIDA,
+                        variables={"lista": f'<li style="margin: 0 0 8px 0;">{nombre_completo}</li>'},
+                    )
+                except Exception:
+                    logger.exception(
+                        "No se pudo enviar el correo de bienvenida al beneficiario %s", id_beneficiario
+                    )
 
         fila = self.repository.obtener_beneficiario(id_titular, id_beneficiario)
         return CreacionBeneficiarioResultado(
@@ -377,24 +380,28 @@ class TitularesBeneficiariosService:
         )
 
         # Correo de bienvenida al reactivar (estaba inactivo): mismo criterio best-effort
-        # que al crearlo, no tumba la activacion si Gmail falla. No se manda desde la
-        # activacion masiva por Excel (ver activar_beneficiario_sin_titular mas abajo).
-        if fila["CORREO"] and enviar_correo_bienvenida:
-            try:
-                nombre_completo = " ".join(
-                    parte for parte in [fila["NOMBRE1"], fila["NOMBRE2"], fila["APELLIDO1"], fila["APELLIDO2"]]
-                    if parte
-                )
-                enviar_correo_plantilla(
-                    destinatarios=[fila["CORREO"]],
-                    asunto="Bienvenido(a) a la membresía Plan Liga",
-                    plantilla=PLANTILLA_CORREO_BIENVENIDA,
-                    variables={"lista": f'<li style="margin: 0 0 8px 0;">{nombre_completo}</li>'},
-                )
-            except Exception:
-                logger.exception(
-                    "No se pudo enviar el correo de bienvenida al activar el beneficiario %s", id_beneficiario
-                )
+        # que al crearlo, no tumba la activacion si Gmail falla. Se manda al beneficiario Y
+        # al titular de su grupo (para que sepa que ya quedo activo), a quien tenga correo
+        # cargado de los dos. No se manda desde la activacion masiva por Excel (ver
+        # activar_beneficiario_sin_titular mas abajo).
+        if enviar_correo_bienvenida:
+            destinatarios = [c for c in {fila["CORREO"], titular.get("CORREO")} if c]
+            if destinatarios:
+                try:
+                    nombre_completo = " ".join(
+                        parte for parte in [fila["NOMBRE1"], fila["NOMBRE2"], fila["APELLIDO1"], fila["APELLIDO2"]]
+                        if parte
+                    )
+                    enviar_correo_plantilla(
+                        destinatarios=destinatarios,
+                        asunto="Bienvenido(a) a la membresía Plan Liga",
+                        plantilla=PLANTILLA_CORREO_BIENVENIDA,
+                        variables={"lista": f'<li style="margin: 0 0 8px 0;">{nombre_completo}</li>'},
+                    )
+                except Exception:
+                    logger.exception(
+                        "No se pudo enviar el correo de bienvenida al activar el beneficiario %s", id_beneficiario
+                    )
 
         return ActivacionBeneficiarioResultado(
             beneficiario=BeneficiarioDetalle(**fila),

@@ -80,7 +80,7 @@ const confirmar = () => emit(
         <button @click="confirmar" :disabled="props.guardando"
           class="flex items-center gap-1.5 h-9 px-6 rounded-lg bg-emerald-600 text-white text-[11px] font-bold shadow hover:bg-emerald-700 disabled:opacity-60 disabled:cursor-not-allowed transition-all">
           <Loader2 v-if="props.guardando" :size="12" class="animate-spin" />
-          Activar
+          {{ props.guardando ? (props.pedirFecha ? 'Activando...' : 'Enviando notificación por correo...') : 'Activar' }}
         </button>
       </div>
     </div>

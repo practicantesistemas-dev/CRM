@@ -44,7 +44,7 @@ const formRef = ref<InstanceType<typeof BeneficiarioForm>>()
         <button @click="visible = false" class="h-9 px-5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-[11px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all">Cancelar</button>
         <button @click="formRef?.submit()" :disabled="guardando"
           class="h-9 px-6 rounded-lg bg-[#EC4899] text-white text-[11px] font-bold shadow hover:bg-[#D61F69] transition-all disabled:opacity-60 disabled:cursor-not-allowed">
-          {{ guardando ? 'Guardando...' : (modo === 'nuevo' ? 'Agregar beneficiario' : 'Guardar cambios') }}
+          {{ guardando ? (modo === 'nuevo' ? 'Enviando notificación por correo...' : 'Guardando...') : (modo === 'nuevo' ? 'Agregar beneficiario' : 'Guardar cambios') }}
         </button>
       </div>
     </div>
