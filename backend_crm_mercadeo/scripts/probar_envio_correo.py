@@ -5,7 +5,6 @@ backend_crm_mercadeo/, con el venv activado:
     python scripts/probar_envio_correo.py destino@correo.com
 """
 
-import asyncio
 import sys
 from pathlib import Path
 
@@ -21,7 +20,7 @@ PLANTILLA = "Bienvenida (1).html"
 BENEFICIARIOS_PRUEBA = ["Juan Perez", "Maria Gomez"]
 
 
-async def main() -> None:
+def main() -> None:
     if len(sys.argv) < 2:
         print("Uso: python scripts/probar_envio_correo.py destino@correo.com")
         sys.exit(1)
@@ -29,7 +28,7 @@ async def main() -> None:
     destino = sys.argv[1]
     lista_html = "".join(f'<li style="margin: 0 0 8px 0;">{nombre}</li>' for nombre in BENEFICIARIOS_PRUEBA)
 
-    await enviar_correo_plantilla(
+    enviar_correo_plantilla(
         destinatarios=[destino],
         asunto="Bienvenido(a) a la membresía Plan Liga (prueba)",
         plantilla=PLANTILLA,
@@ -39,4 +38,4 @@ async def main() -> None:
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()

@@ -14,6 +14,7 @@ from app.modules.comercial.oportunidades.router import router as oportunidades_r
 from app.modules.comercial.tablero.router import router as tablero_router
 from app.modules.compartidos.ubicaciones.router import router as ubicaciones_router
 from app.modules.marketing.etiquetas.router import router as etiquetas_router
+from app.modules.notificaciones.correos.router import router as correos_router
 from app.modules.servicios_proveedores.actividades.router import router as actividades_router
 from app.modules.servicios_proveedores.proveedores.router import router as proveedores_router
 from app.modules.servicios_proveedores.servicios.router import router as servicios_router
@@ -32,6 +33,7 @@ app.include_router(actividades_router, prefix=settings.api_prefix)
 app.include_router(auth_router, prefix=settings.api_prefix)
 app.include_router(bitacora_router, prefix=settings.api_prefix)
 app.include_router(contactos_router, prefix=settings.api_prefix)
+app.include_router(correos_router, prefix=settings.api_prefix)
 app.include_router(empresas_router, prefix=settings.api_prefix)
 app.include_router(etiquetas_router, prefix=settings.api_prefix)
 app.include_router(importaciones_router, prefix=settings.api_prefix)

@@ -1,9 +1,17 @@
-"""
+"""Punto unico de envio de correo para todo el backend (campanas, automatizaciones,
+titulares/beneficiarios, futuras notificaciones). Nada mas deberia hablar con la
+Gmail API directamente: todo pasa por las dos funciones de aca abajo, asi el dia de
+manana que cambie de nuevo (ej. a un proveedor transaccional) solo se toca este
+archivo.
+
 Usa OAuth2 (Gmail API), no SMTP: el refresh_token se consigue una sola vez con
 scripts/obtener_refresh_token_gmail.py y no vence solo (dura hasta que se revoque).
-"""
 
-import asyncio
+Sincrono a proposito: el resto del backend (routers/services de titulares_beneficiarios,
+etc.) tambien lo es, y la propia libreria de Google (googleapiclient) es bloqueante de
+todas formas. Los endpoints que sean async y quieran no bloquear el event loop deben
+envolver la llamada en starlette.concurrency.run_in_threadpool."""
+
 import base64
 from email.mime.text import MIMEText
 from pathlib import Path
@@ -64,25 +72,18 @@ def _armar_mensaje_crudo(destinatarios: list[str], asunto: str, cuerpo_html: str
     return {"raw": crudo}
 
 
-def _enviar_sincrono(destinatarios: list[str], asunto: str, cuerpo_html: str) -> None:
-    # La libreria de Google (googleapiclient) es sincrona/bloqueante: esto se llama
-    # siempre desde un hilo aparte (ver asyncio.to_thread en enviar_correo), nunca
-    # directo en el event loop de FastAPI.
+def enviar_correo(destinatarios: list[str], asunto: str, cuerpo_html: str) -> None:
+    """Manda un HTML ya armado (sin plantilla) a la lista de destinatarios."""
+    _verificar_configurado()
     servicio = _servicio_gmail()
     cuerpo = _armar_mensaje_crudo(destinatarios, asunto, cuerpo_html)
     servicio.users().messages().send(userId="me", body=cuerpo).execute()
 
 
-async def enviar_correo(destinatarios: list[str], asunto: str, cuerpo_html: str) -> None:
-    """Manda un HTML ya armado (sin plantilla) a la lista de destinatarios."""
-    _verificar_configurado()
-    await asyncio.to_thread(_enviar_sincrono, destinatarios, asunto, cuerpo_html)
-
-
-async def enviar_correo_plantilla(
+def enviar_correo_plantilla(
     destinatarios: list[str], asunto: str, plantilla: str, variables: dict
 ) -> None:
     """Renderiza app/templates/emails/<plantilla> (Jinja2) con `variables` y lo manda.
-    `plantilla` es el nombre del archivo, ej. "campana_base.html"."""
+    `plantilla` es el nombre del archivo, ej. "Bienvenida (1).html"."""
     cuerpo_html = _jinja_env.get_template(plantilla).render(**variables)
-    await enviar_correo(destinatarios, asunto, cuerpo_html)
+    enviar_correo(destinatarios, asunto, cuerpo_html)

@@ -370,7 +370,9 @@ export async function procesarCargaMasiva(
     }
 
     try {
-      await createTitular(aTitularDraft(grupo.titular, opciones.tipoPlanId))
+      // false: la carga masiva no manda el correo de registro por cada titular (serían
+      // demasiados envíos de una sola vez), solo las altas manuales individuales.
+      await createTitular(aTitularDraft(grupo.titular, opciones.tipoPlanId), false)
       exitosos += 1
     } catch (e) {
       detalleErrores.push(`Fila ${grupo.titular.filaExcel}: ${e instanceof Error ? e.message : 'no se pudo crear el titular'}`)
@@ -408,7 +410,9 @@ export async function procesarCargaMasiva(
         continue
       }
       try {
-        await createBeneficiario(idTitular, aBeneficiarioDraft(filaBene))
+        // false: la carga masiva no manda el correo de bienvenida por cada beneficiario
+        // (serían demasiados envíos de una sola vez), solo las altas manuales individuales.
+        await createBeneficiario(idTitular, aBeneficiarioDraft(filaBene), false)
         exitosos += 1
       } catch (e) {
         detalleErrores.push(`${refBene}: ${e instanceof Error ? e.message : 'no se pudo crear el beneficiario'} `
