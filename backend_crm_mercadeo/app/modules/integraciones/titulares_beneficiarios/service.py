@@ -52,9 +52,16 @@ logger = logging.getLogger(__name__)
 PLANTILLA_CORREO_REGISTRO = "Registro (1).html"
 PLANTILLA_CORREO_BIENVENIDA = "Bienvenida (1).html"
 
+# Permiso (modulo:accion en INTRANET_PERMISOS_APP) que habilita elegir un plan
+# distinto del Estandar al dar de alta un titular. Se asigna al rol Comercial;
+# Jefe y Admin lo reciben por comodin (ver AuthRepository.obtener_permisos).
+# Cualquier otro rol queda fijo en Estandar.
+PERMISO_ELEGIR_PLAN = "planliga:elegir_plan"
+
 
 class TitularesBeneficiariosService:
     def __init__(self, db: Session) -> None:
+        self.db = db
         self.repository = TitularesBeneficiariosRepository(db)
         self.legacy_repository = LegacyRepository(db)
 
@@ -83,11 +90,22 @@ class TitularesBeneficiariosService:
             raise DocumentoDuplicadoError(data.DOCUMENTO, duplicado)
 
         datos = data.model_dump(exclude={"FECHA_INGRESO"})
-        if not datos.get("TIPO_PLAN_ID"):
-            # Sin plan contratado -> tipo_plan_id NULL, tratado como Plan Estandar
-            # (ver BENEFICIARIOS_PLAN_ESTANDAR en repository.py).
-            datos["TIPO_PLAN_ID"] = None
         usuario_id = self.repository.obtener_usuario_id(username)
+
+        # Elegir un plan distinto del Estandar esta reservado al rol Comercial
+        # (Jefe/Admin lo reciben por comodin). Cualquier otro rol -o un
+        # usuario_id que no resuelve- queda fijo en Estandar aunque el payload
+        # traiga TIPO_PLAN_ID: defensa contra una peticion armada a mano que se
+        # salte el bloqueo del frontend. tipo_plan_id NULL = Plan Estandar
+        # (ver BENEFICIARIOS_PLAN_ESTANDAR en repository.py).
+        from app.modules.auth.repository import AuthRepository
+
+        puede_elegir_plan = usuario_id is not None and (
+            PERMISO_ELEGIR_PLAN in AuthRepository(self.db).obtener_permisos(usuario_id)
+        )
+        if not puede_elegir_plan or not datos.get("TIPO_PLAN_ID"):
+            datos["TIPO_PLAN_ID"] = None
+
         self.legacy_repository.crear_preplanliga(datos, usuario_id)
 
         id_titular = self.repository.crear_titular(datos, data.FECHA_INGRESO)

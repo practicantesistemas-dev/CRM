@@ -3,6 +3,7 @@ import { X, Upload, Download, FileSpreadsheet, Loader2 } from 'lucide-vue-next'
 import { ref } from 'vue'
 import { OPCIONES_IMPORT } from '../constants/plan-liga.constants'
 import { useImportacionPlanLiga } from '../composables/useImportacionPlanLiga'
+import { tienePermiso } from '@/features/auth/composables/useAuth'
 
 const emit = defineEmits<{ cerrar: [] }>()
 const visible = defineModel<boolean>('visible', { required: true })
@@ -15,6 +16,12 @@ const {
 } = useImportacionPlanLiga()
 
 const fileRef = ref<HTMLInputElement | null>(null)
+
+// Solo Comercial (Jefe/Admin por comodín) puede importar grupos con un plan
+// distinto del Estándar. Para el resto, el plan queda fijo en Estándar
+// (planSeleccionado arranca en 'estandar' y no se puede cambiar). El backend
+// además ignora el TIPO_PLAN_ID de cada titular si el rol no tiene el permiso.
+const puedeElegirPlan = tienePermiso('planliga:elegir_plan')
 
 const cerrar = () => {
   visible.value = false
@@ -66,10 +73,11 @@ const cerrar = () => {
 
         <div v-if="tipoImport === 'agregar_grupos'">
           <p class="text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wide mb-3">2. Plan del archivo</p>
-          <select v-model="planSeleccionado" class="w-full h-9 px-3 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-[11px] font-medium text-slate-600 dark:text-slate-300 outline-none cursor-pointer">
+          <select v-if="puedeElegirPlan" v-model="planSeleccionado" class="w-full h-9 px-3 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-[11px] font-medium text-slate-600 dark:text-slate-300 outline-none cursor-pointer">
             <option value="estandar">Estándar</option>
             <option v-for="p in planesServicio" :key="p.id" :value="p.id">{{ p.nombre }}</option>
           </select>
+          <div v-else title="Solo el rol Comercial puede elegir un plan distinto del Estándar" class="w-full h-9 px-3 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-100 dark:bg-slate-800 text-[11px] font-medium text-slate-400 dark:text-slate-500 flex items-center cursor-not-allowed">Estándar</div>
           <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-1.5">
             Cada titular ocupa 1 fila + hasta {{ cupoBeneficiarios }} filas de beneficiarios justo debajo. Si usa menos, deja al menos 1 fila vacía antes del siguiente titular (el cupo es un tope, no hay que rellenar hasta completarlo).
           </p>

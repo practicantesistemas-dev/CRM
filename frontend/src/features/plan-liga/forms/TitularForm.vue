@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { computed, watch } from 'vue'
+import { computed, onMounted, watch } from 'vue'
 import Select from 'primevue/select'
 import type { PlanServicio, TitularDraft } from '../types/plan-liga'
 import { titularSchema } from '../schemas/titular.schema'
+import { tienePermiso } from '@/features/auth/composables/useAuth'
 import { useZodForm } from '@/shared/composables/useZodForm'
 import { useNombreCompuesto } from '@/shared/composables/useNombreCompuesto'
 import { faltaApellido } from '@/shared/utils/nombreCompuesto'
@@ -39,6 +40,15 @@ watch(() => draft.value.departamento, (nuevo, anterior) => {
 watch(() => draft.value.tipoPlanId, (id) => {
   draft.value.planContratado = id === null ? 'Estándar' : (props.planesServicio?.find(p => p.id === id)?.nombre ?? '')
 }, { immediate: true })
+
+// Elegir un plan distinto del Estándar está reservado al rol Comercial (Jefe y
+// Admin lo reciben por comodín). El resto de roles crea siempre en Estándar: se
+// oculta el selector y se fuerza tipoPlanId a null. El backend además ignora
+// cualquier TIPO_PLAN_ID que mande un rol sin el permiso (ver crear_titular).
+const puedeElegirPlan = computed(() => tienePermiso('planliga:elegir_plan'))
+onMounted(() => {
+  if (!puedeElegirPlan.value && draft.value.tipoPlanId !== null) draft.value.tipoPlanId = null
+})
 
 defineExpose({ submit: onValidSubmit(() => { if (!apellidoFaltante.value) emit('validSubmit') }) })
 
@@ -127,10 +137,11 @@ const soloLecturaEnEdicion = computed(() => props.modo === 'editar')
     </div>
     <div>
       <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1.5 uppercase tracking-wide">Plan contratado *</label>
-      <select v-model="draft.tipoPlanId" @change="tocar('planContratado')" class="w-full h-10 px-3 rounded-lg border bg-slate-50 dark:bg-slate-900 text-[12px] outline-none focus:bg-white dark:focus:bg-slate-800 transition-all cursor-pointer" :class="fieldStateClass(esVisible('planContratado') && !!errors.planContratado, esVisible('planContratado') && !errors.planContratado && !!draft.planContratado, 'border-slate-200 dark:border-slate-600 focus:border-[#EC4899]')">
+      <select v-if="puedeElegirPlan" v-model="draft.tipoPlanId" @change="tocar('planContratado')" class="w-full h-10 px-3 rounded-lg border bg-slate-50 dark:bg-slate-900 text-[12px] outline-none focus:bg-white dark:focus:bg-slate-800 transition-all cursor-pointer" :class="fieldStateClass(esVisible('planContratado') && !!errors.planContratado, esVisible('planContratado') && !errors.planContratado && !!draft.planContratado, 'border-slate-200 dark:border-slate-600 focus:border-[#EC4899]')">
         <option :value="null">Estándar</option>
         <option v-for="p in props.planesServicio" :key="p.id" :value="p.id">{{ p.nombre }}</option>
       </select>
+      <input v-else value="Estándar" disabled title="Solo el rol Comercial puede elegir un plan distinto del Estándar" class="w-full h-10 px-4 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 text-[12px] outline-none cursor-not-allowed" />
       <FieldError :message="esVisible('planContratado') ? errors.planContratado : undefined" />
     </div>
     <div>
