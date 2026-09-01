@@ -2,6 +2,10 @@ import json
 import logging
 from datetime import date, datetime, timedelta, timezone
 
+# Las fechas que este backend escribe son UTC (datetime.now(timezone.utc)), pero
+# Oracle las devuelve "naive". Se les vuelve a marcar UTC antes de serializarlas
+# para que el frontend (new Date()) las convierta bien a hora local.
+
 from sqlalchemy.orm import Session
 
 from app.core.email import enviar_correo_plantilla
@@ -26,6 +30,12 @@ def _a_fecha(valor) -> date | None:
     if valor is None:
         return None
     return valor.date() if isinstance(valor, datetime) else valor
+
+
+def _utc(dt: datetime | None) -> datetime | None:
+    if dt is None:
+        return None
+    return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
 
 
 class CorreosService:
@@ -68,7 +78,7 @@ class CorreosService:
             )
         prev, venc = self._rango_de(fila)
         return EstadoUltimoEnvio(
-            ultimo_envio=fila.fecha,
+            ultimo_envio=_utc(fila.fecha),
             ultimo_total=(fila.registros or 0) + (fila.errores or 0),
             ultimo_enviados=fila.registros,
             ultimo_fallidos=fila.errores,
@@ -86,7 +96,7 @@ class CorreosService:
             prev, venc = self._rango_de(fila)
             items.append(
                 HistorialEnvioItem(
-                    fecha=fila.fecha,
+                    fecha=_utc(fila.fecha),
                     enviados=fila.registros or 0,
                     fallidos=fila.errores or 0,
                     total=(fila.registros or 0) + (fila.errores or 0),
@@ -124,7 +134,7 @@ class CorreosService:
     def listar_titulares_por_vencer(
         self,
         dias_previos: int = 7,
-        dias_vencidos: int = 1,
+        dias_vencidos: int = 0,
         solo_con_correo: bool = True,
     ) -> ListadoTitularesPorVencer:
         intervalos = self.repository.intervalos_cubiertos()
@@ -150,7 +160,7 @@ class CorreosService:
         self,
         username: str,
         dias_previos: int = 7,
-        dias_vencidos: int = 1,
+        dias_vencidos: int = 0,
         incluir_ya_enviados: bool = False,
     ) -> EnvioRecordatoriosResultado:
         """Envia el correo de vencimiento a los titulares de la ventana pedida.

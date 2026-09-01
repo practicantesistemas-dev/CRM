@@ -19,7 +19,8 @@ const { ver: puedeVer, gestionar: puedeGestionar } = permisosDeModulo('automatiz
 const vista = ref<'lista' | 'detalle'>('lista')
 
 const diasPrevios = ref(7)
-const diasVencidos = ref(1)
+// 0 = no incluir titulares ya vencidos (los de hoy dejan de aparecer mañana).
+const diasVencidos = ref(0)
 
 const cargando = ref(false)
 const enviando = ref(false)
@@ -251,6 +252,9 @@ onMounted(() => {
         @click="cargar"
         class="h-9 px-4 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-[11px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all"
       >Aplicar</button>
+      <p class="w-full text-[10px] text-muted">
+        Con "Días ya vencido" en <strong>0</strong>, los titulares que ya vencieron dejan de aparecer y de contarse al día siguiente.
+      </p>
     </div>
 
     <!-- Estado del último envío -->
@@ -333,13 +337,13 @@ onMounted(() => {
           <tbody>
             <tr v-for="t in itemsPagina" :key="t.ID"
               class="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50"
-              :class="t.YA_ENVIADO ? 'opacity-55' : ''">
-              <td class="px-4 py-2.5 font-medium text-body">{{ t.NOMBRE }}</td>
-              <td class="px-4 py-2.5 text-muted">{{ t.TIPO }} {{ t.DOCUMENTO }}</td>
-              <td class="px-4 py-2.5 text-muted">{{ t.CORREO }}</td>
-              <td class="px-4 py-2.5 text-muted">{{ t.EMPRESA || '—' }}</td>
-              <td class="px-4 py-2.5 text-muted">{{ t.TIPO_PLAN || '—' }}</td>
-              <td class="px-4 py-2.5 text-muted">{{ t.FECHA_FIN_TXT }}</td>
+              :class="t.YA_ENVIADO ? 'opacity-70' : ''">
+              <td class="px-4 py-2.5 font-semibold text-heading">{{ t.NOMBRE }}</td>
+              <td class="px-4 py-2.5 text-body">{{ t.TIPO }} {{ t.DOCUMENTO }}</td>
+              <td class="px-4 py-2.5 text-body">{{ t.CORREO }}</td>
+              <td class="px-4 py-2.5 text-body">{{ t.EMPRESA || '—' }}</td>
+              <td class="px-4 py-2.5 text-body">{{ t.TIPO_PLAN || '—' }}</td>
+              <td class="px-4 py-2.5 text-body font-medium">{{ t.FECHA_FIN_TXT }}</td>
               <td class="px-4 py-2.5">
                 <span
                   class="inline-flex px-2 py-0.5 rounded-full text-[11px] font-semibold"
@@ -351,8 +355,8 @@ onMounted(() => {
                 >{{ textoDias(t.DIAS) }}</span>
               </td>
               <td class="px-4 py-2.5">
-                <span v-if="t.YA_ENVIADO" class="text-[11px] font-semibold text-slate-400 dark:text-slate-500">Ya enviado</span>
-                <span v-else class="text-[11px] font-semibold text-[#2447F9] dark:text-blue-400">Pendiente</span>
+                <span v-if="t.YA_ENVIADO" class="inline-flex px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400">Ya enviado</span>
+                <span v-else class="inline-flex px-2 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-[#2447F9] dark:bg-blue-950/50 dark:text-blue-400">Pendiente</span>
               </td>
             </tr>
             <tr v-if="!cargando && items.length === 0">
@@ -407,12 +411,12 @@ onMounted(() => {
                   <ChevronDown v-if="h.fallidos" :size="14"
                     class="transition-transform" :class="historialAbierto === i ? 'rotate-180' : ''" />
                 </td>
-                <td class="px-4 py-2.5 text-body">{{ fmtFecha(h.fecha) }}</td>
-                <td class="px-4 py-2.5 text-muted">{{ h.ejecutado_por || '—' }}</td>
-                <td class="px-4 py-2.5 text-muted">{{ ventanaTxt(h.dias_previos, h.dias_vencidos) }}</td>
+                <td class="px-4 py-2.5 text-body font-medium">{{ fmtFecha(h.fecha) }}</td>
+                <td class="px-4 py-2.5 text-body">{{ h.ejecutado_por || '—' }}</td>
+                <td class="px-4 py-2.5 text-body">{{ ventanaTxt(h.dias_previos, h.dias_vencidos) }}</td>
                 <td class="px-4 py-2.5 text-emerald-600 dark:text-emerald-400 font-semibold">{{ h.enviados }}</td>
-                <td class="px-4 py-2.5" :class="h.fallidos ? 'text-red-500 font-semibold' : 'text-muted'">{{ h.fallidos }}</td>
-                <td class="px-4 py-2.5 text-muted">{{ h.total }}</td>
+                <td class="px-4 py-2.5" :class="h.fallidos ? 'text-red-500 font-semibold' : 'text-body'">{{ h.fallidos }}</td>
+                <td class="px-4 py-2.5 text-body">{{ h.total }}</td>
               </tr>
               <tr v-if="historialAbierto === i && h.fallos.length" class="bg-slate-50 dark:bg-slate-800/40">
                 <td colspan="7" class="px-4 py-3">

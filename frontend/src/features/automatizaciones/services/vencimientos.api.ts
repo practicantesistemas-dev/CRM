@@ -74,7 +74,7 @@ async function parseError(response: Response, fallback: string): Promise<never> 
 export async function getPorVencer(opts: Opciones = {}): Promise<ListadoPorVencer> {
   const params = new URLSearchParams({
     dias_previos: String(opts.diasPrevios ?? 7),
-    dias_vencidos: String(opts.diasVencidos ?? 1),
+    dias_vencidos: String(opts.diasVencidos ?? 0),
     solo_con_correo: 'true',
   })
   const response = await fetch(
@@ -88,7 +88,7 @@ export async function getPorVencer(opts: Opciones = {}): Promise<ListadoPorVence
 export async function enviarRecordatorios(opts: Opciones = {}): Promise<EnvioResultado> {
   const params = new URLSearchParams({
     dias_previos: String(opts.diasPrevios ?? 7),
-    dias_vencidos: String(opts.diasVencidos ?? 1),
+    dias_vencidos: String(opts.diasVencidos ?? 0),
     incluir_ya_enviados: String(opts.incluirYaEnviados ?? false),
   })
   const response = await fetch(

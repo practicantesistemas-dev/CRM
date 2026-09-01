@@ -58,7 +58,7 @@ def enviar_registro(data: CorreoRegistro) -> CorreoEnviadoResultado:
 @router.get("/vencimiento/pendientes", response_model=ListadoTitularesPorVencer)
 def listar_pendientes_vencimiento(
     dias_previos: int = 7,
-    dias_vencidos: int = 1,
+    dias_vencidos: int = 0,
     solo_con_correo: bool = True,
     service: CorreosService = Depends(get_correos_service),
 ) -> ListadoTitularesPorVencer:
@@ -74,7 +74,7 @@ def listar_pendientes_vencimiento(
 @router.post("/vencimiento/enviar", response_model=EnvioRecordatoriosResultado)
 def enviar_recordatorios_vencimiento(
     dias_previos: int = 7,
-    dias_vencidos: int = 1,
+    dias_vencidos: int = 0,
     incluir_ya_enviados: bool = False,
     username: str = Depends(get_current_username),
     service: CorreosService = Depends(get_correos_service),
