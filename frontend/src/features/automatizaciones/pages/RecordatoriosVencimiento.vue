@@ -1,0 +1,379 @@
+<script setup lang="ts">
+import { onMounted, ref, computed, watch } from 'vue'
+import {
+  Clock, Mail, RefreshCw, Send, AlertTriangle, CheckCircle2, CalendarClock,
+  ChevronLeft, ChevronRight, ChevronDown, ArrowLeft, Zap,
+} from 'lucide-vue-next'
+import ConfirmDialog from '@/shared/components/ConfirmDialog.vue'
+import SeccionColapsable from '@/shared/components/SeccionColapsable.vue'
+import { permisosDeModulo } from '@/features/auth/composables/useAuth'
+import {
+  getPorVencer, enviarRecordatorios, getHistorialEnvios,
+  type ListadoPorVencer, type EnvioResultado, type HistorialEnvioItem,
+} from '../services/vencimientos.api'
+
+const { ver: puedeVer, gestionar: puedeGestionar } = permisosDeModulo('automatizaciones')
+
+// Vista principal: lista de automatizaciones (solo hay una por ahora). Al
+// entrar en ella se muestra el detalle completo, con un boton para volver.
+const vista = ref<'lista' | 'detalle'>('lista')
+
+const diasPrevios = ref(7)
+const diasVencidos = ref(1)
+
+const cargando = ref(false)
+const enviando = ref(false)
+const error = ref<string | null>(null)
+const datos = ref<ListadoPorVencer | null>(null)
+const resultado = ref<EnvioResultado | null>(null)
+const confirmVisible = ref(false)
+const historial = ref<HistorialEnvioItem[]>([])
+
+const cargarHistorial = async () => {
+  try {
+    historial.value = await getHistorialEnvios(20)
+  } catch {
+    // el historial es informativo; si falla no bloquea el resto de la pantalla
+  }
+}
+
+const cargar = async () => {
+  cargando.value = true
+  error.value = null
+  try {
+    datos.value = await getPorVencer({ diasPrevios: diasPrevios.value, diasVencidos: diasVencidos.value })
+  } catch (e) {
+    error.value = e instanceof Error ? e.message : 'No se pudo cargar la información.'
+  } finally {
+    cargando.value = false
+  }
+}
+
+const ejecutarEnvio = async () => {
+  enviando.value = true
+  error.value = null
+  resultado.value = null
+  try {
+    resultado.value = await enviarRecordatorios({ diasPrevios: diasPrevios.value, diasVencidos: diasVencidos.value })
+    await Promise.all([cargar(), cargarHistorial()])
+  } catch (e) {
+    error.value = e instanceof Error ? e.message : 'No se pudieron enviar los recordatorios.'
+  } finally {
+    enviando.value = false
+  }
+}
+
+const fmtFecha = (iso: string | null) => {
+  if (!iso) return 'Nunca'
+  return new Date(iso).toLocaleString('es-CO', {
+    day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
+  })
+}
+
+const items = computed(() => datos.value?.items ?? [])
+const totalPendientes = computed(() => datos.value?.total ?? 0)
+const estado = computed(() => datos.value?.estado_envio ?? null)
+
+// Paginación en cliente (el backend devuelve todo; la ventana de vencimiento
+// es acotada, no llega a miles de filas).
+const POR_PAGINA = 6
+const pagina = ref(1)
+const totalPaginas = computed(() => Math.max(1, Math.ceil(items.value.length / POR_PAGINA)))
+const itemsPagina = computed(() =>
+  items.value.slice((pagina.value - 1) * POR_PAGINA, pagina.value * POR_PAGINA),
+)
+watch(items, () => { pagina.value = 1 })
+
+// Filas del historial expandibles (para ver el detalle de fallos de esa corrida).
+const historialAbierto = ref<number | null>(null)
+const toggleHistorial = (i: number) => {
+  historialAbierto.value = historialAbierto.value === i ? null : i
+}
+
+const textoDias = (dias: number) => {
+  if (dias < 0) return `Venció hace ${Math.abs(dias)} d`
+  if (dias === 0) return 'Vence hoy'
+  return `${dias} d`
+}
+
+onMounted(() => {
+  cargar()
+  cargarHistorial()
+})
+</script>
+
+<template>
+  <div v-if="!puedeVer" class="surface-card rounded-2xl shadow-sm text-center py-16">
+    <AlertTriangle :size="28" class="text-slate-300 dark:text-slate-600 mx-auto mb-3" />
+    <p class="text-[13px] font-semibold text-subtle">Sin acceso a este módulo</p>
+  </div>
+
+  <!-- Vista principal: lista de automatizaciones -->
+  <div v-else-if="vista === 'lista'" class="space-y-5 font-[Inter,system-ui,sans-serif]">
+    <div>
+      <h2 class="text-[18px] font-bold text-heading flex items-center gap-2">
+        <Zap :size="20" class="text-[#C9A227]" />
+        Automatizaciones
+      </h2>
+      <p class="text-[12px] text-body mt-0.5">
+        Procesos automáticos del CRM.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      @click="vista = 'detalle'"
+      class="w-full surface-card rounded-2xl shadow-sm p-5 flex items-center gap-4 text-left hover:shadow-md transition-all"
+    >
+      <div class="w-11 h-11 rounded-xl bg-amber-50 dark:bg-amber-950/40 flex items-center justify-center shrink-0">
+        <CalendarClock :size="20" class="text-[#C9A227]" />
+      </div>
+      <div class="min-w-0 flex-1">
+        <h3 class="text-[14px] font-bold text-heading">Recordatorios de vencimiento · Plan Liga</h3>
+        <p class="text-[12px] text-muted mt-0.5">
+          Titulares con la membresía próxima a vencer. Excluye plan LIGA (empleados).
+        </p>
+        <p class="text-[11px] text-subtle mt-1.5">
+          <span class="font-semibold text-body">{{ totalPendientes }}</span> próximos a vencer ·
+          último envío: <span class="font-semibold text-body">{{ fmtFecha(estado?.ultimo_envio ?? null) }}</span>
+        </p>
+      </div>
+      <span class="shrink-0 h-8 px-3 rounded-lg bg-[#2447F9] text-white text-[11px] font-bold flex items-center">
+        Mostrar
+      </span>
+    </button>
+  </div>
+
+  <!-- Detalle: vista completa -->
+  <div v-else class="space-y-5 font-[Inter,system-ui,sans-serif]">
+    <button
+      type="button"
+      @click="vista = 'lista'"
+      class="mb-3 inline-flex items-center gap-2 h-10 px-4 rounded-lg bg-[#EC4899] hover:bg-[#D61F69] shadow transition-all"
+    >
+      <ArrowLeft :size="16" class="text-white" />
+      <span class="text-[12px] font-medium text-white">Volver a Automatizaciones</span>
+    </button>
+
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <h2 class="text-[18px] font-bold text-heading flex items-center gap-2">
+          <CalendarClock :size="20" class="text-[#C9A227]" />
+          Recordatorios de vencimiento · Plan Liga
+        </h2>
+        <p class="text-[12px] text-body mt-0.5">
+          Titulares con la membresía próxima a vencer. Excluye plan LIGA (empleados).
+        </p>
+      </div>
+      <div class="flex items-center gap-2">
+        <button
+          @click="cargar"
+          :disabled="cargando"
+          class="flex items-center gap-1.5 h-9 px-3 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-[11px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all disabled:opacity-50"
+        >
+          <RefreshCw :size="13" :class="cargando ? 'animate-spin' : ''" /> Actualizar
+        </button>
+        <button
+          v-if="puedeGestionar"
+          @click="confirmVisible = true"
+          :disabled="enviando || totalPendientes === 0"
+          class="flex items-center gap-1.5 h-9 px-4 rounded-lg bg-[#2447F9] text-white text-[11px] font-bold shadow hover:bg-[#1D3DD9] transition-all disabled:opacity-50"
+        >
+          <Send :size="14" /> {{ enviando ? 'Enviando…' : 'Enviar recordatorios' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Ventana de días -->
+    <div class="surface-card rounded-2xl shadow-sm px-4 py-3 flex flex-wrap items-end gap-4">
+      <label class="text-[11px] font-semibold text-subtle uppercase tracking-wide">
+        Días antes de vencer
+        <input v-model.number="diasPrevios" type="number" min="0" max="60"
+          class="mt-1 block w-24 h-9 px-3 rounded-lg input-surface text-[12px] outline-none" />
+      </label>
+      <label class="text-[11px] font-semibold text-subtle uppercase tracking-wide">
+        Días ya vencido
+        <input v-model.number="diasVencidos" type="number" min="0" max="30"
+          class="mt-1 block w-24 h-9 px-3 rounded-lg input-surface text-[12px] outline-none" />
+      </label>
+      <button
+        @click="cargar"
+        class="h-9 px-4 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-[11px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all"
+      >Aplicar</button>
+    </div>
+
+    <!-- Estado del último envío -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div class="surface-card rounded-2xl shadow-sm p-5">
+        <div class="w-9 h-9 rounded-xl bg-[#EEF2FF] dark:bg-blue-950/50 flex items-center justify-center mb-3">
+          <Mail :size="17" class="text-[#2447F9] dark:text-blue-400" />
+        </div>
+        <div class="text-[28px] font-bold text-heading leading-none">{{ totalPendientes }}</div>
+        <div class="text-[11px] font-semibold text-subtle uppercase tracking-wide mt-1">Próximos a vencer (con correo)</div>
+      </div>
+      <div class="surface-card rounded-2xl shadow-sm p-5">
+        <div class="w-9 h-9 rounded-xl bg-[#D1FAE5] dark:bg-emerald-950/50 flex items-center justify-center mb-3">
+          <Clock :size="17" class="text-[#059669] dark:text-emerald-400" />
+        </div>
+        <div class="text-[15px] font-bold text-heading leading-tight">{{ fmtFecha(estado?.ultimo_envio ?? null) }}</div>
+        <div class="text-[11px] font-semibold text-subtle uppercase tracking-wide mt-1">Último envío</div>
+        <div v-if="estado?.ejecutado_por" class="text-[11px] text-muted mt-0.5">por {{ estado.ejecutado_por }}</div>
+      </div>
+      <div class="surface-card rounded-2xl shadow-sm p-5">
+        <div class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-3">
+          <CheckCircle2 :size="17" class="text-slate-500 dark:text-slate-400" />
+        </div>
+        <div class="text-[15px] font-bold text-heading leading-tight">
+          <template v-if="estado?.ultimo_total != null">
+            {{ estado.ultimo_enviados ?? 0 }} / {{ estado.ultimo_total }}
+            <span v-if="estado.ultimo_fallidos" class="text-red-500">· {{ estado.ultimo_fallidos }} fallidos</span>
+          </template>
+          <template v-else>—</template>
+        </div>
+        <div class="text-[11px] font-semibold text-subtle uppercase tracking-wide mt-1">Resultado última corrida</div>
+      </div>
+    </div>
+
+    <div v-if="error" class="rounded-xl border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/40 px-4 py-3 text-[12px] text-red-600 dark:text-red-400">
+      {{ error }}
+    </div>
+
+    <div v-if="resultado" class="rounded-xl border border-emerald-200 dark:border-emerald-900 bg-emerald-50 dark:bg-emerald-950/40 px-4 py-3 text-[12px] text-emerald-700 dark:text-emerald-300">
+      Envío completado: <strong>{{ resultado.enviados }}</strong> enviados de {{ resultado.total }}.
+      <span v-if="resultado.fallidos"> <strong class="text-red-600 dark:text-red-400">{{ resultado.fallidos }} fallidos</strong>
+        ({{ resultado.fallos.map(f => f.CORREO).filter(Boolean).join(', ') }}).</span>
+    </div>
+
+    <!-- Tabla -->
+    <SeccionColapsable
+      titulo="Próximos a vencer"
+      :subtitulo="`${items.length} titular(es) en esta ventana`"
+    >
+    <div class="surface-card rounded-2xl shadow-sm overflow-hidden">
+      <div class="px-4 py-2.5 border-b border-slate-200 dark:border-slate-700 text-[11px] text-muted">
+        Mostrando <strong class="text-body">{{ itemsPagina.length }}</strong> de
+        <strong class="text-body">{{ items.length }}</strong> titulares
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-[12px]">
+          <thead>
+            <tr class="border-b border-slate-200 dark:border-slate-700 text-left text-[11px] uppercase tracking-wide text-subtle">
+              <th class="px-4 py-3 font-semibold">Titular</th>
+              <th class="px-4 py-3 font-semibold">Documento</th>
+              <th class="px-4 py-3 font-semibold">Correo</th>
+              <th class="px-4 py-3 font-semibold">Empresa</th>
+              <th class="px-4 py-3 font-semibold">Plan</th>
+              <th class="px-4 py-3 font-semibold">Vence</th>
+              <th class="px-4 py-3 font-semibold">Faltan</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="t in itemsPagina" :key="t.ID" class="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50">
+              <td class="px-4 py-2.5 font-medium text-body">{{ t.NOMBRE }}</td>
+              <td class="px-4 py-2.5 text-muted">{{ t.TIPO }} {{ t.DOCUMENTO }}</td>
+              <td class="px-4 py-2.5 text-muted">{{ t.CORREO }}</td>
+              <td class="px-4 py-2.5 text-muted">{{ t.EMPRESA || '—' }}</td>
+              <td class="px-4 py-2.5 text-muted">{{ t.TIPO_PLAN || '—' }}</td>
+              <td class="px-4 py-2.5 text-muted">{{ t.FECHA_FIN_TXT }}</td>
+              <td class="px-4 py-2.5">
+                <span
+                  class="inline-flex px-2 py-0.5 rounded-full text-[11px] font-semibold"
+                  :class="t.VENCIDO
+                    ? 'bg-red-50 text-red-600 dark:bg-red-950/50 dark:text-red-400'
+                    : (t.DIAS <= 2
+                      ? 'bg-amber-50 text-amber-600 dark:bg-amber-950/50 dark:text-amber-400'
+                      : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300')"
+                >{{ textoDias(t.DIAS) }}</span>
+              </td>
+            </tr>
+            <tr v-if="!cargando && items.length === 0">
+              <td colspan="7" class="px-4 py-12 text-center text-[12px] text-muted">
+                No hay titulares próximos a vencer en esta ventana.
+              </td>
+            </tr>
+            <tr v-if="cargando">
+              <td colspan="7" class="px-4 py-12 text-center text-[12px] text-muted">Cargando…</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div v-if="totalPaginas > 1" class="flex items-center justify-center gap-3 px-4 py-3 border-t border-slate-200 dark:border-slate-700">
+        <button @click="pagina--" :disabled="pagina <= 1"
+          class="w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all">
+          <ChevronLeft :size="15" />
+        </button>
+        <span class="text-[11px] text-muted">Página <strong class="text-body">{{ pagina }}</strong> de <strong class="text-body">{{ totalPaginas }}</strong></span>
+        <button @click="pagina++" :disabled="pagina >= totalPaginas"
+          class="w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all">
+          <ChevronRight :size="15" />
+        </button>
+      </div>
+    </div>
+    </SeccionColapsable>
+
+    <!-- Historial de corridas -->
+    <SeccionColapsable titulo="Historial de envíos" :abierto-por-defecto="false">
+    <div class="surface-card rounded-2xl shadow-sm overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-[12px]">
+          <thead>
+            <tr class="border-b border-slate-200 dark:border-slate-700 text-left text-[11px] uppercase tracking-wide text-subtle">
+              <th class="px-4 py-3 font-semibold w-8"></th>
+              <th class="px-4 py-3 font-semibold">Fecha</th>
+              <th class="px-4 py-3 font-semibold">Ejecutado por</th>
+              <th class="px-4 py-3 font-semibold">Enviados</th>
+              <th class="px-4 py-3 font-semibold">Fallidos</th>
+              <th class="px-4 py-3 font-semibold">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <template v-for="(h, i) in historial" :key="i">
+              <tr
+                class="border-b border-slate-100 dark:border-slate-800"
+                :class="h.fallidos ? 'cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50' : ''"
+                @click="h.fallidos && toggleHistorial(i)"
+              >
+                <td class="px-4 py-2.5 text-muted">
+                  <ChevronDown v-if="h.fallidos" :size="14"
+                    class="transition-transform" :class="historialAbierto === i ? 'rotate-180' : ''" />
+                </td>
+                <td class="px-4 py-2.5 text-body">{{ fmtFecha(h.fecha) }}</td>
+                <td class="px-4 py-2.5 text-muted">{{ h.ejecutado_por || '—' }}</td>
+                <td class="px-4 py-2.5 text-emerald-600 dark:text-emerald-400 font-semibold">{{ h.enviados }}</td>
+                <td class="px-4 py-2.5" :class="h.fallidos ? 'text-red-500 font-semibold' : 'text-muted'">{{ h.fallidos }}</td>
+                <td class="px-4 py-2.5 text-muted">{{ h.total }}</td>
+              </tr>
+              <tr v-if="historialAbierto === i && h.fallos.length" class="bg-slate-50 dark:bg-slate-800/40">
+                <td colspan="6" class="px-4 py-3">
+                  <p class="text-[11px] font-semibold text-subtle uppercase tracking-wide mb-2">Correos que fallaron</p>
+                  <ul class="space-y-1">
+                    <li v-for="(f, j) in h.fallos" :key="j" class="text-[11px] text-body">
+                      <span class="font-medium">{{ f.NOMBRE || f.DOCUMENTO }}</span>
+                      <span class="text-muted"> · {{ f.CORREO }}</span>
+                      <span class="text-red-500 dark:text-red-400"> — {{ f.error }}</span>
+                    </li>
+                  </ul>
+                </td>
+              </tr>
+            </template>
+            <tr v-if="historial.length === 0">
+              <td colspan="6" class="px-4 py-10 text-center text-[12px] text-muted">
+                Todavía no se ha ejecutado ningún envío.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    </SeccionColapsable>
+
+    <ConfirmDialog
+      v-model:visible="confirmVisible"
+      titulo="Enviar recordatorios de vencimiento"
+      :mensaje="`Se enviará el correo de vencimiento a ${totalPendientes} titular(es) con correo. ¿Continuar?`"
+      texto-confirmar="Enviar"
+      texto-cancelar="Cancelar"
+      @confirmar="ejecutarEnvio"
+    />
+  </div>
+</template>

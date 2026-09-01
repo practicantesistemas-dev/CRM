@@ -116,7 +116,7 @@ export function useImportacion() {
       resultado.value = r
       resultadoVisible.value = true
 
-      // Deja constancia en mercadeo_crm_importaciones de quién hizo la carga y con qué
+      // Deja constancia en mercadeo_crm_historial_procesos de quién hizo la carga y con qué
       // resultado. Si esto falla (ej. problema de red puntual), los registros ya se crearon
       // igual en contactos/empresas/proveedores: no tiene sentido bloquear al usuario por
       // esto, así que se deja un registro local con lo que sí se sabe y se avisa aparte.

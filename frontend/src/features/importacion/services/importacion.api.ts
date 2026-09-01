@@ -23,7 +23,7 @@ interface ImportacionResponse {
   usuario: string | null
 }
 
-// El detalle fila por fila (detalleErrores/avisos) se persiste en mercadeo_crm_importaciones
+// El detalle fila por fila (detalleErrores/avisos) se persiste en mercadeo_crm_historial_procesos
 // (como JSON en texto), así que el reporte descargable sigue disponible aunque el historial se
 // cargue en una sesión distinta a la que hizo la importación. Los registros creados antes de
 // esa columna llegan con listas vacías.
@@ -53,7 +53,7 @@ export async function getHistorialRemoto(): Promise<RegistroImportacion[]> {
   return data.map(mapImportacion)
 }
 
-// Guarda el resultado de una importación en mercadeo_crm_importaciones; el backend resuelve
+// Guarda el resultado de una importación en mercadeo_crm_historial_procesos; el backend resuelve
 // el usuario_id a partir del Bearer token (mismo patrón que POST /api/contactos/).
 export async function registrarImportacion(
   tipo: TipoImportacion, archivo: string, registros: number, errores: number,

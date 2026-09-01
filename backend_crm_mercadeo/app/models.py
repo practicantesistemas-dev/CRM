@@ -457,7 +457,15 @@ class PlanLigaTipoPlan(Base):
 
 
 class Importacion(Base):
-    __tablename__ = "mercadeo_crm_importaciones"
+    """Historial de procesos por lote del CRM: cada fila es una corrida (una
+    importacion por Excel, un envio masivo de correos, etc.), distinguidas
+    por `tipo`. Nacio solo para importaciones (de ahi el nombre de la clase y
+    columnas como `archivo`), pero la tabla fisica se renombro a un nombre
+    generico (`mercadeo_crm_historial_procesos`) para reutilizarla en otros
+    procesos por lote sin crear una tabla nueva por cada uno - ver
+    modules/notificaciones/correos (tipo 'correo_vencimiento_plan_liga')."""
+
+    __tablename__ = "mercadeo_crm_historial_procesos"
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     usuario_id: Mapped[int | None] = mapped_column(ForeignKey("intranet_usuarios.id"))

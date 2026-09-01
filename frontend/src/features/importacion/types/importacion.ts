@@ -12,7 +12,7 @@ export interface RegistroImportacion {
   exitosos: number
   errores: number
   estado: EstadoImportacion
-  /** Quién hizo la importación (persistido en mercadeo_crm_importaciones). */
+  /** Quién hizo la importación (persistido en mercadeo_crm_historial_procesos). */
   usuario: string
   /** Filas que no se pudieron crear, para el reporte descargable. Solo disponible para
    * importaciones hechas en esta sesión: el detalle fila por fila no se persiste en el

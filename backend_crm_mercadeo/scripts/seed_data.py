@@ -446,7 +446,7 @@ def main() -> None:
         log(f"[mercadeo_crm_oportunidades] id={oportunidad2.id} empresa_id={oportunidad2.empresa_id} contacto_id={oportunidad2.contacto_id} servicio_id={oportunidad2.servicio_id} responsable_id={oportunidad2.responsable_id} plan_liga_titular_id={oportunidad2.plan_liga_titular_id}")
         log(f"[mercadeo_crm_bitacora]    id={bitacora1.id} tipo={bitacora1.tipo!r} usuario_id={bitacora1.usuario_id} titular_id={bitacora1.titular_id} oportunidad_id={bitacora1.oportunidad_id}")
         log(f"[mercadeo_crm_bitacora]    id={bitacora2.id} tipo={bitacora2.tipo!r} usuario_id={bitacora2.usuario_id} titular_id={bitacora2.titular_id} oportunidad_id={bitacora2.oportunidad_id}")
-        log(f"[mercadeo_crm_importaciones] id={importacion1.id} archivo={importacion1.archivo!r} usuario_id={importacion1.usuario_id}")
+        log(f"[mercadeo_crm_historial_procesos] id={importacion1.id} archivo={importacion1.archivo!r} usuario_id={importacion1.usuario_id}")
 
     except Exception:
         db.rollback()
