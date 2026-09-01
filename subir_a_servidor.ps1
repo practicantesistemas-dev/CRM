@@ -34,12 +34,19 @@ Write-Host "Destino: $destino"
 Write-Host "Hilos  : $hilos"
 Write-Host ""
 
-# La carpeta base compartida tiene que estar accesible (VPN / red / permisos).
-if (-not (Test-Path $base)) {
-    Write-Host "No se puede acceder a la carpeta base:" -ForegroundColor Red
-    Write-Host "  $base" -ForegroundColor Red
-    Write-Host "Verifica la red / VPN y que tengas permiso de escritura, e intenta de nuevo." -ForegroundColor Red
-    exit 1
+# Chequeo blando de la carpeta compartida: Test-Path sobre UNC a veces da
+# falso negativo si la sesion SMB se durmio, asi que se reintenta y, si aun
+# asi falla, solo se avisa (robocopy reintenta por su cuenta con /R /W).
+$accesible = $false
+for ($i = 1; $i -le 3 -and -not $accesible; $i++) {
+    if (Test-Path -LiteralPath $base) { $accesible = $true; break }
+    Start-Sleep -Seconds 2
+}
+if (-not $accesible) {
+    Write-Host "Aviso: no se pudo confirmar acceso a la carpeta base todavia:" -ForegroundColor Yellow
+    Write-Host "  $base" -ForegroundColor Yellow
+    Write-Host "Se intenta la copia de todos modos; si la ruta esta caida, robocopy fallara." -ForegroundColor Yellow
+    Write-Host ""
 }
 
 robocopy $origen $destino /MIR /MT:$hilos /R:2 /W:5 `
