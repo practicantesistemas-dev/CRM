@@ -67,18 +67,20 @@ def listar_pendientes_vencimiento(
     )
 
 
-# Boton manual: envia el correo de vencimiento a cada titular por vencer (solo
-# los que tienen correo), renderizando la plantilla con sus datos. Best-effort
-# por destinatario. Guarda la fecha/resultado de esta corrida.
+# Boton manual: envia el correo de vencimiento a los titulares de la ventana.
+# Por defecto SOLO a los que no lo recibieron aun (incluir_ya_enviados=false);
+# con incluir_ya_enviados=true reenvia a todos los de la ventana. Best-effort
+# por destinatario; guarda la corrida en el historial.
 @router.post("/vencimiento/enviar", response_model=EnvioRecordatoriosResultado)
 def enviar_recordatorios_vencimiento(
     dias_previos: int = 7,
     dias_vencidos: int = 1,
+    incluir_ya_enviados: bool = False,
     username: str = Depends(get_current_username),
     service: CorreosService = Depends(get_correos_service),
 ) -> EnvioRecordatoriosResultado:
     return service.enviar_recordatorios_vencimiento(
-        username, dias_previos, dias_vencidos
+        username, dias_previos, dias_vencidos, incluir_ya_enviados
     )
 
 

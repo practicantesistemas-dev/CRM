@@ -17,6 +17,7 @@ export interface TitularPorVencer {
   FECHA_FIN_TXT: string
   RENOVADO: string | null
   VENCIDO: boolean
+  YA_ENVIADO: boolean
 }
 
 export interface EstadoUltimoEnvio {
@@ -25,10 +26,16 @@ export interface EstadoUltimoEnvio {
   ultimo_enviados: number | null
   ultimo_fallidos: number | null
   ejecutado_por: string | null
+  dias_previos: number | null
+  dias_vencidos: number | null
+  cubierto_desde: string | null
+  cubierto_hasta: string | null
 }
 
 export interface ListadoPorVencer {
   total: number
+  nuevos: number
+  ya_enviados: number
   dias_previos: number
   dias_vencidos: number
   estado_envio: EstadoUltimoEnvio
@@ -44,8 +51,10 @@ export interface FalloEnvio {
 
 export interface EnvioResultado {
   total: number
+  a_enviar: number
   enviados: number
   fallidos: number
+  omitidos_ya_enviados: number
   fallos: FalloEnvio[]
   estado_envio: EstadoUltimoEnvio
 }
@@ -53,6 +62,7 @@ export interface EnvioResultado {
 interface Opciones {
   diasPrevios?: number
   diasVencidos?: number
+  incluirYaEnviados?: boolean
 }
 
 async function parseError(response: Response, fallback: string): Promise<never> {
@@ -79,6 +89,7 @@ export async function enviarRecordatorios(opts: Opciones = {}): Promise<EnvioRes
   const params = new URLSearchParams({
     dias_previos: String(opts.diasPrevios ?? 7),
     dias_vencidos: String(opts.diasVencidos ?? 1),
+    incluir_ya_enviados: String(opts.incluirYaEnviados ?? false),
   })
   const response = await fetch(
     `${API_URL}/api/correos/vencimiento/enviar?${params}`,
@@ -94,6 +105,8 @@ export interface HistorialEnvioItem {
   fallidos: number
   total: number
   ejecutado_por: string | null
+  dias_previos: number | null
+  dias_vencidos: number | null
   fallos: FalloEnvio[]
 }
 

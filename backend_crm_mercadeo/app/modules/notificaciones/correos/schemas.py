@@ -37,21 +37,36 @@ class TitularPorVencer(BaseModel):
     FECHA_FIN_TXT: str
     RENOVADO: Optional[str] = None
     VENCIDO: bool
+    # True si su fecha de vencimiento ya cae en un rango cubierto por un envio
+    # anterior (a este titular ya se le mando el recordatorio).
+    YA_ENVIADO: bool = False
 
 
 class EstadoUltimoEnvio(BaseModel):
-    """Resumen de la ultima corrida del envio de recordatorios (tabla de 1
-    fila mercadeo_crm_recordatorio_vencimiento)."""
+    """Resumen de la ultima corrida del envio de recordatorios (fila mas
+    reciente de mercadeo_crm_historial_procesos con tipo de vencimiento)."""
 
     ultimo_envio: Optional[datetime] = None
     ultimo_total: Optional[int] = None
     ultimo_enviados: Optional[int] = None
     ultimo_fallidos: Optional[int] = None
     ejecutado_por: Optional[str] = None
+    # Ventana de dias con la que se corrio el ultimo envio. None en corridas
+    # viejas sin este dato.
+    dias_previos: Optional[int] = None
+    dias_vencidos: Optional[int] = None
+    # Union de todas las ventanas de FECHA_FIN ya cubiertas por envios
+    # anteriores: a los titulares que vencen dentro de [desde, hasta] ya se les
+    # mando el recordatorio.
+    cubierto_desde: Optional[date] = None
+    cubierto_hasta: Optional[date] = None
 
 
 class ListadoTitularesPorVencer(BaseModel):
     total: int
+    # Cuantos del total NO han recibido el recordatorio todavia / cuantos si.
+    nuevos: int
+    ya_enviados: int
     dias_previos: int
     dias_vencidos: int
     estado_envio: EstadoUltimoEnvio
@@ -66,9 +81,11 @@ class FalloEnvio(BaseModel):
 
 
 class EnvioRecordatoriosResultado(BaseModel):
-    total: int
+    total: int            # cuantos entraban en la ventana pedida
+    a_enviar: int         # a cuantos se intento enviar (segun el modo)
     enviados: int
     fallidos: int
+    omitidos_ya_enviados: int  # los que se saltaron por haber recibido ya el aviso
     fallos: list[FalloEnvio]
     estado_envio: EstadoUltimoEnvio
 
@@ -82,4 +99,6 @@ class HistorialEnvioItem(BaseModel):
     fallidos: int
     total: int
     ejecutado_por: Optional[str] = None
+    dias_previos: Optional[int] = None
+    dias_vencidos: Optional[int] = None
     fallos: list[FalloEnvio]

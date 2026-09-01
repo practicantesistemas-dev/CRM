@@ -49,12 +49,25 @@ const cargar = async () => {
   }
 }
 
+// 'nuevos' = solo los que aún no recibieron el aviso; 'todos' = reenviar a
+// todos los de la ventana (incluye los ya avisados).
+const modoEnvio = ref<'nuevos' | 'todos'>('nuevos')
+
+const pedirEnvio = (modo: 'nuevos' | 'todos') => {
+  modoEnvio.value = modo
+  confirmVisible.value = true
+}
+
 const ejecutarEnvio = async () => {
   enviando.value = true
   error.value = null
   resultado.value = null
   try {
-    resultado.value = await enviarRecordatorios({ diasPrevios: diasPrevios.value, diasVencidos: diasVencidos.value })
+    resultado.value = await enviarRecordatorios({
+      diasPrevios: diasPrevios.value,
+      diasVencidos: diasVencidos.value,
+      incluirYaEnviados: modoEnvio.value === 'todos',
+    })
     await Promise.all([cargar(), cargarHistorial()])
   } catch (e) {
     error.value = e instanceof Error ? e.message : 'No se pudieron enviar los recordatorios.'
@@ -72,7 +85,10 @@ const fmtFecha = (iso: string | null) => {
 
 const items = computed(() => datos.value?.items ?? [])
 const totalPendientes = computed(() => datos.value?.total ?? 0)
+const nuevos = computed(() => datos.value?.nuevos ?? 0)
+const yaEnviados = computed(() => datos.value?.ya_enviados ?? 0)
 const estado = computed(() => datos.value?.estado_envio ?? null)
+const cubiertoHasta = computed(() => estado.value?.cubierto_hasta ?? null)
 
 // Paginación en cliente (el backend devuelve todo; la ventana de vencimiento
 // es acotada, no llega a miles de filas).
@@ -95,6 +111,27 @@ const textoDias = (dias: number) => {
   if (dias === 0) return 'Vence hoy'
   return `${dias} d`
 }
+
+// Ventana de días como texto corto: "-1 d a +7 d", "solo hoy", "hoy a +7 d"…
+const ventanaTxt = (prev: number | null, venc: number | null) => {
+  if (prev == null || venc == null) return '—'
+  if (prev === 0 && venc === 0) return 'solo hoy'
+  const desde = venc === 0 ? 'hoy' : `-${venc} d`
+  const hasta = prev === 0 ? 'hoy' : `+${prev} d`
+  return `${desde} a ${hasta}`
+}
+
+const fmtDia = (iso: string | null) => {
+  if (!iso) return '—'
+  return new Date(iso).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' })
+}
+
+const mensajeConfirmar = computed(() => {
+  if (modoEnvio.value === 'todos') {
+    return `Se REENVIARÁ el correo a los ${totalPendientes.value} titular(es) de la ventana, incluidos los ${yaEnviados.value} que ya lo recibieron antes. Algunos recibirán el correo dos veces. ¿Continuar?`
+  }
+  return `Se enviará el correo a ${nuevos.value} titular(es) que aún no lo han recibido. Los ${yaEnviados.value} ya avisados no se tocan. ¿Continuar?`
+})
 
 onMounted(() => {
   cargar()
@@ -134,8 +171,12 @@ onMounted(() => {
           Titulares con la membresía próxima a vencer. Excluye plan LIGA (empleados).
         </p>
         <p class="text-[11px] text-subtle mt-1.5">
-          <span class="font-semibold text-body">{{ totalPendientes }}</span> próximos a vencer ·
+          <span class="font-semibold text-body">{{ nuevos }}</span> nuevos por enviar
+          <span class="text-muted">de {{ totalPendientes }} en la ventana</span> ·
           último envío: <span class="font-semibold text-body">{{ fmtFecha(estado?.ultimo_envio ?? null) }}</span>
+        </p>
+        <p v-if="cubiertoHasta" class="text-[11px] text-amber-600 dark:text-amber-400 font-semibold mt-1">
+          Ya avisados los que vencen hasta el {{ fmtDia(cubiertoHasta) }}
         </p>
       </div>
       <span class="shrink-0 h-8 px-3 rounded-lg bg-[#2447F9] text-white text-[11px] font-bold flex items-center">
@@ -146,16 +187,18 @@ onMounted(() => {
 
   <!-- Detalle: vista completa -->
   <div v-else class="space-y-5 font-[Inter,system-ui,sans-serif]">
-    <button
-      type="button"
-      @click="vista = 'lista'"
-      class="mb-3 inline-flex items-center gap-2 h-10 px-4 rounded-lg bg-[#EC4899] hover:bg-[#D61F69] shadow transition-all"
-    >
-      <ArrowLeft :size="16" class="text-white" />
-      <span class="text-[12px] font-medium text-white">Volver a Automatizaciones</span>
-    </button>
+    <div class="pb-5 border-b border-slate-200 dark:border-slate-700">
+      <button
+        type="button"
+        @click="vista = 'lista'"
+        class="inline-flex items-center gap-2 h-10 px-4 rounded-lg bg-[#EC4899] hover:bg-[#D61F69] shadow transition-all"
+      >
+        <ArrowLeft :size="16" class="text-white" />
+        <span class="text-[12px] font-medium text-white">Volver a Automatizaciones</span>
+      </button>
+    </div>
 
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-2">
       <div>
         <h2 class="text-[18px] font-bold text-heading flex items-center gap-2">
           <CalendarClock :size="20" class="text-[#C9A227]" />
@@ -175,11 +218,19 @@ onMounted(() => {
         </button>
         <button
           v-if="puedeGestionar"
-          @click="confirmVisible = true"
-          :disabled="enviando || totalPendientes === 0"
+          @click="pedirEnvio('nuevos')"
+          :disabled="enviando || nuevos === 0"
           class="flex items-center gap-1.5 h-9 px-4 rounded-lg bg-[#2447F9] text-white text-[11px] font-bold shadow hover:bg-[#1D3DD9] transition-all disabled:opacity-50"
         >
-          <Send :size="14" /> {{ enviando ? 'Enviando…' : 'Enviar recordatorios' }}
+          <Send :size="14" /> {{ enviando ? 'Enviando…' : `Enviar nuevos (${nuevos})` }}
+        </button>
+        <button
+          v-if="puedeGestionar && yaEnviados > 0"
+          @click="pedirEnvio('todos')"
+          :disabled="enviando"
+          class="flex items-center gap-1.5 h-9 px-3 rounded-lg border border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/40 text-[11px] font-bold text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-950/60 transition-all disabled:opacity-50"
+        >
+          <Send :size="13" /> Reenviar todos ({{ totalPendientes }})
         </button>
       </div>
     </div>
@@ -208,8 +259,12 @@ onMounted(() => {
         <div class="w-9 h-9 rounded-xl bg-[#EEF2FF] dark:bg-blue-950/50 flex items-center justify-center mb-3">
           <Mail :size="17" class="text-[#2447F9] dark:text-blue-400" />
         </div>
-        <div class="text-[28px] font-bold text-heading leading-none">{{ totalPendientes }}</div>
-        <div class="text-[11px] font-semibold text-subtle uppercase tracking-wide mt-1">Próximos a vencer (con correo)</div>
+        <div class="text-[28px] font-bold text-heading leading-none">
+          {{ nuevos }}<span class="text-[15px] text-muted"> / {{ totalPendientes }}</span>
+        </div>
+        <div class="text-[11px] font-semibold text-subtle uppercase tracking-wide mt-1">
+          Nuevos por enviar <span class="text-muted normal-case">({{ yaEnviados }} ya avisados)</span>
+        </div>
       </div>
       <div class="surface-card rounded-2xl shadow-sm p-5">
         <div class="w-9 h-9 rounded-xl bg-[#D1FAE5] dark:bg-emerald-950/50 flex items-center justify-center mb-3">
@@ -234,12 +289,19 @@ onMounted(() => {
       </div>
     </div>
 
+    <div v-if="cubiertoHasta" class="rounded-xl border border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-950/40 px-4 py-3 text-[12px] text-amber-700 dark:text-amber-300">
+      Ya se enviaron recordatorios a los titulares que vencen
+      <strong>hasta el {{ fmtDia(cubiertoHasta) }}</strong>.
+      Esos no se reenvían: "Enviar nuevos" solo manda a los que vencen después.
+    </div>
+
     <div v-if="error" class="rounded-xl border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/40 px-4 py-3 text-[12px] text-red-600 dark:text-red-400">
       {{ error }}
     </div>
 
     <div v-if="resultado" class="rounded-xl border border-emerald-200 dark:border-emerald-900 bg-emerald-50 dark:bg-emerald-950/40 px-4 py-3 text-[12px] text-emerald-700 dark:text-emerald-300">
-      Envío completado: <strong>{{ resultado.enviados }}</strong> enviados de {{ resultado.total }}.
+      Envío completado: <strong>{{ resultado.enviados }}</strong> enviados de {{ resultado.a_enviar }}.
+      <span v-if="resultado.omitidos_ya_enviados"> ({{ resultado.omitidos_ya_enviados }} omitidos por estar ya avisados.)</span>
       <span v-if="resultado.fallidos"> <strong class="text-red-600 dark:text-red-400">{{ resultado.fallidos }} fallidos</strong>
         ({{ resultado.fallos.map(f => f.CORREO).filter(Boolean).join(', ') }}).</span>
     </div>
@@ -265,10 +327,13 @@ onMounted(() => {
               <th class="px-4 py-3 font-semibold">Plan</th>
               <th class="px-4 py-3 font-semibold">Vence</th>
               <th class="px-4 py-3 font-semibold">Faltan</th>
+              <th class="px-4 py-3 font-semibold">Aviso</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="t in itemsPagina" :key="t.ID" class="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50">
+            <tr v-for="t in itemsPagina" :key="t.ID"
+              class="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+              :class="t.YA_ENVIADO ? 'opacity-55' : ''">
               <td class="px-4 py-2.5 font-medium text-body">{{ t.NOMBRE }}</td>
               <td class="px-4 py-2.5 text-muted">{{ t.TIPO }} {{ t.DOCUMENTO }}</td>
               <td class="px-4 py-2.5 text-muted">{{ t.CORREO }}</td>
@@ -285,14 +350,18 @@ onMounted(() => {
                       : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300')"
                 >{{ textoDias(t.DIAS) }}</span>
               </td>
+              <td class="px-4 py-2.5">
+                <span v-if="t.YA_ENVIADO" class="text-[11px] font-semibold text-slate-400 dark:text-slate-500">Ya enviado</span>
+                <span v-else class="text-[11px] font-semibold text-[#2447F9] dark:text-blue-400">Pendiente</span>
+              </td>
             </tr>
             <tr v-if="!cargando && items.length === 0">
-              <td colspan="7" class="px-4 py-12 text-center text-[12px] text-muted">
+              <td colspan="8" class="px-4 py-12 text-center text-[12px] text-muted">
                 No hay titulares próximos a vencer en esta ventana.
               </td>
             </tr>
             <tr v-if="cargando">
-              <td colspan="7" class="px-4 py-12 text-center text-[12px] text-muted">Cargando…</td>
+              <td colspan="8" class="px-4 py-12 text-center text-[12px] text-muted">Cargando…</td>
             </tr>
           </tbody>
         </table>
@@ -321,6 +390,7 @@ onMounted(() => {
               <th class="px-4 py-3 font-semibold w-8"></th>
               <th class="px-4 py-3 font-semibold">Fecha</th>
               <th class="px-4 py-3 font-semibold">Ejecutado por</th>
+              <th class="px-4 py-3 font-semibold">Ventana</th>
               <th class="px-4 py-3 font-semibold">Enviados</th>
               <th class="px-4 py-3 font-semibold">Fallidos</th>
               <th class="px-4 py-3 font-semibold">Total</th>
@@ -339,12 +409,13 @@ onMounted(() => {
                 </td>
                 <td class="px-4 py-2.5 text-body">{{ fmtFecha(h.fecha) }}</td>
                 <td class="px-4 py-2.5 text-muted">{{ h.ejecutado_por || '—' }}</td>
+                <td class="px-4 py-2.5 text-muted">{{ ventanaTxt(h.dias_previos, h.dias_vencidos) }}</td>
                 <td class="px-4 py-2.5 text-emerald-600 dark:text-emerald-400 font-semibold">{{ h.enviados }}</td>
                 <td class="px-4 py-2.5" :class="h.fallidos ? 'text-red-500 font-semibold' : 'text-muted'">{{ h.fallidos }}</td>
                 <td class="px-4 py-2.5 text-muted">{{ h.total }}</td>
               </tr>
               <tr v-if="historialAbierto === i && h.fallos.length" class="bg-slate-50 dark:bg-slate-800/40">
-                <td colspan="6" class="px-4 py-3">
+                <td colspan="7" class="px-4 py-3">
                   <p class="text-[11px] font-semibold text-subtle uppercase tracking-wide mb-2">Correos que fallaron</p>
                   <ul class="space-y-1">
                     <li v-for="(f, j) in h.fallos" :key="j" class="text-[11px] text-body">
@@ -357,7 +428,7 @@ onMounted(() => {
               </tr>
             </template>
             <tr v-if="historial.length === 0">
-              <td colspan="6" class="px-4 py-10 text-center text-[12px] text-muted">
+              <td colspan="7" class="px-4 py-10 text-center text-[12px] text-muted">
                 Todavía no se ha ejecutado ningún envío.
               </td>
             </tr>
@@ -370,7 +441,7 @@ onMounted(() => {
     <ConfirmDialog
       v-model:visible="confirmVisible"
       titulo="Enviar recordatorios de vencimiento"
-      :mensaje="`Se enviará el correo de vencimiento a ${totalPendientes} titular(es) con correo. ¿Continuar?`"
+      :mensaje="mensajeConfirmar"
       texto-confirmar="Enviar"
       texto-cancelar="Cancelar"
       @confirmar="ejecutarEnvio"

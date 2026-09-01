@@ -1,5 +1,5 @@
 import json
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 
 from sqlalchemy import func, select, text
 from sqlalchemy.orm import Session
@@ -95,6 +95,10 @@ class CorreosRepository:
         fallidos: int,
         detalle_fallos: list[dict],
         usuario_id: int | None,
+        dias_previos: int,
+        dias_vencidos: int,
+        cubre_desde: date,
+        cubre_hasta: date,
     ) -> Importacion:
         fila = Importacion(
             tipo=TIPO_HISTORIAL_VENCIMIENTO,
@@ -102,7 +106,17 @@ class CorreosRepository:
             registros=enviados,
             errores=fallidos,
             detalle_errores=json.dumps(detalle_fallos, ensure_ascii=False),
-            avisos=None,
+            # En `avisos` (columna libre para este tipo de fila): la ventana de
+            # dias usada y el rango ABSOLUTO de FECHA_FIN que quedo cubierto por
+            # esta corrida, para no reenviar a esos titulares despues.
+            avisos=json.dumps(
+                {
+                    "dias_previos": dias_previos,
+                    "dias_vencidos": dias_vencidos,
+                    "cubre_desde": cubre_desde.isoformat(),
+                    "cubre_hasta": cubre_hasta.isoformat(),
+                }
+            ),
             usuario_id=usuario_id,
             fecha=datetime.now(timezone.utc),
         )
@@ -110,6 +124,27 @@ class CorreosRepository:
         self.db.commit()
         self.db.refresh(fila)
         return fila
+
+    def intervalos_cubiertos(self) -> list[tuple[date, date]]:
+        """Rangos absolutos de FECHA_FIN [desde, hasta] ya cubiertos por envios
+        anteriores. Los titulares que vencen dentro de alguno de estos rangos
+        ya recibieron su recordatorio."""
+        filas = self.db.scalars(
+            select(Importacion).where(
+                Importacion.tipo == TIPO_HISTORIAL_VENCIMIENTO,
+                Importacion.avisos.isnot(None),
+            )
+        ).all()
+        intervalos: list[tuple[date, date]] = []
+        for fila in filas:
+            try:
+                meta = json.loads(fila.avisos)
+                d1, d2 = meta.get("cubre_desde"), meta.get("cubre_hasta")
+                if d1 and d2:
+                    intervalos.append((date.fromisoformat(d1), date.fromisoformat(d2)))
+            except (ValueError, TypeError):
+                continue
+        return intervalos
 
     def ultimo_envio_vencimiento(self) -> Importacion | None:
         stmt = (
