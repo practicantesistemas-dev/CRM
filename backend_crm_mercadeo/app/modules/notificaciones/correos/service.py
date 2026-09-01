@@ -9,6 +9,7 @@ from datetime import date, datetime, timedelta, timezone
 from sqlalchemy.orm import Session
 
 from app.core.email import enviar_correo_plantilla
+from app.core.exceptions import ForbiddenError
 from app.models import Importacion
 from app.modules.notificaciones.correos.repository import CorreosRepository
 from app.modules.notificaciones.correos.schemas import (
@@ -24,6 +25,10 @@ logger = logging.getLogger(__name__)
 
 PLANTILLA_VENCIMIENTO = "Vencimiento (1).html"
 ASUNTO_VENCIMIENTO = "Tu membresía Plan Liga está por vencer"
+
+# Permiso (modulo:accion en INTRANET_PERMISOS_APP) para disparar el envio de
+# recordatorios. Solo lo revisa el envio; ver la lista no lo exige.
+PERMISO_ENVIAR_RECORDATORIO = "recordatorios:gestionar"
 
 
 def _a_fecha(valor) -> date | None:
@@ -175,7 +180,21 @@ class CorreosService:
 
         Best-effort por destinatario. Registra la corrida en el historial y
         marca el rango [hoy - dias_vencidos, hoy + dias_previos] como cubierto.
+
+        Exige el permiso `recordatorios:gestionar` (defensa en profundidad: el
+        frontend ya oculta el boton, esto cubre una peticion armada a mano).
         """
+        from app.modules.auth.repository import AuthRepository
+
+        usuario_id = self.repository.obtener_usuario_id(username)
+        permisos = (
+            AuthRepository(self.db).obtener_permisos(usuario_id) if usuario_id else []
+        )
+        if PERMISO_ENVIAR_RECORDATORIO not in permisos:
+            raise ForbiddenError(
+                "No tienes permiso para enviar recordatorios de vencimiento."
+            )
+
         intervalos = self.repository.intervalos_cubiertos()
         filas = self.repository.listar_titulares_por_vencer(
             dias_previos, dias_vencidos, solo_con_correo=True
@@ -219,7 +238,6 @@ class CorreosService:
                 )
 
         hoy = datetime.now(timezone.utc).date()
-        usuario_id = self.repository.obtener_usuario_id(username)
         self.repository.registrar_envio_vencimiento(
             enviados,
             len(fallos),

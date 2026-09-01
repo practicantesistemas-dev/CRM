@@ -59,7 +59,7 @@ const menuGroups: MenuGroup[] = [
   ]},
   { label: 'Plan Liga', items: [
     { key: 'plan-liga',              label: 'Titulares y Beneficiarios',   icono: Heart,         modulo: 'planliga' },
-    { key: 'plan-liga-vencimientos', label: 'Recordatorios de vencimiento', icono: CalendarClock, modulo: 'planliga' },
+    { key: 'plan-liga-vencimientos', label: 'Recordatorios de vencimiento', icono: CalendarClock, modulo: 'recordatorios' },
   ]},
   { label: 'Comercial', items: [
     { key: 'contactos',        label: 'Contactos',                 icono: Users,           modulo: 'contactos'       },

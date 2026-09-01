@@ -12,7 +12,7 @@ import {
   type ListadoPorVencer, type EnvioResultado, type HistorialEnvioItem,
 } from '../services/vencimientos.api'
 
-const { ver: puedeVer, gestionar: puedeGestionar } = permisosDeModulo('planliga')
+const { ver: puedeVer, gestionar: puedeGestionar } = permisosDeModulo('recordatorios')
 
 const diasPrevios = ref(7)
 // 0 = no incluir titulares ya vencidos (los de hoy dejan de aparecer mañana).
