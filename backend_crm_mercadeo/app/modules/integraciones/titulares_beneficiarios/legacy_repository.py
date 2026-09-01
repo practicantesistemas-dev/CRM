@@ -69,6 +69,22 @@ class LegacyRepository:
         self.db.execute(stmt, {**datos, "USUARIO_ID": usuario_id})
         self.db.commit()
 
+    def marcar_correo_enviado_preplanliga(self, tipo: str, documento: str) -> int:
+        """Marca CORREO_ENVIADO = 'SI' en la fila de preplanliga del titular.
+        Se llama solo despues de enviar el correo de registro con exito (ver
+        TitularesBeneficiariosService.crear_titular). Si el correo no se envia,
+        la columna queda como estaba (NULL): no se escribe nada."""
+        stmt = text(
+            """
+            UPDATE INTRANET_PREPLANLIGA
+            SET CORREO_ENVIADO = 'SI'
+            WHERE TIPO = :tipo AND DOCUMENTO = :documento
+            """
+        )
+        resultado = self.db.execute(stmt, {"tipo": tipo, "documento": documento})
+        self.db.commit()
+        return resultado.rowcount
+
     def existe_usuario_servinte(self, tipo: str, documento: str) -> bool:
         stmt = text("SELECT PACNOM FROM ABPAC WHERE PACTID = :tipo AND PACIDE = :documento")
         fila = self.db.execute(stmt, {"tipo": tipo, "documento": documento}).first()

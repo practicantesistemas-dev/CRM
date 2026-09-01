@@ -133,6 +133,12 @@ class TitularesBeneficiariosService:
                     plantilla=PLANTILLA_CORREO_REGISTRO,
                     variables={"nombre": nombre_completo},
                 )
+                # Solo se marca 'SI' si el envio no lanzo: si Gmail falla o el
+                # titular no tiene correo, la columna CORREO_ENVIADO queda como
+                # estaba (sin escribir nada).
+                self.legacy_repository.marcar_correo_enviado_preplanliga(
+                    data.TIPO_DOCUMENTO, data.DOCUMENTO
+                )
             except Exception:
                 logger.exception(
                     "No se pudo enviar el correo de registro al titular %s", id_titular
