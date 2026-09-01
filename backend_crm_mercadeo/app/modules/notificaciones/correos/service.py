@@ -142,6 +142,10 @@ class CorreosService:
             dias_previos, dias_vencidos, solo_con_correo
         )
         items = [self._a_item(f, intervalos) for f in filas]
+        # Primero los pendientes (YA_ENVIADO=False), luego los ya avisados. El
+        # sort es estable: dentro de cada grupo se conserva el orden por
+        # FECHA_FIN / NOMBRE que trae la consulta.
+        items.sort(key=lambda i: i.YA_ENVIADO)
         nuevos = sum(1 for i in items if not i.YA_ENVIADO)
         return ListadoTitularesPorVencer(
             total=len(items),

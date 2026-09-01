@@ -34,6 +34,16 @@ class ImportacionRepository(BaseRepository[Importacion]):
 
     # Registro de auditoria (quien importo que, y con que resultado): se listan todas las de
     # todos los usuarios, no solo las del usuario que consulta.
+    #
+    # mercadeo_crm_historial_procesos es una tabla compartida: ademas de las
+    # importaciones guarda otros procesos por lote (ej. envio de correos de
+    # vencimiento del Plan Liga, tipo 'correo_vencimiento_plan_liga'). Esos NO
+    # son importaciones y no tienen archivo -> se filtran por archivo NOT NULL.
     def listar_recientes(self, limit: int = 50) -> list[Importacion]:
-        stmt = select(Importacion).order_by(Importacion.fecha.desc()).limit(limit)
+        stmt = (
+            select(Importacion)
+            .where(Importacion.archivo.isnot(None))
+            .order_by(Importacion.fecha.desc())
+            .limit(limit)
+        )
         return list(self.db.scalars(stmt))

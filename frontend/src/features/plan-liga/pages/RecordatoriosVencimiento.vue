@@ -2,7 +2,7 @@
 import { onMounted, ref, computed, watch } from 'vue'
 import {
   Clock, Mail, RefreshCw, Send, AlertTriangle, CheckCircle2, CalendarClock,
-  ChevronLeft, ChevronRight, ChevronDown, ArrowLeft, Zap,
+  ChevronLeft, ChevronRight, ChevronDown,
 } from 'lucide-vue-next'
 import ConfirmDialog from '@/shared/components/ConfirmDialog.vue'
 import SeccionColapsable from '@/shared/components/SeccionColapsable.vue'
@@ -12,11 +12,7 @@ import {
   type ListadoPorVencer, type EnvioResultado, type HistorialEnvioItem,
 } from '../services/vencimientos.api'
 
-const { ver: puedeVer, gestionar: puedeGestionar } = permisosDeModulo('automatizaciones')
-
-// Vista principal: lista de automatizaciones (solo hay una por ahora). Al
-// entrar en ella se muestra el detalle completo, con un boton para volver.
-const vista = ref<'lista' | 'detalle'>('lista')
+const { ver: puedeVer, gestionar: puedeGestionar } = permisosDeModulo('planliga')
 
 const diasPrevios = ref(7)
 // 0 = no incluir titulares ya vencidos (los de hoy dejan de aparecer mañana).
@@ -146,60 +142,8 @@ onMounted(() => {
     <p class="text-[13px] font-semibold text-subtle">Sin acceso a este módulo</p>
   </div>
 
-  <!-- Vista principal: lista de automatizaciones -->
-  <div v-else-if="vista === 'lista'" class="space-y-5 font-[Inter,system-ui,sans-serif]">
-    <div>
-      <h2 class="text-[18px] font-bold text-heading flex items-center gap-2">
-        <Zap :size="20" class="text-[#C9A227]" />
-        Automatizaciones
-      </h2>
-      <p class="text-[12px] text-body mt-0.5">
-        Procesos automáticos del CRM.
-      </p>
-    </div>
-
-    <button
-      type="button"
-      @click="vista = 'detalle'"
-      class="w-full surface-card rounded-2xl shadow-sm p-5 flex items-center gap-4 text-left hover:shadow-md transition-all"
-    >
-      <div class="w-11 h-11 rounded-xl bg-amber-50 dark:bg-amber-950/40 flex items-center justify-center shrink-0">
-        <CalendarClock :size="20" class="text-[#C9A227]" />
-      </div>
-      <div class="min-w-0 flex-1">
-        <h3 class="text-[14px] font-bold text-heading">Recordatorios de vencimiento · Plan Liga</h3>
-        <p class="text-[12px] text-muted mt-0.5">
-          Titulares con la membresía próxima a vencer. Excluye plan LIGA (empleados).
-        </p>
-        <p class="text-[11px] text-subtle mt-1.5">
-          <span class="font-semibold text-body">{{ nuevos }}</span> nuevos por enviar
-          <span class="text-muted">de {{ totalPendientes }} en la ventana</span> ·
-          último envío: <span class="font-semibold text-body">{{ fmtFecha(estado?.ultimo_envio ?? null) }}</span>
-        </p>
-        <p v-if="cubiertoHasta" class="text-[11px] text-amber-600 dark:text-amber-400 font-semibold mt-1">
-          Ya avisados los que vencen hasta el {{ fmtDia(cubiertoHasta) }}
-        </p>
-      </div>
-      <span class="shrink-0 h-8 px-3 rounded-lg bg-[#2447F9] text-white text-[11px] font-bold flex items-center">
-        Mostrar
-      </span>
-    </button>
-  </div>
-
-  <!-- Detalle: vista completa -->
   <div v-else class="space-y-5 font-[Inter,system-ui,sans-serif]">
-    <div class="pb-5 border-b border-slate-200 dark:border-slate-700">
-      <button
-        type="button"
-        @click="vista = 'lista'"
-        class="inline-flex items-center gap-2 h-10 px-4 rounded-lg bg-[#EC4899] hover:bg-[#D61F69] shadow transition-all"
-      >
-        <ArrowLeft :size="16" class="text-white" />
-        <span class="text-[12px] font-medium text-white">Volver a Automatizaciones</span>
-      </button>
-    </div>
-
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-2">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div>
         <h2 class="text-[18px] font-bold text-heading flex items-center gap-2">
           <CalendarClock :size="20" class="text-[#C9A227]" />
