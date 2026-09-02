@@ -32,34 +32,34 @@ const cuposTitular = (t: Titular, activosLocal: number) => ({
 <template>
   <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
     <div class="overflow-x-auto">
-      <table class="w-full min-w-[1000px]">
+      <table class="w-full min-w-[980px] table-fixed">
         <thead class="bg-[#F8FAFC] dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
           <tr>
-            <th class="text-left px-5 py-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Titular</th>
-            <th class="text-left px-4 py-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Documento</th>
-            <th class="text-left px-4 py-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Empresa</th>
-            <th class="text-left px-4 py-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Plan</th>
-            <th class="text-left px-4 py-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Beneficiarios</th>
-            <th class="text-left px-4 py-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Inscripción</th>
-            <th class="text-left px-4 py-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Estado</th>
-            <th class="text-right pl-5 pr-13 py-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Acciones</th>
+            <th class="text-left px-4 py-3 w-[200px] text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Titular</th>
+            <th class="text-left px-3 py-3 w-[105px] text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Documento</th>
+            <th class="text-left px-3 py-3 w-[115px] text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Empresa</th>
+            <th class="text-left px-3 py-3 w-[105px] text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Plan</th>
+            <th class="text-left px-3 py-3 w-[125px] text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Beneficiarios</th>
+            <th class="text-left px-3 py-3 w-[90px] text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Inscripción</th>
+            <th class="text-left px-3 py-3 w-[75px] text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Estado</th>
+            <th class="text-center px-4 py-3 w-[185px] text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Acciones</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
           <tr v-for="t in rows" :key="t.id" class="hover:bg-slate-50/60 dark:hover:bg-slate-700/40 transition-colors group">
-            <td class="px-5 py-3.5">
-              <div class="flex items-center gap-3">
-                <PersonaAvatar :nombre="t.nombre" />
-                <div>
-                  <div class="text-[12px] font-semibold text-[#0F172A] dark:text-slate-100">{{ t.nombre }}</div>
-                  <div class="text-[10px] text-slate-400 dark:text-slate-500">{{ t.correo }}</div>
-                  <div class="text-[10px] text-slate-400 dark:text-slate-500">{{ t.telefono }}</div>
+            <td class="px-4 py-3.5 align-top">
+              <div class="flex items-start gap-2.5">
+                <PersonaAvatar :nombre="t.nombre" class="shrink-0" />
+                <div class="min-w-0">
+                  <div class="text-[12px] font-semibold text-[#0F172A] dark:text-slate-100 break-words leading-tight">{{ t.nombre }}</div>
+                  <div class="text-[10px] text-slate-400 dark:text-slate-500 truncate">{{ t.correo }}</div>
+                  <div class="text-[10px] text-slate-400 dark:text-slate-500 truncate">{{ t.telefono }}</div>
                 </div>
               </div>
             </td>
-            <td class="px-4 py-3.5 text-[11px] text-slate-600 dark:text-slate-300 font-medium">{{ t.documento }}</td>
-            <td class="px-4 py-3.5 text-[11px] text-slate-600 dark:text-slate-300 truncate max-w-[140px]">{{ t.empresa }}</td>
-            <td class="px-4 py-3.5">
+            <td class="px-3 py-3.5 align-top text-[11px] text-slate-600 dark:text-slate-300 font-medium break-words">{{ t.documento }}</td>
+            <td class="px-3 py-3.5 align-top text-[11px] text-slate-600 dark:text-slate-300 truncate">{{ t.empresa }}</td>
+            <td class="px-3 py-3.5 align-top">
               <div v-if="t.planesDetalle?.length" class="flex flex-col gap-0.5">
                 <span v-for="(p, i) in t.planesDetalle" :key="p.nombre || i" class="text-[11px] font-semibold" :class="planStyle(p.nombre || 'Estándar')">
                   {{ p.nombre || 'Estándar' }}
@@ -74,12 +74,12 @@ const cuposTitular = (t: Titular, activosLocal: number) => ({
               </div>
               <button @click="emit('beneficiarios', t)" class="text-[10px] text-[#2447F9] dark:text-blue-400 hover:underline mt-0.5 block cursor-pointer">Ver beneficiarios</button>
             </td>
-            <td class="px-4 py-3.5 text-[11px] text-slate-500 dark:text-slate-400">{{ t.fechaInscripcion }}</td>
-            <td class="px-4 py-3.5">
+            <td class="px-3 py-3.5 align-top text-[11px] text-slate-500 dark:text-slate-400">{{ t.fechaInscripcion }}</td>
+            <td class="px-3 py-3.5 align-top">
               <span class="text-[11px] font-semibold" :class="estadoTitularStyle(t.estado)">{{ t.estado }}</span>
             </td>
-            <td class="px-5 py-3.5 text-right">
-              <div class="flex items-center justify-end gap-1 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
+            <td class="px-4 py-3.5 align-top text-center whitespace-nowrap">
+              <div class="inline-flex items-center justify-center gap-1">
                 <button v-if="puedeGestionar" @click="emit('seguimiento', t)"
                   class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-[#D1FAE5] dark:hover:bg-emerald-950/50 hover:text-[#059669] dark:hover:text-emerald-400 text-slate-500 dark:text-slate-400 flex items-center justify-center transition-all"
                   title="Registrar seguimiento">
