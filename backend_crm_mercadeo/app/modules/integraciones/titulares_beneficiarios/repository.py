@@ -858,11 +858,15 @@ class TitularesBeneficiariosRepository:
     # los beneficiarios ACTIVOS de esos titulares (coincidencia exacta con
     # EMPRESA, no LIKE: el valor viene del selector de razon_social del
     # catalogo de Empresas, que se importa desde este mismo texto).
+    #
+    # Cambiar la fecha de ingreso en masa es, en la practica, renovar el grupo
+    # completo -> tambien se marca RENOVADO = 'S' en titular y beneficiario
+    # (mismo criterio que activar_titular / activar_beneficiarios).
     def cambiar_fecha_ingreso_grupo(self, empresa: str, fecha_ingreso: date) -> tuple[int, int]:
         stmt_titulares = (
             update(PlanLiga)
             .where(PlanLiga.empresa == empresa, PlanLiga.estado == ESTADO_ACTIVO)
-            .values(fecha_ingreso=fecha_ingreso)
+            .values(fecha_ingreso=fecha_ingreso, renovado="S")
         )
         resultado_titulares = self.db.execute(stmt_titulares)
 
@@ -875,7 +879,7 @@ class TitularesBeneficiariosRepository:
                 PlanLigaBeneficiario.planliga_id.in_(ids_titulares),
                 PlanLigaBeneficiario.estado == ESTADO_ACTIVO,
             )
-            .values(fecha_ingreso=fecha_ingreso)
+            .values(fecha_ingreso=fecha_ingreso, renovado="S")
         )
         resultado_beneficiarios = self.db.execute(stmt_beneficiarios)
 
