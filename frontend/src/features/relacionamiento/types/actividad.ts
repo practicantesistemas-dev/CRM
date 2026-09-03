@@ -1,4 +1,4 @@
-export type TipoActividad = 'Llamada' | 'Correo' | 'Reunión' | 'WhatsApp' | 'Nota'
+export type TipoActividad = 'Llamada' | 'Correo' | 'Reunión' | 'WhatsApp' | 'Mensaje' | 'Nota'
 export type EstadoActividad = 'pendiente' | 'realizado'
 
 export interface Actividad {

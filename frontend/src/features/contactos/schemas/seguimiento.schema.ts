@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 export const seguimientoSchema = z.object({
-  tipo: z.enum(['Llamada', 'Correo', 'Reunión', 'WhatsApp', 'Nota']),
+  tipo: z.enum(['Llamada', 'Correo', 'Reunión', 'WhatsApp', 'Mensaje', 'Nota']),
   accion: z.string().trim().min(5, 'Describe la actividad realizada (mín. 5 caracteres)'),
   proximoPaso: z.string().trim(),
   proximoPasoFecha: z.string().trim(),

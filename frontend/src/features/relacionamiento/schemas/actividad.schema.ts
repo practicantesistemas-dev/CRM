@@ -3,7 +3,7 @@ import { z } from 'zod'
 const MENSAJE_SUJETO = 'Selecciona al menos un contacto, empresa o titular Plan Liga'
 
 export const actividadSchema = z.object({
-  tipo: z.enum(['Llamada', 'Correo', 'Reunión', 'WhatsApp', 'Nota']),
+  tipo: z.enum(['Llamada', 'Correo', 'Reunión', 'WhatsApp', 'Mensaje', 'Nota']),
   contactoId: z.number().int().positive().nullable(),
   contactoNombre: z.string().trim(),
   empresaNombre: z.string().trim(),

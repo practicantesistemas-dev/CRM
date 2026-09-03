@@ -11,6 +11,7 @@ class TipoActividadBitacora(str, Enum):
     CORREO = "correo"
     REUNION = "reunion"
     WHATSAPP = "whatsapp"
+    MENSAJE = "mensaje"
     NOTA = "nota"
 
 

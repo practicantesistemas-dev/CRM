@@ -24,7 +24,7 @@ export interface HistorialItem {
 }
 
 export interface SeguimientoEmpresaDraft {
-  tipo: 'Llamada' | 'Correo' | 'Reunión' | 'WhatsApp' | 'Nota'
+  tipo: 'Llamada' | 'Correo' | 'Reunión' | 'WhatsApp' | 'Mensaje' | 'Nota'
   accion: string
   proximoPaso: string
   /** Fecha límite del próximo paso; '' si no se definió una. */

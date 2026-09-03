@@ -1,4 +1,4 @@
-import { Phone, Mail, Calendar, MessageCircle, FileText } from 'lucide-vue-next'
+import { Phone, Mail, Calendar, MessageCircle, MessageSquare, FileText } from 'lucide-vue-next'
 import type { Contacto, ContactoDraft, TipoSeguimiento } from '../types/contacto'
 
 export const CONTACTO_DRAFT_VACIO: ContactoDraft = {
@@ -21,6 +21,7 @@ export const TIPOS_SEGUIMIENTO_META: Record<TipoSeguimiento, { icono: unknown; c
   'Correo':   { icono: Mail,           color: '#EC4899', bg: '#FCE7F3' },
   'Reunión':  { icono: Calendar,       color: '#C9A227', bg: '#FEF9C3' },
   'WhatsApp': { icono: MessageCircle,  color: '#059669', bg: '#D1FAE5' },
+  'Mensaje':  { icono: MessageSquare,  color: '#7C3AED', bg: '#F3E8FF' },
   'Nota':     { icono: FileText,       color: '#1A2A6C', bg: '#E8EAF6' },
 }
 

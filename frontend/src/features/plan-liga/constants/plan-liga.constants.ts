@@ -1,4 +1,4 @@
-import { Phone, Mail, Calendar, MessageCircle, FileText } from 'lucide-vue-next'
+import { Phone, Mail, Calendar, MessageCircle, MessageSquare, FileText } from 'lucide-vue-next'
 import type {
   Beneficiario, BeneficiarioDraft, OpcionImportacion, Titular, TitularDraft, TipoSeguimiento, ReemplazoPersonaDraft,
 } from '../types/plan-liga'
@@ -56,6 +56,7 @@ export const TIPO_SEG_META: Record<TipoSeguimiento, { icono: unknown; color: str
   'Correo':   { icono: Mail,          color: '#EC4899' },
   'Reunión':  { icono: Calendar,      color: '#C9A227' },
   'WhatsApp': { icono: MessageCircle, color: '#059669' },
+  'Mensaje':  { icono: MessageSquare, color: '#7C3AED' },
   'Nota':     { icono: FileText,      color: '#1A2A6C' },
 }
 

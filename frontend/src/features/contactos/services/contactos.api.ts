@@ -296,7 +296,7 @@ interface BitacoraContactoApiItem {
 // documentado en relacionamiento.api.ts), así que se normaliza antes de mapear al ícono/color.
 const normalizarTipoSeguimiento = (tipo: string) => tipo.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
 const TIPO_SEG_DESDE_API: Record<string, TipoSeguimiento> = {
-  llamada: 'Llamada', correo: 'Correo', reunion: 'Reunión', whatsapp: 'WhatsApp', nota: 'Nota',
+  llamada: 'Llamada', correo: 'Correo', reunion: 'Reunión', whatsapp: 'WhatsApp', mensaje: 'Mensaje', nota: 'Nota',
 }
 
 export async function getBitacoraContacto(contactoId: number, limit = 4): Promise<HistorialItem[]> {

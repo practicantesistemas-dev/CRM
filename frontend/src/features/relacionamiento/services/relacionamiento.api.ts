@@ -38,10 +38,10 @@ const normalizarTipo = (tipo: string) => tipo
   .normalize('NFD').replace(/[̀-ͯ]/g, '')
 
 const TIPO_DESDE_API: Record<string, TipoActividad> = {
-  llamada: 'Llamada', correo: 'Correo', reunion: 'Reunión', whatsapp: 'WhatsApp', nota: 'Nota',
+  llamada: 'Llamada', correo: 'Correo', reunion: 'Reunión', whatsapp: 'WhatsApp', mensaje: 'Mensaje', nota: 'Nota',
 }
 const TIPO_A_API: Record<TipoActividad, string> = {
-  Llamada: 'llamada', Correo: 'correo', Reunión: 'reunion', WhatsApp: 'whatsapp', Nota: 'nota',
+  Llamada: 'llamada', Correo: 'correo', Reunión: 'reunion', WhatsApp: 'whatsapp', Mensaje: 'mensaje', Nota: 'nota',
 }
 
 async function lanzarErrorConDetalle(response: Response, mensajeError: string): Promise<never> {

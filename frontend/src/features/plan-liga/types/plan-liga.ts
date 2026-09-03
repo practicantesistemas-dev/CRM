@@ -91,7 +91,7 @@ export interface ReemplazoBeneficiarioResultado {
   registrosIncleMarcadosAnterior: number
 }
 
-export type TipoSeguimiento = 'Llamada' | 'Correo' | 'Reunión' | 'WhatsApp' | 'Nota'
+export type TipoSeguimiento = 'Llamada' | 'Correo' | 'Reunión' | 'WhatsApp' | 'Mensaje' | 'Nota'
 
 export interface SeguimientoDraft {
   tipo: TipoSeguimiento

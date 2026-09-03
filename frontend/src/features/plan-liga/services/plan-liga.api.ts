@@ -616,7 +616,7 @@ export async function getPlanesServicio(): Promise<PlanServicio[]> {
 }
 
 const TIPO_SEG_API: Record<TipoSeguimiento, string> = {
-  Llamada: 'llamada', Correo: 'correo', Reunión: 'reunion', WhatsApp: 'whatsapp', Nota: 'nota',
+  Llamada: 'llamada', Correo: 'correo', Reunión: 'reunion', WhatsApp: 'whatsapp', Mensaje: 'mensaje', Nota: 'nota',
 }
 
 // El backend solo tiene "proximo_paso" como texto libre (sin campo propio para su fecha

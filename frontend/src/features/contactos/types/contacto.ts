@@ -45,7 +45,7 @@ export interface Contacto {
 // son el código (los Select del formulario usan option-value="codigo" directamente).
 export type ContactoDraft = Omit<Contacto, 'id' | 'responsable' | 'ciudadCodigo' | 'departamentoCodigo' | 'empresaNombre'>
 
-export type TipoSeguimiento = 'Llamada' | 'Correo' | 'Reunión' | 'WhatsApp' | 'Nota'
+export type TipoSeguimiento = 'Llamada' | 'Correo' | 'Reunión' | 'WhatsApp' | 'Mensaje' | 'Nota'
 
 export interface SeguimientoDraft {
   tipo: TipoSeguimiento
