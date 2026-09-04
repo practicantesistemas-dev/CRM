@@ -7,8 +7,11 @@ from app.modules.notificaciones.correos.schemas import (
     CorreoBienvenida,
     CorreoEnviadoResultado,
     CorreoRegistro,
+    EnvioEmpresaRequest,
+    EnvioEmpresaResultado,
     EnvioRecordatoriosResultado,
     HistorialEnvioItem,
+    ListadoEmpresasPorVencer,
     ListadoTitularesPorVencer,
 )
 from app.modules.notificaciones.correos.service import CorreosService
@@ -52,25 +55,28 @@ def enviar_registro(data: CorreoRegistro) -> CorreoEnviadoResultado:
 
 
 # Lista los titulares con plan por vencer / recien vencido (excluye TIPO_PLAN
-# 'LIGA' = empleados). Cada item trae NOMBRE / DIAS / FECHA_FIN_TXT listos para
-# la plantilla "Vencimiento (1).html", mas el estado de la ultima corrida de
-# envio. NO envia nada.
+# 'LIGA' = empleados). `segmento` separa 'particular' (default; sin empresa
+# asociada) de 'empresa'. Cada item trae NOMBRE / DIAS / FECHA_FIN_TXT listos
+# para la plantilla "Vencimiento (1).html", mas el estado de la ultima corrida
+# de envio. NO envia nada.
 @router.get("/vencimiento/pendientes", response_model=ListadoTitularesPorVencer)
 def listar_pendientes_vencimiento(
     dias_previos: int = 7,
     dias_vencidos: int = 0,
     solo_con_correo: bool = True,
+    segmento: str = "particular",
     service: CorreosService = Depends(get_correos_service),
 ) -> ListadoTitularesPorVencer:
     return service.listar_titulares_por_vencer(
-        dias_previos, dias_vencidos, solo_con_correo
+        dias_previos, dias_vencidos, solo_con_correo, segmento=segmento
     )
 
 
-# Boton manual: envia el correo de vencimiento a los titulares de la ventana.
-# Por defecto SOLO a los que no lo recibieron aun (incluir_ya_enviados=false);
-# con incluir_ya_enviados=true reenvia a todos los de la ventana. Best-effort
-# por destinatario; guarda la corrida en el historial.
+# Boton manual: envia el correo de vencimiento a los titulares PARTICULARES
+# (sin empresa) de la ventana. Por defecto SOLO a los que no lo recibieron aun
+# (incluir_ya_enviados=false); con incluir_ya_enviados=true reenvia a todos los
+# de la ventana. Best-effort por destinatario; guarda la corrida en el
+# historial. Los titulares de empresa NUNCA se tocan aca, ver /empresas/enviar.
 @router.post("/vencimiento/enviar", response_model=EnvioRecordatoriosResultado)
 def enviar_recordatorios_vencimiento(
     dias_previos: int = 7,
@@ -92,3 +98,33 @@ def historial_vencimiento(
     service: CorreosService = Depends(get_correos_service),
 ) -> list[HistorialEnvioItem]:
     return service.historial_envios(limit)
+
+
+# Titulares de convenio empresarial (con EMPRESA) por vencer, agrupados por
+# empresa. NO envia nada; a cada empresa se le avisa a mano desde
+# /vencimiento/empresas/enviar, no al correo personal de sus titulares.
+@router.get("/vencimiento/empresas", response_model=ListadoEmpresasPorVencer)
+def listar_empresas_vencimiento(
+    dias_previos: int = 7,
+    dias_vencidos: int = 0,
+    service: CorreosService = Depends(get_correos_service),
+) -> ListadoEmpresasPorVencer:
+    return service.listar_empresas_por_vencer(dias_previos, dias_vencidos)
+
+
+# Envia UN correo con el listado de titulares de `empresa` por vencer en la
+# ventana pedida, a los `destinatarios` que el usuario escriba a mano (la
+# empresa o su encargado de bienestar/RR. HH.), no al correo del titular.
+@router.post("/vencimiento/empresas/enviar", response_model=EnvioEmpresaResultado)
+def enviar_recordatorio_empresa(
+    data: EnvioEmpresaRequest,
+    username: str = Depends(get_current_username),
+    service: CorreosService = Depends(get_correos_service),
+) -> EnvioEmpresaResultado:
+    return service.enviar_recordatorio_empresa(
+        username,
+        data.empresa,
+        [str(d) for d in data.destinatarios],
+        data.dias_previos,
+        data.dias_vencidos,
+    )

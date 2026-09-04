@@ -102,3 +102,36 @@ class HistorialEnvioItem(BaseModel):
     dias_previos: Optional[int] = None
     dias_vencidos: Optional[int] = None
     fallos: list[FalloEnvio]
+
+
+class EmpresaPorVencer(BaseModel):
+    """Una empresa con uno o mas titulares (Plan Liga Empresarial) por vencer
+    en la ventana consultada."""
+
+    EMPRESA: str
+    TOTAL: int
+    titulares: list[TitularPorVencer]
+
+
+class ListadoEmpresasPorVencer(BaseModel):
+    total_empresas: int
+    total_titulares: int
+    dias_previos: int
+    dias_vencidos: int
+    empresas: list[EmpresaPorVencer]
+
+
+class EnvioEmpresaRequest(BaseModel):
+    empresa: str
+    # El destinatario es manual: la empresa o el encargado de bienestar/RR. HH.,
+    # no el correo personal de cada titular.
+    destinatarios: list[EmailStr]
+    dias_previos: int = 7
+    dias_vencidos: int = 0
+
+
+class EnvioEmpresaResultado(BaseModel):
+    enviado: bool = True
+    empresa: str
+    destinatarios: list[str]
+    total_titulares: int

@@ -25,6 +25,8 @@ class CorreosRepository:
         dias_previos: int = 7,
         dias_vencidos: int = 1,
         solo_con_correo: bool = True,
+        segmento: str = "particular",
+        empresa: str | None = None,
     ) -> list[dict]:
         """Titulares ACTIVOS cuyo plan vence entre `dias_vencidos` dias en el
         pasado y `dias_previos` dias en el futuro.
@@ -36,10 +38,21 @@ class CorreosRepository:
         Se excluyen los titulares con TIPO_PLAN 'LIGA': son empleados de la
         Liga, no se les manda recordatorio de renovacion.
 
+        `segmento` separa 'particular' (sin EMPRESA asociada, se les avisa uno
+        a uno a su propio correo) de 'empresa' (con EMPRESA, se agrupan y el
+        aviso se manda a un contacto de la empresa, no a cada titular). 'todos'
+        no filtra por esto. `empresa` ademas acota a una empresa puntual (para
+        el detalle y el envio manual del recordatorio empresarial).
+
         DIAS es negativo si ya vencio (ej. -1 = vencio ayer), 0 si vence hoy.
         """
+        filtro_segmento = {
+            "particular": "AND NVL(TRIM(p.EMPRESA), ' ') = ' '",
+            "empresa": "AND NVL(TRIM(p.EMPRESA), ' ') <> ' '",
+        }.get(segmento, "")
+
         stmt = text(
-            """
+            f"""
             SELECT
                 p.ID,
                 p.TIPO,
@@ -58,6 +71,8 @@ class CorreosRepository:
             WHERE p.ESTADO = 'A'
               AND p.FECHA_INGRESO IS NOT NULL
               AND UPPER(TRIM(NVL(p.TIPO_PLAN, ' '))) <> 'LIGA'
+              {filtro_segmento}
+              AND (:empresa IS NULL OR UPPER(TRIM(p.EMPRESA)) = UPPER(TRIM(:empresa)))
               AND TRUNC(ADD_MONTHS(p.FECHA_INGRESO, 12))
                     BETWEEN TRUNC(SYSDATE) - :dias_vencidos
                         AND TRUNC(SYSDATE) + :dias_previos
@@ -73,6 +88,7 @@ class CorreosRepository:
                     "dias_previos": dias_previos,
                     "dias_vencidos": dias_vencidos,
                     "solo_con_correo": 1 if solo_con_correo else 0,
+                    "empresa": empresa,
                 },
             )
             .mappings()

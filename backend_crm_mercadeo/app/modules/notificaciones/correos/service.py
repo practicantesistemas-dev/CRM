@@ -9,14 +9,17 @@ from datetime import date, datetime, timedelta, timezone
 from sqlalchemy.orm import Session
 
 from app.core.email import enviar_correo_plantilla
-from app.core.exceptions import ForbiddenError
+from app.core.exceptions import ForbiddenError, NotFoundError
 from app.models import Importacion
 from app.modules.notificaciones.correos.repository import CorreosRepository
 from app.modules.notificaciones.correos.schemas import (
+    EmpresaPorVencer,
+    EnvioEmpresaResultado,
     EnvioRecordatoriosResultado,
     EstadoUltimoEnvio,
     FalloEnvio,
     HistorialEnvioItem,
+    ListadoEmpresasPorVencer,
     ListadoTitularesPorVencer,
     TitularPorVencer,
 )
@@ -25,6 +28,8 @@ logger = logging.getLogger(__name__)
 
 PLANTILLA_VENCIMIENTO = "Vencimiento (1).html"
 ASUNTO_VENCIMIENTO = "Tu membresía Plan Liga está por vencer"
+
+PLANTILLA_VENCIMIENTO_EMPRESA = "Vencimiento Empresa (1).html"
 
 # Permiso (modulo:accion en INTRANET_PERMISOS_APP) para disparar el envio de
 # recordatorios. Solo lo revisa el envio; ver la lista no lo exige.
@@ -141,10 +146,11 @@ class CorreosService:
         dias_previos: int = 7,
         dias_vencidos: int = 0,
         solo_con_correo: bool = True,
+        segmento: str = "particular",
     ) -> ListadoTitularesPorVencer:
         intervalos = self.repository.intervalos_cubiertos()
         filas = self.repository.listar_titulares_por_vencer(
-            dias_previos, dias_vencidos, solo_con_correo
+            dias_previos, dias_vencidos, solo_con_correo, segmento=segmento
         )
         items = [self._a_item(f, intervalos) for f in filas]
         # Primero los pendientes (YA_ENVIADO=False), luego los ya avisados. El
@@ -163,27 +169,40 @@ class CorreosService:
         )
 
     # ------------------------------------------------------------------
-    # Envio (boton manual)
+    # Empresas (agrupado, envio manual a un contacto)
     # ------------------------------------------------------------------
-    def enviar_recordatorios_vencimiento(
-        self,
-        username: str,
-        dias_previos: int = 7,
-        dias_vencidos: int = 0,
-        incluir_ya_enviados: bool = False,
-    ) -> EnvioRecordatoriosResultado:
-        """Envia el correo de vencimiento a los titulares de la ventana pedida.
+    def listar_empresas_por_vencer(
+        self, dias_previos: int = 7, dias_vencidos: int = 0
+    ) -> ListadoEmpresasPorVencer:
+        """Titulares de un convenio empresarial (con EMPRESA) por vencer,
+        agrupados por empresa. No se filtra por correo propio: a estos no se
+        les avisa a su correo personal, sino a un contacto de la empresa."""
+        filas = self.repository.listar_titulares_por_vencer(
+            dias_previos, dias_vencidos, solo_con_correo=False, segmento="empresa"
+        )
+        # Sin intervalos: YA_ENVIADO no aplica al recordatorio empresarial
+        # (el historial de "cubierto" es del envio particular a cada titular).
+        items = [self._a_item(f, intervalos=[]) for f in filas]
 
-        Por defecto SOLO a los que todavia no lo recibieron (su FECHA_FIN no
-        cae en ningun rango ya cubierto por un envio anterior). Con
-        `incluir_ya_enviados=True` se reenvia a todos los de la ventana.
+        agrupado: dict[str, list[TitularPorVencer]] = {}
+        for item in items:
+            agrupado.setdefault(item.EMPRESA or "Sin empresa", []).append(item)
 
-        Best-effort por destinatario. Registra la corrida en el historial y
-        marca el rango [hoy - dias_vencidos, hoy + dias_previos] como cubierto.
+        empresas = [
+            EmpresaPorVencer(EMPRESA=nombre, TOTAL=len(titulares), titulares=titulares)
+            for nombre, titulares in agrupado.items()
+        ]
+        empresas.sort(key=lambda e: min(t.DIAS for t in e.titulares))
 
-        Exige el permiso `recordatorios:gestionar` (defensa en profundidad: el
-        frontend ya oculta el boton, esto cubre una peticion armada a mano).
-        """
+        return ListadoEmpresasPorVencer(
+            total_empresas=len(empresas),
+            total_titulares=len(items),
+            dias_previos=dias_previos,
+            dias_vencidos=dias_vencidos,
+            empresas=empresas,
+        )
+
+    def _verificar_permiso_envio(self, username: str) -> None:
         from app.modules.auth.repository import AuthRepository
 
         usuario_id = self.repository.obtener_usuario_id(username)
@@ -195,9 +214,85 @@ class CorreosService:
                 "No tienes permiso para enviar recordatorios de vencimiento."
             )
 
+    @staticmethod
+    def _texto_dias(item: TitularPorVencer) -> str:
+        if item.DIAS < 0:
+            return f"venció hace {-item.DIAS} día{'s' if -item.DIAS != 1 else ''}"
+        if item.DIAS == 0:
+            return "vence hoy"
+        return f"faltan {item.DIAS} día{'s' if item.DIAS != 1 else ''}"
+
+    def enviar_recordatorio_empresa(
+        self,
+        username: str,
+        empresa: str,
+        destinatarios: list[str],
+        dias_previos: int = 7,
+        dias_vencidos: int = 0,
+    ) -> EnvioEmpresaResultado:
+        """Manda UN correo (a los `destinatarios` dados a mano: la empresa o su
+        encargado) con el listado de titulares de esa empresa por vencer en la
+        ventana pedida. No usa el correo personal de los titulares."""
+        self._verificar_permiso_envio(username)
+
+        filas = self.repository.listar_titulares_por_vencer(
+            dias_previos,
+            dias_vencidos,
+            solo_con_correo=False,
+            segmento="empresa",
+            empresa=empresa,
+        )
+        items = [self._a_item(f, intervalos=[]) for f in filas]
+        if not items:
+            raise NotFoundError(
+                f'No hay titulares de "{empresa}" por vencer en esa ventana.'
+            )
+
+        lista_html = "".join(
+            f'<li style="margin: 0 0 8px 0;">{item.NOMBRE} — vence el '
+            f"{item.FECHA_FIN_TXT} ({self._texto_dias(item)})</li>"
+            for item in items
+        )
+        enviar_correo_plantilla(
+            destinatarios=destinatarios,
+            asunto=f"Colaboradores de {empresa} con Plan Liga Empresarial por vencer",
+            plantilla=PLANTILLA_VENCIMIENTO_EMPRESA,
+            variables={"empresa": empresa, "lista": lista_html, "total": len(items)},
+        )
+        return EnvioEmpresaResultado(
+            empresa=empresa, destinatarios=destinatarios, total_titulares=len(items)
+        )
+
+    # ------------------------------------------------------------------
+    # Envio (boton manual) — SOLO particulares (sin EMPRESA); a los de
+    # empresa se les avisa por enviar_recordatorio_empresa, no aca.
+    # ------------------------------------------------------------------
+    def enviar_recordatorios_vencimiento(
+        self,
+        username: str,
+        dias_previos: int = 7,
+        dias_vencidos: int = 0,
+        incluir_ya_enviados: bool = False,
+    ) -> EnvioRecordatoriosResultado:
+        """Envia el correo de vencimiento a los titulares PARTICULARES (sin
+        empresa asociada) de la ventana pedida.
+
+        Por defecto SOLO a los que todavia no lo recibieron (su FECHA_FIN no
+        cae en ningun rango ya cubierto por un envio anterior). Con
+        `incluir_ya_enviados=True` se reenvia a todos los de la ventana.
+
+        Best-effort por destinatario. Registra la corrida en el historial y
+        marca el rango [hoy - dias_vencidos, hoy + dias_previos] como cubierto.
+
+        Exige el permiso `recordatorios:gestionar` (defensa en profundidad: el
+        frontend ya oculta el boton, esto cubre una peticion armada a mano).
+        """
+        self._verificar_permiso_envio(username)
+        usuario_id = self.repository.obtener_usuario_id(username)
+
         intervalos = self.repository.intervalos_cubiertos()
         filas = self.repository.listar_titulares_por_vencer(
-            dias_previos, dias_vencidos, solo_con_correo=True
+            dias_previos, dias_vencidos, solo_con_correo=True, segmento="particular"
         )
         items = [self._a_item(f, intervalos) for f in filas]
 

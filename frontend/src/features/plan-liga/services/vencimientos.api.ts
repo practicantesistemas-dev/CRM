@@ -71,11 +71,14 @@ async function parseError(response: Response, fallback: string): Promise<never> 
   throw new Error(detail ?? fallback)
 }
 
+// Titulares particulares (sin empresa asociada): es el flujo de siempre, con
+// envío automático a su propio correo.
 export async function getPorVencer(opts: Opciones = {}): Promise<ListadoPorVencer> {
   const params = new URLSearchParams({
     dias_previos: String(opts.diasPrevios ?? 7),
     dias_vencidos: String(opts.diasVencidos ?? 0),
     solo_con_correo: 'true',
+    segmento: 'particular',
   })
   const response = await fetch(
     `${API_URL}/api/correos/vencimiento/pendientes?${params}`,
@@ -116,5 +119,65 @@ export async function getHistorialEnvios(limit = 20): Promise<HistorialEnvioItem
     { headers: authHeader() },
   )
   if (!response.ok) await parseError(response, 'No se pudo cargar el historial de envíos.')
+  return response.json()
+}
+
+// ---------------------------------------------------------------------------
+// Empresas (convenio Plan Liga Empresarial): agrupado por empresa, el envío
+// es manual a un destinatario que se escribe a mano (la empresa o su
+// encargado), no al correo personal de cada titular.
+// ---------------------------------------------------------------------------
+
+export interface EmpresaPorVencer {
+  EMPRESA: string
+  TOTAL: number
+  titulares: TitularPorVencer[]
+}
+
+export interface ListadoEmpresasPorVencer {
+  total_empresas: number
+  total_titulares: number
+  dias_previos: number
+  dias_vencidos: number
+  empresas: EmpresaPorVencer[]
+}
+
+export async function getEmpresasPorVencer(opts: Opciones = {}): Promise<ListadoEmpresasPorVencer> {
+  const params = new URLSearchParams({
+    dias_previos: String(opts.diasPrevios ?? 7),
+    dias_vencidos: String(opts.diasVencidos ?? 0),
+  })
+  const response = await fetch(
+    `${API_URL}/api/correos/vencimiento/empresas?${params}`,
+    { headers: authHeader() },
+  )
+  if (!response.ok) await parseError(response, 'No se pudo cargar la lista de empresas por vencer.')
+  return response.json()
+}
+
+export interface EnvioEmpresaResultado {
+  enviado: boolean
+  empresa: string
+  destinatarios: string[]
+  total_titulares: number
+}
+
+export async function enviarRecordatorioEmpresa(data: {
+  empresa: string
+  destinatarios: string[]
+  diasPrevios?: number
+  diasVencidos?: number
+}): Promise<EnvioEmpresaResultado> {
+  const response = await fetch(`${API_URL}/api/correos/vencimiento/empresas/enviar`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeader() },
+    body: JSON.stringify({
+      empresa: data.empresa,
+      destinatarios: data.destinatarios,
+      dias_previos: data.diasPrevios ?? 7,
+      dias_vencidos: data.diasVencidos ?? 0,
+    }),
+  })
+  if (!response.ok) await parseError(response, 'No se pudo enviar el recordatorio a la empresa.')
   return response.json()
 }
