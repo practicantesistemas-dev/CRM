@@ -172,7 +172,7 @@ async function enviar() {
             {{ error }}
           </div>
 
-          <p class="text-[10px] text-faint">
+          <p class="text-[10px] text-muted">
             Por ahora el envío es una simulación (solo front). Cuando esté el backend, este mismo botón manda el correo real.
           </p>
         </template>

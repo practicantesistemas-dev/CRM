@@ -90,9 +90,18 @@ const menuGroupsVisibles = computed<MenuGroup[]>(() =>
 // ── Tabs ──────────────────────────────────────────────────────────
 const MAX_TABS = 4
 const tabs = ref<Tab[]>([])
+
+// El hub "Embudos" tiene varias sub-vistas (/embudos/*, /segmentos): todas
+// mantienen "Embudos" activo en el menú y comparten una sola pestaña.
+const rutaAVista = (path: string): Vista => {
+  const p = path.replace(/^\//, '') || 'dashboard'
+  if (p === 'embudos' || p.startsWith('embudos/') || p === 'segmentos') return 'embudos'
+  return p as Vista
+}
+
 // La pestaña activa se deriva siempre de la ruta (no de un índice guardado aparte),
 // así que reordenar las pestañas por drag & drop nunca desincroniza cuál está activa.
-const vistaActiva  = computed<Vista>(() => (route.path.replace(/^\//, '') || 'dashboard') as Vista)
+const vistaActiva  = computed<Vista>(() => rutaAVista(route.path))
 const activeTabIdx = computed(() => tabs.value.findIndex(t => t.key === vistaActiva.value))
 
 const findMenuItem = (key: string): Tab | undefined => {
@@ -105,7 +114,7 @@ const findMenuItem = (key: string): Tab | undefined => {
 
 // Sincroniza las pestañas con la ruta activa (deep-linking / navegación directa por URL).
 watch(() => route.path, (path, pathAnterior) => {
-  const key = (path.replace(/^\//, '') || 'dashboard') as Vista
+  const key = rutaAVista(path)
   if (tabs.value.some(t => t.key === key)) return
 
   const item = findMenuItem(key)
@@ -117,7 +126,7 @@ watch(() => route.path, (path, pathAnterior) => {
   }
 
   // Al tope de pestañas: reemplaza la que estaba activa antes de esta navegación.
-  const keyAnterior = ((pathAnterior ?? '').replace(/^\//, '') || 'dashboard') as Vista
+  const keyAnterior = pathAnterior ? rutaAVista(pathAnterior) : 'dashboard'
   const idxAnterior = tabs.value.findIndex(t => t.key === keyAnterior)
   tabs.value.splice(idxAnterior !== -1 ? idxAnterior : 0, 1, item)
 }, { immediate: true })
