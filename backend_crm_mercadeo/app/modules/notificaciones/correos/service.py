@@ -9,12 +9,11 @@ from datetime import date, datetime, timedelta, timezone
 from sqlalchemy.orm import Session
 
 from app.core.email import enviar_correo_plantilla
-from app.core.exceptions import ForbiddenError, NotFoundError
+from app.core.exceptions import ForbiddenError
 from app.models import Importacion
 from app.modules.notificaciones.correos.repository import CorreosRepository
 from app.modules.notificaciones.correos.schemas import (
     EmpresaPorVencer,
-    EnvioEmpresaResultado,
     EnvioRecordatoriosResultado,
     EstadoUltimoEnvio,
     FalloEnvio,
@@ -28,8 +27,6 @@ logger = logging.getLogger(__name__)
 
 PLANTILLA_VENCIMIENTO = "Vencimiento (1).html"
 ASUNTO_VENCIMIENTO = "Tu membresía Plan Liga está por vencer"
-
-PLANTILLA_VENCIMIENTO_EMPRESA = "Vencimiento Empresa (1).html"
 
 # Permiso (modulo:accion en INTRANET_PERMISOS_APP) para disparar el envio de
 # recordatorios. Solo lo revisa el envio; ver la lista no lo exige.
@@ -169,14 +166,14 @@ class CorreosService:
         )
 
     # ------------------------------------------------------------------
-    # Empresas (agrupado, envio manual a un contacto)
+    # Empresas (agrupado) — SOLO consulta: el CRM no envia correos a las
+    # empresas ni a sus colaboradores desde este modulo.
     # ------------------------------------------------------------------
     def listar_empresas_por_vencer(
         self, dias_previos: int = 7, dias_vencidos: int = 0
     ) -> ListadoEmpresasPorVencer:
         """Titulares de un convenio empresarial (con EMPRESA) por vencer,
-        agrupados por empresa. No se filtra por correo propio: a estos no se
-        les avisa a su correo personal, sino a un contacto de la empresa."""
+        agrupados por empresa. Es informativo: no dispara ningun envio."""
         filas = self.repository.listar_titulares_por_vencer(
             dias_previos, dias_vencidos, solo_con_correo=False, segmento="empresa"
         )
@@ -214,58 +211,9 @@ class CorreosService:
                 "No tienes permiso para enviar recordatorios de vencimiento."
             )
 
-    @staticmethod
-    def _texto_dias(item: TitularPorVencer) -> str:
-        if item.DIAS < 0:
-            return f"venció hace {-item.DIAS} día{'s' if -item.DIAS != 1 else ''}"
-        if item.DIAS == 0:
-            return "vence hoy"
-        return f"faltan {item.DIAS} día{'s' if item.DIAS != 1 else ''}"
-
-    def enviar_recordatorio_empresa(
-        self,
-        username: str,
-        empresa: str,
-        destinatarios: list[str],
-        dias_previos: int = 7,
-        dias_vencidos: int = 0,
-    ) -> EnvioEmpresaResultado:
-        """Manda UN correo (a los `destinatarios` dados a mano: la empresa o su
-        encargado) con el listado de titulares de esa empresa por vencer en la
-        ventana pedida. No usa el correo personal de los titulares."""
-        self._verificar_permiso_envio(username)
-
-        filas = self.repository.listar_titulares_por_vencer(
-            dias_previos,
-            dias_vencidos,
-            solo_con_correo=False,
-            segmento="empresa",
-            empresa=empresa,
-        )
-        items = [self._a_item(f, intervalos=[]) for f in filas]
-        if not items:
-            raise NotFoundError(
-                f'No hay titulares de "{empresa}" por vencer en esa ventana.'
-            )
-
-        lista_html = "".join(
-            f'<li style="margin: 0 0 8px 0;">{item.NOMBRE} — vence el '
-            f"{item.FECHA_FIN_TXT} ({self._texto_dias(item)})</li>"
-            for item in items
-        )
-        enviar_correo_plantilla(
-            destinatarios=destinatarios,
-            asunto=f"Colaboradores de {empresa} con Plan Liga Empresarial por vencer",
-            plantilla=PLANTILLA_VENCIMIENTO_EMPRESA,
-            variables={"empresa": empresa, "lista": lista_html, "total": len(items)},
-        )
-        return EnvioEmpresaResultado(
-            empresa=empresa, destinatarios=destinatarios, total_titulares=len(items)
-        )
-
     # ------------------------------------------------------------------
-    # Envio (boton manual) — SOLO particulares (sin EMPRESA); a los de
-    # empresa se les avisa por enviar_recordatorio_empresa, no aca.
+    # Envio (boton manual) — SOLO particulares (sin EMPRESA). A los
+    # titulares de empresa NO se les manda correo desde el CRM.
     # ------------------------------------------------------------------
     def enviar_recordatorios_vencimiento(
         self,

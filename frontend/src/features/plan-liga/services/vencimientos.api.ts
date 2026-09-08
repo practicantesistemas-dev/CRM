@@ -123,9 +123,8 @@ export async function getHistorialEnvios(limit = 20): Promise<HistorialEnvioItem
 }
 
 // ---------------------------------------------------------------------------
-// Empresas (convenio Plan Liga Empresarial): agrupado por empresa, el envío
-// es manual a un destinatario que se escribe a mano (la empresa o su
-// encargado), no al correo personal de cada titular.
+// Empresas (convenio Plan Liga Empresarial): agrupado por empresa. SOLO
+// consulta — desde el CRM no se envían correos a las empresas.
 // ---------------------------------------------------------------------------
 
 export interface EmpresaPorVencer {
@@ -152,32 +151,5 @@ export async function getEmpresasPorVencer(opts: Opciones = {}): Promise<Listado
     { headers: authHeader() },
   )
   if (!response.ok) await parseError(response, 'No se pudo cargar la lista de empresas por vencer.')
-  return response.json()
-}
-
-export interface EnvioEmpresaResultado {
-  enviado: boolean
-  empresa: string
-  destinatarios: string[]
-  total_titulares: number
-}
-
-export async function enviarRecordatorioEmpresa(data: {
-  empresa: string
-  destinatarios: string[]
-  diasPrevios?: number
-  diasVencidos?: number
-}): Promise<EnvioEmpresaResultado> {
-  const response = await fetch(`${API_URL}/api/correos/vencimiento/empresas/enviar`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...authHeader() },
-    body: JSON.stringify({
-      empresa: data.empresa,
-      destinatarios: data.destinatarios,
-      dias_previos: data.diasPrevios ?? 7,
-      dias_vencidos: data.diasVencidos ?? 0,
-    }),
-  })
-  if (!response.ok) await parseError(response, 'No se pudo enviar el recordatorio a la empresa.')
   return response.json()
 }

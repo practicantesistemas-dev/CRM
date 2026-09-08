@@ -2,16 +2,15 @@
 import { onMounted, ref, computed, watch } from 'vue'
 import {
   Clock, Mail, RefreshCw, Send, AlertTriangle, CheckCircle2, CalendarClock,
-  ChevronLeft, ChevronRight, ChevronDown, User, Building2, ArrowLeft,
+  ChevronLeft, ChevronRight, ChevronDown, User, Building2,
 } from 'lucide-vue-next'
 import ConfirmDialog from '@/shared/components/ConfirmDialog.vue'
 import SeccionColapsable from '@/shared/components/SeccionColapsable.vue'
 import { permisosDeModulo } from '@/features/auth/composables/useAuth'
 import {
-  getPorVencer, enviarRecordatorios, getHistorialEnvios,
-  getEmpresasPorVencer, enviarRecordatorioEmpresa,
+  getPorVencer, enviarRecordatorios, getHistorialEnvios, getEmpresasPorVencer,
   type ListadoPorVencer, type EnvioResultado, type HistorialEnvioItem,
-  type ListadoEmpresasPorVencer, type EmpresaPorVencer, type EnvioEmpresaResultado,
+  type ListadoEmpresasPorVencer, type EmpresaPorVencer,
 } from '../services/vencimientos.api'
 
 const { ver: puedeVer, gestionar: puedeGestionar } = permisosDeModulo('recordatorios')
@@ -145,7 +144,8 @@ const mensajeConfirmar = computed(() => {
 })
 
 /* ------------------------------------------------------------------ */
-/* Empresa: agrupado por empresa, envío manual a un destinatario dado.  */
+/* Empresa: solo consulta. Se muestra qué empresas tienen titulares    */
+/* por vencer; NO se envían correos desde aquí.                        */
 /* ------------------------------------------------------------------ */
 const cargandoEmpresas = ref(false)
 const errorEmpresas = ref<string | null>(null)
@@ -165,62 +165,9 @@ const cargarEmpresas = async () => {
 }
 
 const empresaSeleccionada = ref<EmpresaPorVencer | null>(null)
-const destinatariosTexto = ref('')
-const enviandoEmpresa = ref(false)
-const errorEmpresa = ref<string | null>(null)
-const resultadoEmpresa = ref<EnvioEmpresaResultado | null>(null)
-const confirmEmpresaVisible = ref(false)
-
 const abrirEmpresa = (e: EmpresaPorVencer) => {
   empresaSeleccionada.value = e
-  destinatariosTexto.value = ''
-  errorEmpresa.value = null
-  resultadoEmpresa.value = null
   vista.value = 'empresa-detalle'
-}
-
-const RE_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-
-const destinatariosValidos = computed(() =>
-  destinatariosTexto.value
-    .split(/[,;\s]+/)
-    .map(s => s.trim())
-    .filter(s => RE_EMAIL.test(s)),
-)
-const destinatariosInvalidos = computed(() =>
-  destinatariosTexto.value
-    .split(/[,;\s]+/)
-    .map(s => s.trim())
-    .filter(s => s && !RE_EMAIL.test(s)),
-)
-
-const pedirEnvioEmpresa = () => { confirmEmpresaVisible.value = true }
-
-const mensajeConfirmarEmpresa = computed(() => {
-  const e = empresaSeleccionada.value
-  if (!e) return ''
-  return `Se enviará UN correo a ${destinatariosValidos.value.join(', ')} con el listado de los ${e.TOTAL} colaborador(es) de "${e.EMPRESA}" por vencer. ¿Continuar?`
-})
-
-const ejecutarEnvioEmpresa = async () => {
-  const e = empresaSeleccionada.value
-  if (!e) return
-  enviandoEmpresa.value = true
-  errorEmpresa.value = null
-  resultadoEmpresa.value = null
-  try {
-    resultadoEmpresa.value = await enviarRecordatorioEmpresa({
-      empresa: e.EMPRESA,
-      destinatarios: destinatariosValidos.value,
-      diasPrevios: diasPrevios.value,
-      diasVencidos: diasVencidos.value,
-    })
-    destinatariosTexto.value = ''
-  } catch (err) {
-    errorEmpresa.value = err instanceof Error ? err.message : 'No se pudo enviar el recordatorio a la empresa.'
-  } finally {
-    enviandoEmpresa.value = false
-  }
 }
 
 watch(vista, (v) => {
@@ -278,8 +225,8 @@ onMounted(() => {
         </div>
         <h3 class="text-[14px] font-bold text-heading mb-1">Particular</h3>
         <p class="text-[12px] text-muted leading-relaxed">
-          Titulares individuales, sin empresa asociada. El correo se envía automáticamente
-          a su propio correo, como hasta ahora.
+          Titulares individuales, sin empresa asociada. Desde aquí se les
+          <strong>envía el correo</strong> de recordatorio a su propio correo.
         </p>
       </button>
       <button
@@ -291,8 +238,8 @@ onMounted(() => {
         </div>
         <h3 class="text-[14px] font-bold text-heading mb-1">Empresa</h3>
         <p class="text-[12px] text-muted leading-relaxed">
-          Titulares de un convenio Plan Liga Empresarial, agrupados por empresa. Tú eliges
-          a quién se le manda el correo: la empresa o su encargado.
+          Titulares de un convenio Plan Liga Empresarial, agrupados por empresa.
+          <strong>Solo consulta</strong>: no se envían correos desde aquí.
         </p>
       </button>
     </div>
@@ -549,7 +496,7 @@ onMounted(() => {
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <p class="text-[12px] text-body">
           Empresas con convenio Plan Liga Empresarial que tienen titulares próximos a vencer.
-          El correo se manda a mano, a un contacto de la empresa (no al correo personal de cada titular).
+          Vista solo de consulta: <strong>no se envían correos</strong> a las empresas desde el CRM.
         </p>
         <button
           @click="cargarEmpresas"
@@ -629,7 +576,7 @@ onMounted(() => {
                   >{{ textoDias(e.titulares[0].DIAS) }} · {{ e.titulares[0].FECHA_FIN_TXT }}</span>
                 </td>
                 <td class="px-4 py-2.5 text-right">
-                  <span class="text-[11px] font-semibold text-[#2447F9] dark:text-blue-400">Ver y enviar →</span>
+                  <span class="text-[11px] font-semibold text-[#2447F9] dark:text-blue-400">Ver detalle →</span>
                 </td>
               </tr>
               <tr v-if="!cargandoEmpresas && empresas.length === 0">
@@ -646,12 +593,8 @@ onMounted(() => {
       </div>
     </template>
 
-    <!-- ============ EMPRESA: detalle + envío ============ -->
+    <!-- ============ EMPRESA: detalle (solo consulta) ============ -->
     <template v-if="vista === 'empresa-detalle' && empresaSeleccionada">
-      <button @click="vista = 'empresa'" class="flex items-center gap-1.5 text-[11px] font-semibold text-muted hover:text-[#2447F9] transition-colors w-fit">
-        <ArrowLeft :size="13" /> Volver a empresas
-      </button>
-
       <div class="surface-card rounded-2xl shadow-sm overflow-hidden">
         <div class="px-4 py-3 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between gap-3">
           <div>
@@ -691,52 +634,6 @@ onMounted(() => {
           </table>
         </div>
       </div>
-
-      <div v-if="puedeGestionar" class="surface-card rounded-2xl shadow-sm p-5 space-y-3">
-        <h3 class="text-[13px] font-bold text-heading">Enviar recordatorio a la empresa</h3>
-        <p class="text-[12px] text-muted">
-          Escribe el correo de la empresa o de la persona encargada (RR. HH. / bienestar). Se manda
-          <strong>un solo correo</strong> con el listado de los {{ empresaSeleccionada.TOTAL }} colaborador(es) de arriba —
-          no se usa el correo personal de cada titular. Puedes escribir varios separados por coma.
-        </p>
-        <label class="block text-[11px] font-semibold text-subtle uppercase tracking-wide">
-          Destinatario(s)
-          <input
-            v-model="destinatariosTexto"
-            type="text"
-            placeholder="rrhh@empresa.com, encargado@empresa.com"
-            class="mt-1 block w-full h-9 px-3 rounded-lg input-surface text-[12px] outline-none normal-case font-normal"
-          />
-        </label>
-        <p v-if="destinatariosInvalidos.length" class="text-[11px] text-amber-600 dark:text-amber-400">
-          No parece(n) correo(s) válido(s), no se incluirán: {{ destinatariosInvalidos.join(', ') }}
-        </p>
-
-        <button
-          @click="pedirEnvioEmpresa"
-          :disabled="!destinatariosValidos.length || enviandoEmpresa"
-          class="flex items-center gap-1.5 h-9 px-4 rounded-lg bg-[#2447F9] text-white text-[11px] font-bold shadow hover:bg-[#1D3DD9] transition-all disabled:opacity-50"
-        >
-          <Send :size="14" /> {{ enviandoEmpresa ? 'Enviando…' : 'Enviar correo' }}
-        </button>
-
-        <div v-if="errorEmpresa" class="rounded-xl border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/40 px-4 py-3 text-[12px] text-red-600 dark:text-red-400">
-          {{ errorEmpresa }}
-        </div>
-        <div v-if="resultadoEmpresa" class="rounded-xl border border-emerald-200 dark:border-emerald-900 bg-emerald-50 dark:bg-emerald-950/40 px-4 py-3 text-[12px] text-emerald-700 dark:text-emerald-300">
-          Correo enviado a <strong>{{ resultadoEmpresa.destinatarios.join(', ') }}</strong> con el listado de
-          {{ resultadoEmpresa.total_titulares }} colaborador(es).
-        </div>
-      </div>
-
-      <ConfirmDialog
-        v-model:visible="confirmEmpresaVisible"
-        titulo="Enviar recordatorio a la empresa"
-        :mensaje="mensajeConfirmarEmpresa"
-        texto-confirmar="Enviar"
-        texto-cancelar="Cancelar"
-        @confirmar="ejecutarEnvioEmpresa"
-      />
     </template>
   </div>
 </template>
