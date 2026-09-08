@@ -69,6 +69,7 @@ async function enviar() {
     const r = await enviarPlantilla({
       plantilla: props.plantilla.nombre,
       asunto: asuntoFinal.value.trim() || props.plantilla.nombre,
+      html: props.plantilla.html,
       destinatarios: destinatarios.value,
     })
     if (modo.value === 'grupo' && nuevoGrupo.value && nombreNuevoGrupo.value.trim()) {
@@ -97,12 +98,20 @@ async function enviar() {
 
       <div class="p-6 space-y-4 overflow-y-auto max-h-[70vh]">
         <!-- Éxito -->
-        <div v-if="resultado" class="rounded-xl border border-emerald-200 dark:border-emerald-900 bg-emerald-50 dark:bg-emerald-950/40 px-4 py-3 text-[12px] text-emerald-700 dark:text-emerald-300 flex items-start gap-2">
-          <Check :size="15" class="mt-0.5 shrink-0" />
-          <span>
-            Correo enviado a <strong>{{ resultado.destinatarios.length }}</strong> destinatario(s).
-            <span class="block text-[11px] opacity-80 mt-0.5">{{ resultado.destinatarios.join(', ') }}</span>
-          </span>
+        <div v-if="resultado" class="space-y-2">
+          <div class="rounded-xl border border-emerald-200 dark:border-emerald-900 bg-emerald-50 dark:bg-emerald-950/40 px-4 py-3 text-[12px] text-emerald-700 dark:text-emerald-300 flex items-start gap-2">
+            <Check :size="15" class="mt-0.5 shrink-0" />
+            <span>
+              Correo enviado a <strong>{{ resultado.enviados ?? resultado.destinatarios.length }}</strong> destinatario(s).
+              <span v-if="resultado.destinatarios.length" class="block text-[11px] opacity-80 mt-0.5">{{ resultado.destinatarios.join(', ') }}</span>
+            </span>
+          </div>
+          <div v-if="resultado.fallos?.length" class="rounded-xl border border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-950/40 px-4 py-3 text-[11px] text-amber-700 dark:text-amber-300">
+            <div class="flex items-center gap-1.5 font-semibold"><AlertTriangle :size="13" /> {{ resultado.fallos.length }} no se pudo(ieron) enviar</div>
+            <ul class="mt-1 space-y-0.5">
+              <li v-for="f in resultado.fallos" :key="f.correo"><strong>{{ f.correo }}</strong> — {{ f.error }}</li>
+            </ul>
+          </div>
         </div>
 
         <template v-if="!resultado">
@@ -173,7 +182,7 @@ async function enviar() {
           </div>
 
           <p class="text-[10px] text-muted">
-            Por ahora el envío es una simulación (solo front). Cuando esté el backend, este mismo botón manda el correo real.
+            Se envía un correo individual a cada destinatario (no se ven entre sí), con la plantilla tal como quedó en el editor.
           </p>
         </template>
       </div>

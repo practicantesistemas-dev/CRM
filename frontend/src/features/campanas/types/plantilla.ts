@@ -26,6 +26,11 @@ export interface GrupoCorreos {
 export interface ResultadoEnvioPlantilla {
   plantilla: string
   asunto: string
+  /** Correos a los que SÍ salió el mensaje. */
   destinatarios: string[]
+  /** Cuántos se enviaron / fallaron (viene del backend). */
+  enviados?: number
+  fallidos?: number
+  fallos?: { correo: string; error: string }[]
   fecha: string
 }

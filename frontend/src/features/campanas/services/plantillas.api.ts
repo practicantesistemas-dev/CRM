@@ -1,7 +1,10 @@
 // Persistencia de plantillas y grupos de correo SOLO en el navegador (localStorage).
-// Cuando exista el backend, este archivo es lo único que cambia (mismas firmas).
+// El ENVÍO sí va al backend real (POST /api/correos/campana/enviar).
 import type { GrupoCorreos, Plantilla, PlantillaDraft, ResultadoEnvioPlantilla } from '../types/plantilla'
 import { PLANTILLAS_MOCK, PLANTILLAS_STORAGE_KEY, GRUPOS_STORAGE_KEY } from '../constants/campanas.constants'
+import { authHeader } from '@/features/auth/composables/useAuth'
+
+const API_URL = import.meta.env.VITE_CRM_API_URL
 
 const uid = () => (crypto.randomUUID?.() ?? String(Date.now() + Math.random()))
 const ahora = () => new Date().toISOString()
@@ -93,13 +96,53 @@ export function eliminarGrupo(id: string): void {
   escribir(GRUPOS_STORAGE_KEY, getGrupos().filter(g => g.id !== id))
 }
 
-// ── Envío (SOLO simulado por ahora, sin backend) ────────────────────
+// ── Envío (backend real: Gmail vía POST /api/correos/campana/enviar) ─
+interface RespuestaEnvioCampana {
+  total: number
+  enviados: number
+  fallidos: number
+  fallos: { correo: string; error: string }[]
+}
+
 export async function enviarPlantilla(args: {
   plantilla: string
   asunto: string
+  html: string
   destinatarios: string[]
 }): Promise<ResultadoEnvioPlantilla> {
-  // Simula latencia de red; cuando exista el backend aquí va el fetch real.
-  await new Promise(r => setTimeout(r, 600))
-  return { ...args, fecha: new Date().toISOString() }
+  const res = await fetch(`${API_URL}/api/correos/campana/enviar`, {
+    method: 'POST',
+    headers: { ...authHeader(), 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      asunto: args.asunto,
+      html: args.html,
+      destinatarios: args.destinatarios,
+    }),
+  })
+
+  if (!res.ok) {
+    const cuerpo = await res.json().catch(() => null)
+    const detalle = typeof cuerpo?.detail === 'string' ? cuerpo.detail : null
+    throw new Error(detalle ?? `No se pudo enviar el correo (HTTP ${res.status}).`)
+  }
+
+  const data = (await res.json()) as RespuestaEnvioCampana
+  const enviadosOk = args.destinatarios.filter(
+    c => !data.fallos.some(f => f.correo === c),
+  )
+
+  if (data.enviados === 0) {
+    const primero = data.fallos[0]?.error
+    throw new Error(primero ? `No se pudo enviar: ${primero}` : 'No se pudo enviar a ningún destinatario.')
+  }
+
+  return {
+    plantilla: args.plantilla,
+    asunto: args.asunto,
+    destinatarios: enviadosOk,
+    enviados: data.enviados,
+    fallidos: data.fallidos,
+    fallos: data.fallos,
+    fecha: new Date().toISOString(),
+  }
 }
