@@ -12,7 +12,7 @@ export const AUTOMATIZACIONES_MOCK: Automatizacion[] = [
     descripcion: 'Envía un correo de bienvenida cuando se registra un nuevo contacto en el CRM.',
     accion: 'Enviar correo',
     correos: 'bienvenida@laliga.org.co',
-    asunto: '¡Bienvenido a Liga Contra el Cáncer!',
+    asunto: '¡Bienvenido a la Fundación La Liga Ama Salvar Vidas!',
     cuerpo: 'Gracias por registrarte con nosotros. Pronto un asesor se pondrá en contacto contigo.',
     estado: 'Activa',
     ejecuciones: 147,

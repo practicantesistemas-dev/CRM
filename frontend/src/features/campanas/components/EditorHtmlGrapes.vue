@@ -90,17 +90,22 @@ onMounted(async () => {
       },
       blockManager: { blocks: BLOQUES_CORREO, appendOnClick: true },
       selectorManager: { componentFirst: true },
-      // El lienzo enmarca un ancho fijo de correo (centrado sobre el gris).
+      // Un solo tamaño por ahora: el ancho de correo (680 px), sin selector.
       deviceManager: {
         default: 'correo',
-        devices: [
-          { id: 'correo', name: 'Correo (680 px)', width: '680px' },
-          { id: 'movil', name: 'Móvil (375 px)', width: '375px', widthMedia: '480px' },
-        ],
+        devices: [{ id: 'correo', name: 'Correo', width: '680px' }],
       },
       styleManager: { sectors: SECTORES_ESTILO },
     })
     editor.value = ed
+
+    // Limpieza de la barra propia de GrapesJS: fuera el selector de dispositivo,
+    // el toggle de contornos (el "hover" de los bloques), la vista de código
+    // nativa y la vista previa (el ojo).
+    try { ed.Panels.removeButton('options', 'sw-visibility') } catch { /* noop */ }
+    try { ed.Panels.removeButton('options', 'export-template') } catch { /* noop */ }
+    try { ed.Panels.removeButton('options', 'preview') } catch { /* noop */ }
+    try { ed.Panels.removePanel('devices-c') } catch { /* noop */ }
 
     ed.on('load', () => {
       refrescar()
@@ -119,7 +124,6 @@ onMounted(async () => {
       // Arranca ajustado para que el correo completo entre en pantalla.
       setTimeout(ajustarZoom, 120)
     })
-    ed.on('change:device', () => { setTimeout(refrescar, 60); setTimeout(ajustarZoom, 160) })
     // Cuando cambia el contenido (agregar/quitar/mover/editar bloques) se
     // reajusta el zoom para que el correo siga cabiendo sin necesidad de scroll.
     ed.on('component:add component:remove component:update:components canvas:drop', reajustar)
@@ -221,6 +225,8 @@ defineExpose({ cargar, getHtml, getCss, getProjectData, getDocumento, setDocumen
    correo no cabe en pantalla. */
 .gjs-host .gjs-cv-canvas { background-color: #e9edf4 !important; overflow: hidden; }
 .gjs-host .gjs-block { border-radius: 6px; }
+/* Sin selector de dispositivo (un solo tamaño de correo por ahora). */
+.gjs-host .gjs-pn-devices-c { display: none !important; }
 
 /* Pastilla de zoom flotante sobre el lienzo (abajo a la izquierda) */
 .zoom-pill {

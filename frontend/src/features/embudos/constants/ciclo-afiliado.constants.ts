@@ -21,6 +21,10 @@ export const CIUDADES = ['Pereira', 'Dosquebradas', 'Cartago', 'Santa Rosa de Ca
 export const CONCEPTOS = ['Consulta', 'Ecografía', 'Laboratorio clínico', 'Descuento consultas']
 export const VINCULACIONES = ['Empresa', 'Particular'] as const
 export const CANALES_ORIGEN = ['Web', 'Feria de salud', 'Referido', 'Campaña', 'Convenio empresarial']
+export const CALLES = [
+  'Calle 15 #23-45', 'Carrera 8 #12-34', 'Avenida 30 de Agosto #45-10', 'Calle 21 #9-56',
+  'Carrera 6 #18-22', 'Calle 40 #14-08', 'Carrera 4 #7-19', 'Calle 33 #11-27',
+]
 
 export const OPC_ULTIMO_USO = [
   { v: '', l: 'Cualquiera' }, { v: 'nunca', l: 'Nunca' },
@@ -61,6 +65,7 @@ export interface AfiliadoTarjeta {
   sexo: 'F' | 'M'
   edad: number
   ciudad: string
+  direccion: string
   vinculacion: 'Empresa' | 'Particular'
   origen: string
   conceptos: string[]
@@ -113,6 +118,7 @@ export const AFILIADOS_MOCK: AfiliadoTarjeta[] = BASE.map((a): AfiliadoTarjeta =
     sexo: s % 3 === 0 ? 'M' : 'F',
     edad: 21 + (s * 13) % 58,
     ciudad: CIUDADES[s % CIUDADES.length],
+    direccion: `${CALLES[s % CALLES.length]}, ${CIUDADES[s % CIUDADES.length]}`,
     vinculacion: a.plan === 'Empresarial' ? 'Empresa' : 'Particular',
     origen: a.plan === 'Empresarial' ? 'Convenio empresarial' : CANALES_ORIGEN[s % 4],
     conceptos: CONCEPTOS.filter((_, i) => ((s >> i) & 1) === 1),
@@ -224,7 +230,7 @@ export interface PlantillaRef {
   resumen: string
 }
 export const PLANTILLAS_CORREO: PlantillaRef[] = [
-  { id: 'c-bienvenida', nombre: 'Bienvenida — nuevo afiliado', resumen: 'Asunto: ¡Bienvenido(a) a la Liga Contra el Cáncer!' },
+  { id: 'c-bienvenida', nombre: 'Bienvenida — nuevo afiliado', resumen: 'Asunto: ¡Bienvenido(a) a la Fundación La Liga Ama Salvar Vidas!' },
   { id: 'c-reactivacion', nombre: 'Reactivación — sin uso', resumen: 'Recuerda tus chequeos preventivos sin costo adicional.' },
   { id: 'c-renovacion', nombre: 'Recordatorio de renovación', resumen: 'Tu Plan Liga está por vencer, renueva a tiempo.' },
   { id: 'c-tamizaje', nombre: 'Campaña de tamizaje', resumen: 'Agenda tu mamografía / citología del año.' },

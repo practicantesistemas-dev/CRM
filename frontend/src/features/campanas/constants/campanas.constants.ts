@@ -15,7 +15,7 @@ export const PLANTILLA_HTML_INICIAL = `<table style="width:100%;background:#f4f2
   <tr><td align="center">
     <table style="width:600px;max-width:600px;background:#ffffff;border-radius:6px;overflow:hidden" cellpadding="0" cellspacing="0">
       <tr><td style="background:#2447F9;padding:20px 28px">
-        <span style="color:#ffffff;font-size:18px;font-weight:bold">Liga Contra el Cáncer</span>
+        <span style="color:#ffffff;font-size:18px;font-weight:bold">Fundación La Liga Ama Salvar Vidas</span>
       </td></tr>
       <tr><td style="padding:32px 28px 8px 28px">
         <h1 style="font-size:22px;color:#0F172A;margin:0 0 12px 0">Hola {{nombre}}</h1>
@@ -30,7 +30,7 @@ export const PLANTILLA_HTML_INICIAL = `<table style="width:100%;background:#f4f2
         </a>
       </td></tr>
       <tr><td style="background:#f1e2df;padding:16px 28px;font-size:11px;color:#7a5a56">
-        Liga Contra el Cáncer · Pereira, Colombia<br>
+        Fundación La Liga Ama Salvar Vidas · Pereira, Colombia<br>
         Si no deseas recibir estos correos, escríbenos para darte de baja.
       </td></tr>
     </table>
@@ -41,7 +41,7 @@ export const PLANTILLAS_MOCK: Plantilla[] = [
   {
     id: 'seed-bienvenida',
     nombre: 'Bienvenida — nuevo afiliado',
-    asunto: '¡Bienvenido(a) a la Liga Contra el Cáncer!',
+    asunto: '¡Bienvenido(a) a la Fundación La Liga Ama Salvar Vidas!',
     html: PLANTILLA_HTML_INICIAL,
     css: '',
     proyecto: null,

@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { onBeforeUnmount, ref, watch } from 'vue'
-import { ArrowLeft, Save, Download, Send, Check, Code2, Eye, Maximize2, Minimize2, Upload } from 'lucide-vue-next'
+import { ArrowLeft, Save, Download, Send, Check, Eye, Maximize2, Minimize2, Upload, FileText, Mail } from 'lucide-vue-next'
 import type { Plantilla, PlantillaDraft } from '../types/plantilla'
 import { descargarHtml } from '../constants/campanas.constants'
 import EditorHtmlGrapes from '../components/EditorHtmlGrapes.vue'
-import CodigoPlantillaDialog from './CodigoPlantillaDialog.vue'
 
 const props = defineProps<{ plantilla: Plantilla | null }>()
 const visible = defineModel<boolean>('visible', { required: true })
@@ -18,9 +17,6 @@ const asunto = ref('')
 const guardado = ref(false)
 const errorNombre = ref(false)
 const enPantallaCompleta = ref(false)
-
-const codigoVisible = ref(false)
-const htmlBuf = ref('')
 
 watch(visible, (v) => {
   if (v) {
@@ -73,17 +69,6 @@ function enviar() {
   emit('enviar', draft)
 }
 
-function abrirCodigo() {
-  const ed = editorRef.value
-  if (!ed) return
-  htmlBuf.value = ed.getDocumento(asunto.value || nombre.value || 'Correo')
-  codigoVisible.value = true
-}
-function aplicarCodigo(doc: string) {
-  editorRef.value?.setDocumento(doc)
-  codigoVisible.value = false
-}
-
 function importarArchivo(e: Event) {
   const file = (e.target as HTMLInputElement).files?.[0]
   if (!file) return
@@ -109,17 +94,33 @@ function togglePantallaCompleta() {
       ><ArrowLeft :size="14" /> Volver</button>
 
       <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2 min-w-0">
-        <input
-          v-model="nombre"
-          placeholder="Nombre de la plantilla *"
-          class="h-9 px-3 rounded-lg border text-[12px] font-semibold bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 outline-none focus:bg-white dark:focus:bg-slate-800 transition-all"
-          :class="errorNombre ? 'border-red-400 dark:border-red-500' : 'border-slate-200 dark:border-slate-600 focus:border-[#2447F9]'"
-        />
-        <input
-          v-model="asunto"
-          placeholder="Asunto del correo"
-          class="h-9 px-3 rounded-lg border border-slate-200 dark:border-slate-600 text-[12px] bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-[#2447F9] transition-all"
-        />
+        <!-- Nombre interno de la plantilla (solo lo ve el equipo) -->
+        <div
+          class="flex items-center h-9 rounded-lg border bg-slate-50 dark:bg-slate-800 overflow-hidden transition-all"
+          :class="errorNombre ? 'border-red-400 dark:border-red-500' : 'border-slate-200 dark:border-slate-600 focus-within:border-[#2447F9]'"
+        >
+          <span class="shrink-0 self-stretch px-2.5 flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-subtle bg-slate-100 dark:bg-slate-700/60 border-r border-slate-200 dark:border-slate-600">
+            <FileText :size="12" /> Plantilla
+          </span>
+          <input
+            v-model="nombre"
+            placeholder="Nombre para identificarla (uso interno) *"
+            title="Nombre de la plantilla: solo lo ve el equipo, no se envía en el correo"
+            class="flex-1 min-w-0 h-full px-3 bg-transparent text-[12px] font-semibold text-slate-900 dark:text-slate-100 outline-none"
+          />
+        </div>
+        <!-- Asunto: lo que ve el destinatario en su bandeja -->
+        <div class="flex items-center h-9 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 overflow-hidden focus-within:border-[#2447F9] transition-all">
+          <span class="shrink-0 self-stretch px-2.5 flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-subtle bg-slate-100 dark:bg-slate-700/60 border-r border-slate-200 dark:border-slate-600">
+            <Mail :size="12" /> Asunto
+          </span>
+          <input
+            v-model="asunto"
+            placeholder="Lo que verá el destinatario en su bandeja"
+            title="Asunto del correo: es el texto que aparece en la bandeja de entrada de quien lo recibe"
+            class="flex-1 min-w-0 h-full px-3 bg-transparent text-[12px] text-slate-900 dark:text-slate-100 outline-none"
+          />
+        </div>
       </div>
 
       <div class="flex items-center gap-1.5 shrink-0">
@@ -129,11 +130,6 @@ function togglePantallaCompleta() {
           title="Importar un archivo .html"
           class="flex items-center gap-1.5 h-9 px-3 rounded-lg border border-default bg-white dark:bg-slate-800 text-[11px] font-semibold text-body hover:bg-slate-50 dark:hover:bg-slate-700 transition-all"
         ><Upload :size="13" /> Importar</button>
-        <button
-          @click="abrirCodigo"
-          title="Ver / editar el HTML"
-          class="hidden md:flex items-center gap-1.5 h-9 px-3 rounded-lg border border-default bg-white dark:bg-slate-800 text-[11px] font-semibold text-body hover:bg-slate-50 dark:hover:bg-slate-700 transition-all"
-        ><Code2 :size="13" /> HTML</button>
         <button
           @click="editorRef?.vistaPrevia()"
           title="Vista previa"
@@ -171,7 +167,5 @@ function togglePantallaCompleta() {
     <div class="flex-1 min-h-0 relative">
       <EditorHtmlGrapes ref="editorRef" :plantilla="plantilla" />
     </div>
-
-    <CodigoPlantillaDialog v-model:visible="codigoVisible" :html="htmlBuf" @aplicar="aplicarCodigo" />
   </div>
 </template>

@@ -25,7 +25,15 @@ function escribir(key: string, valor: unknown) {
 // ── Plantillas ──────────────────────────────────────────────────────
 export function getPlantillas(): Plantilla[] {
   const guardadas = leer<Plantilla[] | null>(PLANTILLAS_STORAGE_KEY, null)
-  if (guardadas && Array.isArray(guardadas)) return guardadas
+  if (guardadas && Array.isArray(guardadas)) {
+    // Las plantillas de ejemplo (id "seed-…") se re-siembran siempre desde el
+    // código, así los ajustes de marca/textos llegan aunque el navegador ya
+    // tuviera una copia vieja. Las que creó el usuario se conservan intactas.
+    const delUsuario = guardadas.filter(p => !p.id.startsWith('seed-'))
+    const reconciliadas = [...PLANTILLAS_MOCK, ...delUsuario]
+    escribir(PLANTILLAS_STORAGE_KEY, reconciliadas)
+    return reconciliadas
+  }
   // Primera vez: siembra las de ejemplo.
   escribir(PLANTILLAS_STORAGE_KEY, PLANTILLAS_MOCK)
   return [...PLANTILLAS_MOCK]

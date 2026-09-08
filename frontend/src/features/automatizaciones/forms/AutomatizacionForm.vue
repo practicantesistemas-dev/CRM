@@ -65,7 +65,7 @@ defineExpose({ submit: onValidSubmit(() => emit('validSubmit')) })
       <input
         v-model="draft.asunto"
         @blur="tocar('asunto')"
-        placeholder="Ej: ¡Bienvenido a Liga Contra el Cáncer!"
+        placeholder="Ej: ¡Bienvenido a la Fundación La Liga Ama Salvar Vidas!"
         class="w-full h-10 px-4 rounded-lg border bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-[12px] outline-none focus:bg-white dark:focus:bg-slate-800 transition-all"
         :class="fieldStateClass(esVisible('asunto') && !!errors.asunto, esVisible('asunto') && !errors.asunto && !!draft.asunto, 'border-slate-200 dark:border-slate-600 focus:border-[#2447F9] dark:focus:border-[#2447F9]')"
       />

@@ -3,7 +3,7 @@ import { computed, onActivated, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ChevronRight, RefreshCw, SlidersHorizontal, Send, X, Mail, Phone, Bookmark, Check } from 'lucide-vue-next'
 import {
-  AFILIADOS_MOCK, ETAPA_COLOR,
+  AFILIADOS_MOCK,
   filtroVacio, clonarFiltro, contarFiltros, afiliadoCoincide, resumirFiltros,
   type FiltroSegmento,
 } from '../constants/ciclo-afiliado.constants'
@@ -143,13 +143,11 @@ const confirmarGuardar = () => {
                 <tr class="border-b border-default text-left text-[10px] uppercase tracking-wide text-subtle">
                   <th class="px-3 py-2.5 w-8"><input type="checkbox" class="w-3.5 h-3.5 accent-[#2447F9]" :checked="todoSel" @change="toggleTodo" /></th>
                   <th class="px-3 py-2.5 font-semibold">Afiliado</th>
-                  <th class="px-3 py-2.5 font-semibold">Persona</th>
+                  <th class="px-3 py-2.5 font-semibold">Dirección</th>
                   <th class="px-3 py-2.5 font-semibold">Plan</th>
-                  <th class="px-3 py-2.5 font-semibold">Etapa</th>
                   <th class="px-3 py-2.5 font-semibold">Último uso</th>
                   <th class="px-3 py-2.5 font-semibold">Serv.</th>
                   <th class="px-3 py-2.5 font-semibold">Contacto</th>
-                  <th class="px-3 py-2.5 font-semibold">Responsable</th>
                 </tr>
               </thead>
               <tbody>
@@ -165,15 +163,10 @@ const confirmarGuardar = () => {
                     <div class="font-bold text-heading">{{ a.nombre }}</div>
                     <div class="text-[10px] text-muted">CC {{ a.documento }}</div>
                   </td>
-                  <td class="px-3 py-2.5 text-body">{{ a.sexo }} · {{ a.edad }} a · {{ a.ciudad }}</td>
+                  <td class="px-3 py-2.5 text-body">{{ a.direccion }}</td>
                   <td class="px-3 py-2.5">
                     <span class="text-[10px] font-bold" :class="planStyle(a.plan)">{{ a.plan }}</span>
                     <span class="text-[10px] text-muted"> · {{ a.vinculacion }}</span>
-                  </td>
-                  <td class="px-3 py-2.5">
-                    <span class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-body">
-                      <span class="w-1.5 h-1.5 rounded-full shrink-0" :style="{ backgroundColor: ETAPA_COLOR[a.etapa] }" />{{ a.etapa }}
-                    </span>
                   </td>
                   <td class="px-3 py-2.5 font-semibold" :class="ultimoUsoCls(a.ultimoUsoDias)">{{ ultimoUsoTxt(a.ultimoUsoDias) }}</td>
                   <td class="px-3 py-2.5 text-body tabular-nums">{{ a.nServicios }}</td>
@@ -183,10 +176,9 @@ const confirmarGuardar = () => {
                       <Phone :size="12" :class="a.tieneCelular ? 'text-[#059669]' : 'text-slate-300 dark:text-slate-600'" />
                     </span>
                   </td>
-                  <td class="px-3 py-2.5 text-muted">{{ a.responsable }}</td>
                 </tr>
                 <tr v-if="!filtrados.length">
-                  <td colspan="9" class="px-3 py-12 text-center text-[12px] text-muted">Ningún afiliado coincide con los filtros.</td>
+                  <td colspan="7" class="px-3 py-12 text-center text-[12px] text-muted">Ningún afiliado coincide con los filtros.</td>
                 </tr>
               </tbody>
             </table>

@@ -2,9 +2,9 @@
 import { computed, ref } from 'vue'
 import { Search } from 'lucide-vue-next'
 import {
-  CIUDADES, CONCEPTOS, VINCULACIONES, CANALES_ORIGEN, RESPONSABLES,
-  ETAPAS_AFILIADO, SERVICIOS_CATALOGO, SERVICIOS_TOTAL,
-  OPC_ULTIMO_USO, OPC_N_SERVICIOS, OPC_ANTIGUEDAD,
+  CIUDADES, CONCEPTOS, VINCULACIONES,
+  SERVICIOS_CATALOGO, SERVICIOS_TOTAL,
+  OPC_ULTIMO_USO, OPC_N_SERVICIOS,
   type FiltroSegmento,
 } from '../constants/ciclo-afiliado.constants'
 
@@ -88,33 +88,6 @@ const chipCls = (on: boolean) => on
         </div>
       </section>
 
-      <!-- Etapa del ciclo -->
-      <section v-show="visible('Etapa del ciclo de vida')" class="px-4 py-3">
-        <div class="text-[10px] font-bold text-subtle uppercase tracking-wide mb-2">Etapa del ciclo</div>
-        <div class="flex flex-wrap gap-1.5">
-          <button v-for="e in ETAPAS_AFILIADO" :key="e.n" @click="toggle(f.etapas, e.n)"
-            :class="[CHIP, chipCls(f.etapas.includes(e.n))]">{{ e.n }}</button>
-        </div>
-      </section>
-
-      <!-- Origen -->
-      <section v-show="visible('Origen canal')" class="px-4 py-3">
-        <div class="text-[10px] font-bold text-subtle uppercase tracking-wide mb-2">Origen del afiliado</div>
-        <select v-model="f.origen" class="w-full h-8 px-2 rounded-lg input-surface text-[11px] outline-none cursor-pointer">
-          <option value="">Cualquiera</option>
-          <option v-for="o in CANALES_ORIGEN" :key="o">{{ o }}</option>
-        </select>
-      </section>
-
-      <!-- Responsable -->
-      <section v-show="visible('Responsable asesor')" class="px-4 py-3">
-        <div class="text-[10px] font-bold text-subtle uppercase tracking-wide mb-2">Responsable</div>
-        <select v-model="f.responsable" class="w-full h-8 px-2 rounded-lg input-surface text-[11px] outline-none cursor-pointer">
-          <option value="">Todos</option>
-          <option v-for="r in RESPONSABLES" :key="r">{{ r }}</option>
-        </select>
-      </section>
-
       <!-- Concepto -->
       <section v-show="visible('Concepto')" class="px-4 py-3">
         <div class="text-[10px] font-bold text-subtle uppercase tracking-wide mb-2">Concepto</div>
@@ -153,14 +126,6 @@ const chipCls = (on: boolean) => on
         </div>
       </section>
 
-      <!-- Antigüedad -->
-      <section v-show="visible('Antigüedad de afiliación')" class="px-4 py-3">
-        <div class="text-[10px] font-bold text-subtle uppercase tracking-wide mb-2">Antigüedad de afiliación</div>
-        <div class="flex flex-wrap gap-1.5">
-          <button v-for="o in OPC_ANTIGUEDAD" :key="o.v" @click="f.antiguedad = o.v" :class="[CHIP, chipCls(f.antiguedad === o.v)]">{{ o.l }}</button>
-        </div>
-      </section>
-
       <!-- Tipo de vinculación -->
       <section v-show="visible('Tipo de vinculación')" class="px-4 py-3">
         <div class="text-[10px] font-bold text-subtle uppercase tracking-wide mb-2">Tipo de vinculación</div>
@@ -168,17 +133,6 @@ const chipCls = (on: boolean) => on
           <button v-for="o in VINCULACIONES" :key="o" @click="f.vinculacion = f.vinculacion === o ? '' : o"
             :class="[CHIP, chipCls(f.vinculacion === o)]">{{ o }}</button>
         </div>
-      </section>
-
-      <!-- Contactabilidad -->
-      <section v-show="visible('Contactabilidad correo celular')" class="px-4 py-3">
-        <div class="text-[10px] font-bold text-subtle uppercase tracking-wide mb-2">Contactabilidad</div>
-        <label class="flex items-center gap-2 py-1 text-[11px] text-body cursor-pointer">
-          <input type="checkbox" class="w-3.5 h-3.5 accent-[#2447F9]" v-model="f.conCorreo" /> Solo con correo
-        </label>
-        <label class="flex items-center gap-2 py-1 text-[11px] text-body cursor-pointer">
-          <input type="checkbox" class="w-3.5 h-3.5 accent-[#2447F9]" v-model="f.conCelular" /> Solo con celular
-        </label>
       </section>
     </div>
 

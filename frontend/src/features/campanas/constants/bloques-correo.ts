@@ -14,7 +14,7 @@ export const BLOQUES_CORREO: BlockProperties[] = [
     media: ico('<rect x="3" y="4" width="18" height="6" rx="1"/><path d="M3 14h12M3 18h8"/>'),
     content: `<table style="width:100%;background:#2447F9" cellpadding="0" cellspacing="0"><tr>
       <td style="padding:20px 28px">
-        <span style="color:#ffffff;font-size:18px;font-weight:bold;font-family:Arial,Helvetica,sans-serif">Liga Contra el Cáncer</span>
+        <span style="color:#ffffff;font-size:18px;font-weight:bold;font-family:Arial,Helvetica,sans-serif">Fundación La Liga Ama Salvar Vidas</span>
       </td></tr></table>`,
   },
   {
@@ -82,7 +82,7 @@ export const BLOQUES_CORREO: BlockProperties[] = [
     media: ico('<rect x="3" y="14" width="18" height="6" rx="1"/><path d="M3 6h12M3 10h8"/>'),
     content: `<table style="width:100%;background:#f1e2df" cellpadding="0" cellspacing="0"><tr>
       <td style="padding:16px 28px;font-size:11px;line-height:1.6;color:#7a5a56;font-family:Arial,Helvetica,sans-serif">
-        Liga Contra el Cáncer · Pereira, Colombia<br>
+        Fundación La Liga Ama Salvar Vidas · Pereira, Colombia<br>
         Si no deseas recibir estos correos, escríbenos para darte de baja.
       </td></tr></table>`,
   },
