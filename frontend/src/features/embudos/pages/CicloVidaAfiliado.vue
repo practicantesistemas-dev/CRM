@@ -1,48 +1,37 @@
 <script setup lang="ts">
-import { computed, onActivated, reactive, ref, watch } from 'vue'
+import { computed, onActivated, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ChevronRight, RefreshCw, SlidersHorizontal, Send, X, Mail, Phone, Bookmark, Check } from 'lucide-vue-next'
-import {
-  AFILIADOS_MOCK,
-  filtroVacio, clonarFiltro, contarFiltros, afiliadoCoincide, resumirFiltros,
-  type FiltroSegmento,
-} from '../constants/ciclo-afiliado.constants'
+import { AFILIADOS_MOCK, clonarFiltro, resumirFiltros } from '../constants/ciclo-afiliado.constants'
 import { getSegmentoPreseleccionado } from '../composables/useSegmentoPreseleccionado'
 import { useSegmentosGuardados } from '../composables/useSegmentosGuardados'
+import { useSegmentador } from '../composables/useSegmentador'
 import FiltrosSegmento from '../components/FiltrosSegmento.vue'
 import EnviarSegmentoDialog from '../components/EnviarSegmentoDialog.vue'
 
 const router = useRouter()
 const nf = new Intl.NumberFormat('es-CO')
 
-const f = reactive<FiltroSegmento>(filtroVacio())
-const fApp = ref<FiltroSegmento>(filtroVacio())
+// El estado del segmentador (filtros + selección) vive en useSegmentador, a
+// nivel de módulo: NO se reinicia al cambiar de pestaña ni al volver al hub,
+// solo al recargar la página o cuando el usuario hace una acción.
+const {
+  f, fApp, sel, filtrados, seleccion, todoSel, nFiltros,
+  aplicar: aplicarFiltro, limpiar, precargar, toggleRow, toggleTodo,
+} = useSegmentador()
+
 const mostrarFiltros = ref(false)
+const aplicar = () => { aplicarFiltro(); mostrarFiltros.value = false }
 
-// Si se llegó desde "Segmentos guardados", precarga sus criterios. Se revisa
-// tanto al montar como al reactivar (la vista queda cacheada por <keep-alive>).
-const aplicarPreseleccion = () => {
+// Si se llegó desde "Segmentos guardados" hay un filtro pendiente por precargar.
+// getSegmentoPreseleccionado() se consume una sola vez: en una navegación
+// normal devuelve null y no toca nada, así no se pierde lo que ya había.
+const revisarPreseleccion = () => {
   const pre = getSegmentoPreseleccionado()
-  if (!pre) return
-  Object.assign(f, filtroVacio(), pre)
-  fApp.value = clonarFiltro(f)
+  if (pre) precargar(pre)
 }
-aplicarPreseleccion()
-onActivated(aplicarPreseleccion)
-
-const aplicar = () => { fApp.value = clonarFiltro(f); mostrarFiltros.value = false }
-const limpiar = () => { Object.assign(f, filtroVacio()); fApp.value = filtroVacio() }
-
-const nFiltros = computed(() => contarFiltros(fApp.value))
-const filtrados = computed(() => AFILIADOS_MOCK.filter(x => afiliadoCoincide(x, fApp.value)))
-
-// Selección (por defecto todo el resultado; el usuario puede desmarcar).
-const sel = ref<Set<number>>(new Set())
-watch(filtrados, (list) => { sel.value = new Set(list.map(a => a.id)) }, { immediate: true })
-const seleccion = computed(() => filtrados.value.filter(a => sel.value.has(a.id)))
-const todoSel = computed(() => filtrados.value.length > 0 && filtrados.value.every(a => sel.value.has(a.id)))
-const toggleRow = (id: number) => { sel.value.has(id) ? sel.value.delete(id) : sel.value.add(id); sel.value = new Set(sel.value) }
-const toggleTodo = () => { sel.value = todoSel.value ? new Set() : new Set(filtrados.value.map(a => a.id)) }
+revisarPreseleccion()
+onActivated(revisarPreseleccion)
 
 const conCorreo = computed(() => seleccion.value.filter(a => a.tieneCorreo).length)
 const conCelular = computed(() => seleccion.value.filter(a => a.tieneCelular).length)
@@ -85,13 +74,13 @@ const confirmarGuardar = () => {
         <ChevronRight :size="12" class="text-slate-300 dark:text-slate-600" />
         <button class="text-slate-400 dark:text-slate-500 hover:text-[#2447F9] font-semibold transition-colors" @click="router.push('/embudos')">Embudos</button>
         <ChevronRight :size="12" class="text-slate-300 dark:text-slate-600" />
-        <span class="font-bold text-[#0F172A] dark:text-slate-100">Ciclo de vida afiliado</span>
+        <span class="font-bold text-[#0F172A] dark:text-slate-100">Audiencias</span>
       </nav>
       <h2 class="text-[18px] font-bold text-heading flex items-center gap-2">
-        <RefreshCw :size="19" class="text-[#EC4899]" /> Ciclo de vida afiliado
+        <RefreshCw :size="19" class="text-[#EC4899]" /> Audiencias
       </h2>
       <p class="text-[12px] text-body mt-0.5">
-        Filtra un segmento de afiliados y actúa sobre él por correo o WhatsApp. Datos de ejemplo.
+        Arma una audiencia con filtros (personas afiliadas o no a Plan Liga) y actúa sobre ella por correo o WhatsApp. Datos de ejemplo.
       </p>
     </div>
 
@@ -114,7 +103,7 @@ const confirmarGuardar = () => {
         <div class="surface-card rounded-xl shadow-sm px-4 py-3 flex flex-wrap items-center justify-between gap-3">
           <div class="flex items-center gap-3 flex-wrap">
             <span class="text-[15px] font-extrabold text-heading">
-              {{ nf.format(filtrados.length) }}<span class="text-[12px] text-muted font-semibold"> de {{ AFILIADOS_MOCK.length }} afiliados</span>
+              {{ nf.format(filtrados.length) }}<span class="text-[12px] text-muted font-semibold"> de {{ AFILIADOS_MOCK.length }} personas</span>
             </span>
             <span class="text-[11px] text-muted"><strong class="text-heading">{{ seleccion.length }}</strong> seleccionados</span>
             <template v-if="nFiltros">
@@ -142,7 +131,7 @@ const confirmarGuardar = () => {
               <thead>
                 <tr class="border-b border-default text-left text-[10px] uppercase tracking-wide text-subtle">
                   <th class="px-3 py-2.5 w-8"><input type="checkbox" class="w-3.5 h-3.5 accent-[#2447F9]" :checked="todoSel" @change="toggleTodo" /></th>
-                  <th class="px-3 py-2.5 font-semibold">Afiliado</th>
+                  <th class="px-3 py-2.5 font-semibold">Persona</th>
                   <th class="px-3 py-2.5 font-semibold">Dirección</th>
                   <th class="px-3 py-2.5 font-semibold">Plan</th>
                   <th class="px-3 py-2.5 font-semibold">Último uso</th>
@@ -178,7 +167,7 @@ const confirmarGuardar = () => {
                   </td>
                 </tr>
                 <tr v-if="!filtrados.length">
-                  <td colspan="7" class="px-3 py-12 text-center text-[12px] text-muted">Ningún afiliado coincide con los filtros.</td>
+                  <td colspan="7" class="px-3 py-12 text-center text-[12px] text-muted">Ninguna persona coincide con los filtros.</td>
                 </tr>
               </tbody>
             </table>
@@ -205,7 +194,7 @@ const confirmarGuardar = () => {
           </div>
           <template v-else>
             <p class="text-[11px] text-muted">
-              Se guardará con los <strong class="text-heading">{{ contarFiltros(fApp) }}</strong> filtro(s) aplicados y
+              Se guardará con los <strong class="text-heading">{{ nFiltros }}</strong> filtro(s) aplicados y
               <strong class="text-heading">{{ seleccion.length }}</strong> personas.
             </p>
             <input

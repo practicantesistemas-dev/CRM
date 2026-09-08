@@ -36,7 +36,7 @@ async function enviar() {
       <div class="flex items-center justify-between px-6 py-4 border-b border-default surface-header">
         <div>
           <h3 class="text-[14px] font-bold text-heading">Enviar al segmento</h3>
-          <p class="text-[11px] text-muted mt-0.5"><strong class="text-heading">{{ total }}</strong> afiliados seleccionados</p>
+          <p class="text-[11px] text-muted mt-0.5"><strong class="text-heading">{{ total }}</strong> personas seleccionadas</p>
         </div>
         <button @click="visible = false" class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 flex items-center justify-center text-slate-500 dark:text-slate-400"><X :size="14" /></button>
       </div>

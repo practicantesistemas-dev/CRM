@@ -4,7 +4,7 @@ import { Search } from 'lucide-vue-next'
 import {
   CIUDADES, CONCEPTOS, VINCULACIONES,
   SERVICIOS_CATALOGO, SERVICIOS_TOTAL,
-  OPC_ULTIMO_USO, OPC_N_SERVICIOS,
+  OPC_ULTIMO_USO,
   type FiltroSegmento,
 } from '../constants/ciclo-afiliado.constants'
 
@@ -115,14 +115,6 @@ const chipCls = (on: boolean) => on
         <div class="text-[10px] font-bold text-subtle uppercase tracking-wide mb-2">Último uso</div>
         <div class="flex flex-wrap gap-1.5">
           <button v-for="o in OPC_ULTIMO_USO" :key="o.v" @click="f.ultimoUso = o.v" :class="[CHIP, chipCls(f.ultimoUso === o.v)]">{{ o.l }}</button>
-        </div>
-      </section>
-
-      <!-- Nº de servicios -->
-      <section v-show="visible('Número de servicios usados')" class="px-4 py-3">
-        <div class="text-[10px] font-bold text-subtle uppercase tracking-wide mb-2">Nº de servicios (12 m)</div>
-        <div class="flex flex-wrap gap-1.5">
-          <button v-for="o in OPC_N_SERVICIOS" :key="o.v" @click="f.nServ = o.v" :class="[CHIP, chipCls(f.nServ === o.v)]">{{ o.l }}</button>
         </div>
       </section>
 

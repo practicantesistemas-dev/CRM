@@ -17,7 +17,7 @@ const router = useRouter()
       </nav>
       <h2 class="text-[18px] font-bold text-heading">Embudos y segmentación</h2>
       <p class="text-[12px] text-body mt-0.5">
-        Elige una vista para trabajar el ciclo de vida del afiliado o los segmentos guardados.
+        Elige una vista para armar una audiencia y actuar sobre ella, o para trabajar los segmentos guardados.
       </p>
     </div>
 

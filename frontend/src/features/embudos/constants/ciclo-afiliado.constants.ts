@@ -30,9 +30,6 @@ export const OPC_ULTIMO_USO = [
   { v: '', l: 'Cualquiera' }, { v: 'nunca', l: 'Nunca' },
   { v: '90', l: '+90 días' }, { v: '60', l: '+60 días' }, { v: '30', l: '+30 días' },
 ]
-export const OPC_N_SERVICIOS = [
-  { v: '', l: 'Cualquiera' }, { v: '0', l: '0' }, { v: '1-3', l: '1 a 3' }, { v: '4', l: '4+' },
-]
 export const OPC_ANTIGUEDAD = [
   { v: '', l: 'Cualquiera' }, { v: '30', l: '≤ 30 días' }, { v: '90', l: '≤ 90 días' },
   { v: '365', l: '≤ 1 año' }, { v: '+365', l: '+ 1 año' },
@@ -146,7 +143,6 @@ export interface FiltroSegmento {
   conceptos: string[]
   servicios: string[]
   ultimoUso: string
-  nServ: string
   antiguedad: string
   vinculacion: string
   conCorreo: boolean
@@ -157,7 +153,7 @@ export const filtroVacio = (): FiltroSegmento => ({
   planLiga: '', sexo: '', edadMin: '', edadMax: '',
   ciudades: [], etapas: [], origen: '', responsable: '',
   conceptos: [], servicios: [],
-  ultimoUso: '', nServ: '', antiguedad: '', vinculacion: '',
+  ultimoUso: '', antiguedad: '', vinculacion: '',
   conCorreo: false, conCelular: false,
 })
 
@@ -167,7 +163,7 @@ export const contarFiltros = (f: FiltroSegmento): number =>
   (f.planLiga ? 1 : 0) + (f.sexo ? 1 : 0) + (f.edadMin || f.edadMax ? 1 : 0)
   + f.ciudades.length + f.etapas.length + (f.origen ? 1 : 0) + (f.responsable ? 1 : 0)
   + f.conceptos.length + f.servicios.length
-  + (f.ultimoUso ? 1 : 0) + (f.nServ ? 1 : 0) + (f.antiguedad ? 1 : 0)
+  + (f.ultimoUso ? 1 : 0) + (f.antiguedad ? 1 : 0)
   + (f.vinculacion ? 1 : 0) + (f.conCorreo ? 1 : 0) + (f.conCelular ? 1 : 0)
 
 // Convierte un filtro en etiquetas legibles (para mostrar como "criterios").
@@ -183,7 +179,6 @@ export function resumirFiltros(f: FiltroSegmento): string[] {
   if (f.conceptos.length) c.push(`Concepto: ${f.conceptos.join(', ')}`)
   if (f.servicios.length) c.push(`Servicio: ${f.servicios.join(', ')}`)
   if (f.ultimoUso) c.push(`Último uso: ${f.ultimoUso === 'nunca' ? 'Nunca' : '+' + f.ultimoUso + ' días'}`)
-  if (f.nServ) c.push(`Nº servicios: ${f.nServ === '4' ? '4+' : f.nServ}`)
   if (f.antiguedad) c.push(`Antigüedad: ${f.antiguedad.startsWith('+') ? '+ 1 año' : '≤ ' + f.antiguedad + ' días'}`)
   if (f.vinculacion) c.push(`Vinculación: ${f.vinculacion}`)
   if (f.conCorreo) c.push('Solo con correo')
@@ -210,9 +205,6 @@ export function afiliadoCoincide(x: AfiliadoTarjeta, f: FiltroSegmento): boolean
     if (f.ultimoUso === '60' && !(d === null || d > 60)) return false
     if (f.ultimoUso === '30' && !(d === null || d > 30)) return false
   }
-  if (f.nServ === '0' && x.nServicios !== 0) return false
-  if (f.nServ === '1-3' && !(x.nServicios >= 1 && x.nServicios <= 3)) return false
-  if (f.nServ === '4' && x.nServicios < 4) return false
   if (f.antiguedad === '30' && x.antiguedadDias > 30) return false
   if (f.antiguedad === '90' && x.antiguedadDias > 90) return false
   if (f.antiguedad === '365' && x.antiguedadDias > 365) return false

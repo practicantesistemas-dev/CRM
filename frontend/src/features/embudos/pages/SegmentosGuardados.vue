@@ -68,7 +68,7 @@ const abrirEnSegmentador = (s: Segmento) => {
         <Bookmark :size="18" class="text-[#C9A227]" /> Segmentos guardados
         <span class="bg-[#FEF9C3] dark:bg-amber-950/40 text-[#C9A227] dark:text-amber-300 text-[11px] font-bold px-2.5 py-0.5 rounded-full">{{ segmentos.length }}</span>
       </h2>
-      <p class="text-[12px] text-body mt-0.5">Grupos de contactos listos para actuar. "Abrir en el segmentador" para refinar con más filtros. Datos de ejemplo.</p>
+      <p class="text-[12px] text-body mt-0.5">Grupos de personas listos para actuar. "Abrir en Audiencias" para refinar con más filtros. Datos de ejemplo.</p>
     </div>
 
     <!-- Filtros de la lista -->
@@ -136,7 +136,7 @@ const abrirEnSegmentador = (s: Segmento) => {
             <ClipboardList :size="13" /> Tarea
           </button>
           <button @click="abrirEnSegmentador(s)" class="flex items-center gap-1.5 h-8 px-3 rounded-lg bg-[#EEF2FF] dark:bg-blue-950/40 text-[11px] font-bold text-[#2447F9] dark:text-blue-300 hover:bg-[#E0E7FF] dark:hover:bg-blue-950/60 transition-all ml-auto">
-            Abrir en el segmentador <ArrowRight :size="13" />
+            Abrir en Audiencias <ArrowRight :size="13" />
           </button>
         </div>
       </div>

@@ -29,7 +29,7 @@ export function useSegmentosGuardados() {
     lista.value.unshift({
       id: 'seg-' + Date.now(),
       nombre: datos.nombre.trim(),
-      descripcion: 'Segmento guardado desde el segmentador de afiliados.',
+      descripcion: 'Segmento guardado desde "Audiencias".',
       personas: datos.personas,
       conCorreo: datos.conCorreo,
       conCelular: datos.conCelular,

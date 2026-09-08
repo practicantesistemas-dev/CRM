@@ -20,9 +20,9 @@ export const SEGMENTOS_MOCK: Segmento[] = [
     nombre: 'Plan activo sin uso (90 días)',
     descripcion: 'Afiliados vigentes que no han usado ningún servicio en los últimos 90 días.',
     personas: 412, conCorreo: 288, conCelular: 361,
-    criterios: ['Plan Liga', 'Último uso: +90 días', 'Nº servicios: 0'],
+    criterios: ['Plan Liga', 'Último uso: +90 días'],
     actualizado: 'hoy',
-    filtros: { planLiga: 'Plan Liga', ultimoUso: '90', nServ: '0' },
+    filtros: { planLiga: 'Plan Liga', ultimoUso: '90' },
   },
   {
     id: 'mujeres-40-mamo',
@@ -45,11 +45,11 @@ export const SEGMENTOS_MOCK: Segmento[] = [
   {
     id: 'convenios-bajo-uso',
     nombre: 'Convenios empresariales con bajo uso',
-    descripcion: 'Afiliados con vinculación por empresa y máximo 1 servicio usado este año.',
+    descripcion: 'Afiliados con vinculación por empresa.',
     personas: 540, conCorreo: 210, conCelular: 505,
-    criterios: ['Vinculación: Empresa', 'Nº servicios: 1 a 3'],
+    criterios: ['Vinculación: Empresa'],
     actualizado: 'hace 5 días',
-    filtros: { vinculacion: 'Empresa', nServ: '1-3' },
+    filtros: { vinculacion: 'Empresa' },
   },
   {
     id: 'prospectos-feria',
@@ -65,8 +65,8 @@ export const SEGMENTOS_MOCK: Segmento[] = [
     nombre: 'Nuevos afiliados sin primer uso',
     descripcion: 'Afiliados con menos de 90 días que aún no han usado ningún servicio.',
     personas: 128, conCorreo: 96, conCelular: 118,
-    criterios: ['Antigüedad: ≤ 90 días', 'Nº servicios: 0'],
+    criterios: ['Antigüedad: ≤ 90 días', 'Último uso: Nunca'],
     actualizado: 'hoy',
-    filtros: { antiguedad: '90', nServ: '0' },
+    filtros: { antiguedad: '90', ultimoUso: 'nunca' },
   },
 ]
