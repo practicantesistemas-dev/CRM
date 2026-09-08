@@ -119,19 +119,3 @@ class ListadoEmpresasPorVencer(BaseModel):
     dias_previos: int
     dias_vencidos: int
     empresas: list[EmpresaPorVencer]
-
-
-class EnvioEmpresaRequest(BaseModel):
-    empresa: str
-    # El destinatario es manual: la empresa o el encargado de bienestar/RR. HH.,
-    # no el correo personal de cada titular.
-    destinatarios: list[EmailStr]
-    dias_previos: int = 7
-    dias_vencidos: int = 0
-
-
-class EnvioEmpresaResultado(BaseModel):
-    enviado: bool = True
-    empresa: str
-    destinatarios: list[str]
-    total_titulares: int

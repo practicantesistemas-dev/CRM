@@ -7,8 +7,6 @@ from app.modules.notificaciones.correos.schemas import (
     CorreoBienvenida,
     CorreoEnviadoResultado,
     CorreoRegistro,
-    EnvioEmpresaRequest,
-    EnvioEmpresaResultado,
     EnvioRecordatoriosResultado,
     HistorialEnvioItem,
     ListadoEmpresasPorVencer,
@@ -101,8 +99,8 @@ def historial_vencimiento(
 
 
 # Titulares de convenio empresarial (con EMPRESA) por vencer, agrupados por
-# empresa. NO envia nada; a cada empresa se le avisa a mano desde
-# /vencimiento/empresas/enviar, no al correo personal de sus titulares.
+# empresa. SOLO consulta: el CRM no envia correos a las empresas ni a sus
+# colaboradores desde este modulo.
 @router.get("/vencimiento/empresas", response_model=ListadoEmpresasPorVencer)
 def listar_empresas_vencimiento(
     dias_previos: int = 7,
@@ -110,21 +108,3 @@ def listar_empresas_vencimiento(
     service: CorreosService = Depends(get_correos_service),
 ) -> ListadoEmpresasPorVencer:
     return service.listar_empresas_por_vencer(dias_previos, dias_vencidos)
-
-
-# Envia UN correo con el listado de titulares de `empresa` por vencer en la
-# ventana pedida, a los `destinatarios` que el usuario escriba a mano (la
-# empresa o su encargado de bienestar/RR. HH.), no al correo del titular.
-@router.post("/vencimiento/empresas/enviar", response_model=EnvioEmpresaResultado)
-def enviar_recordatorio_empresa(
-    data: EnvioEmpresaRequest,
-    username: str = Depends(get_current_username),
-    service: CorreosService = Depends(get_correos_service),
-) -> EnvioEmpresaResultado:
-    return service.enviar_recordatorio_empresa(
-        username,
-        data.empresa,
-        [str(d) for d in data.destinatarios],
-        data.dias_previos,
-        data.dias_vencidos,
-    )
