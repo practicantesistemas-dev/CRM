@@ -24,10 +24,10 @@ const abrirEditorPlantilla = (p: Plantilla | null) => {
   editorPlantillaVisible.value = true
 }
 
-const guardarPlantilla = (d: PlantillaDraft) => {
+const guardarPlantilla = async (d: PlantillaDraft) => {
   const p = plantillaEditando.value
-    ? actualizar(plantillaEditando.value.id, d)
-    : crear(d)
+    ? await actualizar(plantillaEditando.value.id, d)
+    : await crear(d)
   if (p) {
     plantillaEditando.value = p   // pasa a modo "editar" tras el primer guardado
     plantillaGuardada.value = p
@@ -41,7 +41,12 @@ const payloadEnvio = computed(() =>
     : null,
 )
 const abrirEnvio = (p: Plantilla) => { plantillaGuardada.value = p; enviarVisible.value = true }
-const onEnviarDesdeEditor = () => { enviarVisible.value = true }
+// El boton "Enviar" del editor guarda (espera a que quede en la BD) y solo
+// despues abre el dialogo de envio, para no mandar una version vieja.
+const onEnviarDesdeEditor = async (d: PlantillaDraft) => {
+  await guardarPlantilla(d)
+  enviarVisible.value = true
+}
 
 // Eliminar
 const confirmEliminarVisible = ref(false)

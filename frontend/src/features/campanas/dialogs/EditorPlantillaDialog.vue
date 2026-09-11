@@ -65,7 +65,9 @@ function enviar() {
   const draft = armarDraft()
   if (!draft) { errorNombre.value = true; return }
   errorNombre.value = false
-  emit('submit', draft)
+  // Solo 'enviar': el padre (List.vue) guarda este draft y, ya guardado,
+  // abre el dialogo de envio. Emitir tambien 'submit' aca duplicaria el
+  // guardado (dos POST/PUT contra el backend por un solo click).
   emit('enviar', draft)
 }
 

@@ -12,17 +12,17 @@ export function usePlantillas() {
   const refrescar = () => { plantillas.value = getPlantillas() }
   const refrescarGrupos = () => { grupos.value = getGrupos() }
 
-  const crear = (data: PlantillaDraft): Plantilla => {
-    const p = crearPlantilla(data)
+  const crear = async (data: PlantillaDraft): Promise<Plantilla> => {
+    const p = await crearPlantilla(data)
     refrescar()
     return p
   }
-  const actualizar = (id: string, data: PlantillaDraft): Plantilla | null => {
-    const p = actualizarPlantilla(id, data)
+  const actualizar = async (id: string, data: PlantillaDraft): Promise<Plantilla | null> => {
+    const p = await actualizarPlantilla(id, data)
     refrescar()
     return p
   }
-  const duplicar = (id: string) => { duplicarPlantilla(id); refrescar() }
+  const duplicar = async (id: string) => { await duplicarPlantilla(id); refrescar() }
   const eliminar = (id: string) => { eliminarPlantilla(id); refrescar() }
 
   const guardarComoGrupo = (nombre: string, correos: string[]) => {

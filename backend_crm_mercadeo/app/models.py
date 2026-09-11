@@ -95,6 +95,31 @@ class CampanaSegmento(Base):
     usuario: Mapped["Usuario"] = relationship(back_populates="campana_segmentos")
 
 
+class PlantillaCorreo(Base):
+    """Plantilla del editor visual de Campanas (ver EditorHtmlGrapes.vue en el
+    frontend). `html`/`css` son lo que exporta GrapesJS; `proyecto` es su
+    projectData (JSON como texto) para poder reabrirla sin perder estilos."""
+
+    __tablename__ = "mercadeo_crm_plantillas_correo"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    nombre: Mapped[str] = mapped_column(String(150), nullable=False)
+    asunto: Mapped[str | None] = mapped_column(String(200))
+    html: Mapped[str | None] = mapped_column(Text)
+    css: Mapped[str | None] = mapped_column(Text)
+    proyecto: Mapped[str | None] = mapped_column(Text)
+    usuario_id: Mapped[int | None] = mapped_column(ForeignKey("intranet_usuarios.id"))
+    usuario_actualizacion_id: Mapped[int | None] = mapped_column(
+        ForeignKey("intranet_usuarios.id")
+    )
+    fecha_creacion: Mapped[datetime | None] = mapped_column(
+        DateTime, default=lambda: datetime.now(timezone.utc)
+    )
+    fecha_actualizacion: Mapped[datetime | None] = mapped_column(
+        DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc)
+    )
+
+
 # ---------------------------------------------------------------------------
 # Modulo: Comercial (CRM Comercial)
 #

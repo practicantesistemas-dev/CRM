@@ -167,7 +167,13 @@ function getProjectData(): unknown { return editor.value?.getProjectData() ?? nu
 function getDocumento(asunto = 'Correo'): string {
   const ed = editor.value
   if (!ed) return ''
-  return armarDocumentoCorreo(ed.getHtml({ cleanId: true }) ?? '', ed.getCss() ?? '', asunto)
+  // OJO: sin `cleanId`. GrapesJS guarda cada cambio de estilo (color, fondo,
+  // fuente…) como una regla CSS con selector `#id-autogenerado`; `cleanId`
+  // borra justo esos ids del HTML, así que luego `inlinearCss` no encuentra
+  // el elemento y el estilo nuevo se pierde en el HTML que se guarda/envía
+  // (por eso "si borro texto sí funciona" pero los estilos no: borrar texto
+  // no depende de un id que se pueda perder).
+  return armarDocumentoCorreo(ed.getHtml() ?? '', ed.getCss() ?? '', asunto)
 }
 /** Carga un documento HTML completo (importar plantilla o editar el código):
  *  separa el <style> del <head> y el contenido del <body>. */

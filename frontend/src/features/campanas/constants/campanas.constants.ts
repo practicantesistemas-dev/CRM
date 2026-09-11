@@ -4,6 +4,10 @@ import type { Plantilla, PlantillaDraft } from '../types/plantilla'
 // Persistencia solo en el navegador por ahora (localStorage), ver services/plantillas.api.ts.
 export const PLANTILLAS_STORAGE_KEY = 'crm-campanas-plantillas'
 export const GRUPOS_STORAGE_KEY = 'crm-campanas-grupos-correo'
+// ids de plantillas "seed-…" que ya se "promovieron" a una fila real en el
+// backend (ver actualizarPlantilla en services/plantillas.api.ts): dejan de
+// re-sembrarse desde PLANTILLAS_MOCK para no aparecer duplicadas.
+export const PLANTILLAS_PROMOVIDAS_STORAGE_KEY = 'crm-campanas-plantillas-promovidas'
 
 export const PLANTILLA_DRAFT_VACIO: PlantillaDraft = {
   nombre: '', asunto: '', html: '', css: '', proyecto: null,
