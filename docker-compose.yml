@@ -12,21 +12,16 @@ services:
     restart: unless-stopped
     env_file:
       - ./backend_crm_mercadeo/.env
-    # Puerto expuesto solo para acceso directo/depuración (ej. http://SERVIDOR:8100/docs).
-    # El frontend NO lo usa: le llega por la red interna del proyecto (nginx -> backend:8000).
-    # Se deja como respaldo temporal mientras se confirma que el dominio (Traefik) funciona.
-    ports:
-      - "${CRM_BACKEND_PORT:-8100}:8000"
+    # Sin ports al host: el acceso público es solo vía Traefik (https://crm.laliga.org.co).
+    # Para depurar directo (Swagger), descomenta:
+    # ports:
+    #   - "${CRM_BACKEND_PORT:-8100}:8000"
     networks:
       - default
       - traefik-public
-    # Traefik enruta /api y /health de crm.laliga.org.co directo a este contenedor (puerto
-    # interno real de uvicorn: 8000, NO el 8100 mapeado al host). priority=100 > la del
-    # frontend (1) para que esas rutas no las capture el router "crm" (catch-all del Host).
-    # Sin tls.certresolver aca a proposito: cac/cac-api (que ya funcionan en este mismo
-    # Traefik) tampoco lo traen, asi que el certresolver esta puesto como DEFAULT en el
-    # entrypoint "websecure" dentro de la config del propio Traefik (fuera de este repo) -
-    # basta con tls=true para heredarlo, igual que ellos.
+    # Traefik enruta /api y /health de crm.laliga.org.co a uvicorn:8000.
+    # priority=100 > frontend (1) para que esas rutas no las capture el catch-all del Host.
+    # tls=true hereda el certresolver DEFAULT del entrypoint websecure (igual que cac/cac-api).
     labels:
       - traefik.enable=true
       - traefik.docker.network=traefik-public
@@ -50,20 +45,15 @@ services:
     restart: unless-stopped
     depends_on:
       - backend
-    # Ya no se monta el cert autofirmado (frontend/certs): el 443 con TLS ahora lo maneja
-    # Traefik (su propio certificado configurado en el entrypoint "websecure"), no el
-    # nginx de este contenedor.
-    # http://SERVIDOR:8090 sigue funcionando en paralelo como respaldo temporal (sin TLS)
-    # hasta confirmar que https://crm.laliga.org.co funciona vía Traefik.
-    ports:
-      - "${CRM_FRONTEND_PORT:-8090}:80"
+    # Sin certs propios ni puerto 443: TLS lo termina Traefik.
+    # Sin ports al host: acceso solo por https://crm.laliga.org.co
+    # Para depurar sin Traefik, descomenta:
+    # ports:
+    #   - "${CRM_FRONTEND_PORT:-8090}:80"
     networks:
       - default
       - traefik-public
-    # Traefik termina TLS (websecure/443) y reenvia en plano al puerto 80 interno del
-    # nginx de este contenedor (el mismo que ya sirve por 8090). priority=1: mas baja que
-    # la del backend, para que /api y /health los tome el router "crm-api". Mismo patron
-    # que cac (sin tls.certresolver): lo hereda del default puesto en el entrypoint.
+    # Catch-all del Host; /api y /health los toma crm-api (priority más alta).
     labels:
       - traefik.enable=true
       - traefik.docker.network=traefik-public
