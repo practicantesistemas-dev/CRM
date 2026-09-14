@@ -8,11 +8,14 @@ from datetime import date, datetime, timedelta, timezone
 
 from sqlalchemy.orm import Session
 
-from app.core.email import enviar_correo_plantilla
+from app.core.email import enviar_correo, enviar_correo_plantilla
 from app.core.exceptions import ForbiddenError
 from app.models import Importacion
 from app.modules.notificaciones.correos.repository import CorreosRepository
 from app.modules.notificaciones.correos.schemas import (
+    CampanaEnvioRequest,
+    CampanaEnvioResultado,
+    CampanaFallo,
     EmpresaPorVencer,
     EnvioRecordatoriosResultado,
     EstadoUltimoEnvio,
@@ -31,6 +34,7 @@ ASUNTO_VENCIMIENTO = "Tu membresía Plan Liga está por vencer"
 # Permiso (modulo:accion en INTRANET_PERMISOS_APP) para disparar el envio de
 # recordatorios. Solo lo revisa el envio; ver la lista no lo exige.
 PERMISO_ENVIAR_RECORDATORIO = "recordatorios:gestionar"
+PERMISO_ENVIAR_CAMPANA = "campanas:gestionar"
 
 
 def _a_fecha(valor) -> date | None:
@@ -210,6 +214,44 @@ class CorreosService:
             raise ForbiddenError(
                 "No tienes permiso para enviar recordatorios de vencimiento."
             )
+
+
+    def _verificar_permiso_campana(self, username: str) -> None:
+        from app.modules.auth.repository import AuthRepository
+
+        usuario_id = self.repository.obtener_usuario_id(username)
+        permisos = (
+            AuthRepository(self.db).obtener_permisos(usuario_id) if usuario_id else []
+        )
+        if PERMISO_ENVIAR_CAMPANA not in permisos:
+            raise ForbiddenError("No tienes permiso para enviar campañas.")
+
+    def enviar_campana(
+        self, username: str, data: CampanaEnvioRequest
+    ) -> CampanaEnvioResultado:
+        """Envía el HTML de una plantilla de Campañas a una lista de correos.
+
+        Best-effort por destinatario: si uno falla, se sigue con los demás.
+        Se manda un correo individual por persona (no van en copia entre sí).
+        """
+        self._verificar_permiso_campana(username)
+
+        enviados = 0
+        fallos: list[CampanaFallo] = []
+        for correo in data.destinatarios:
+            try:
+                enviar_correo([str(correo)], data.asunto, data.html)
+                enviados += 1
+            except Exception as exc:  # noqa: BLE001 - best effort por destinatario
+                logger.exception("Fallo la campaña a %s", correo)
+                fallos.append(CampanaFallo(correo=str(correo), error=str(exc)))
+
+        return CampanaEnvioResultado(
+            total=len(data.destinatarios),
+            enviados=enviados,
+            fallidos=len(fallos),
+            fallos=fallos,
+        )
 
     # ------------------------------------------------------------------
     # Envio (boton manual) — SOLO particulares (sin EMPRESA). A los

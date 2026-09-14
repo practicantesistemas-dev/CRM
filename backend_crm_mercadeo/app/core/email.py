@@ -1,9 +1,4 @@
-"""Punto unico de envio de correo para todo el backend (campanas, automatizaciones,
-titulares/beneficiarios, futuras notificaciones). Nada mas deberia hablar con la
-Gmail API directamente: todo pasa por las dos funciones de aca abajo, asi el dia de
-manana que cambie de nuevo (ej. a un proveedor transaccional) solo se toca este
-archivo.
-
+"""
 Usa OAuth2 (Gmail API), no SMTP: el refresh_token se consigue una sola vez con
 scripts/obtener_refresh_token_gmail.py y no vence solo (dura hasta que se revoque).
 

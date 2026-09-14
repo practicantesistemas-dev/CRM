@@ -4,6 +4,8 @@ from app.core.dependencies import get_current_username
 from app.core.email import enviar_correo_plantilla
 from app.modules.notificaciones.correos.dependencies import get_correos_service
 from app.modules.notificaciones.correos.schemas import (
+    CampanaEnvioRequest,
+    CampanaEnvioResultado,
     CorreoBienvenida,
     CorreoEnviadoResultado,
     CorreoRegistro,
@@ -108,3 +110,16 @@ def listar_empresas_vencimiento(
     service: CorreosService = Depends(get_correos_service),
 ) -> ListadoEmpresasPorVencer:
     return service.listar_empresas_por_vencer(dias_previos, dias_vencidos)
+
+
+
+
+# Envío de una plantilla de Campañas (editor visual) a una lista de correos.
+# Recibe el HTML ya armado por el front (estilos inline); no usa los archivos
+@router.post("/campana/enviar", response_model=CampanaEnvioResultado)
+def enviar_campana(
+    data: CampanaEnvioRequest,
+    username: str = Depends(get_current_username),
+    service: CorreosService = Depends(get_correos_service),
+) -> CampanaEnvioResultado:
+    return service.enviar_campana(username, data)

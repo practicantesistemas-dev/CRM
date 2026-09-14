@@ -119,3 +119,21 @@ class ListadoEmpresasPorVencer(BaseModel):
     dias_previos: int
     dias_vencidos: int
     empresas: list[EmpresaPorVencer]
+
+
+class CampanaEnvioRequest(BaseModel):
+    asunto: str
+    html: str                       # HTML completo de la plantilla (ya viene con estilos inline)
+    destinatarios: list[EmailStr]   # se valida cada correo
+
+
+class CampanaFallo(BaseModel):
+    correo: str
+    error: str
+
+
+class CampanaEnvioResultado(BaseModel):
+    total: int
+    enviados: int
+    fallidos: int
+    fallos: list[CampanaFallo]
