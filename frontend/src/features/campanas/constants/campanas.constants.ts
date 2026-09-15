@@ -74,6 +74,19 @@ export const descargarHtml = (nombre: string, html: string) => {
   URL.revokeObjectURL(url)
 }
 
+// Propiedad -> propiedad abreviada equivalente (o viceversa). Al fusionar
+// estilos, fijar una debe reemplazar a la otra: si no, un elemento con
+// `background:#2447F9` en el HTML base y un cambio del editor a
+// `background-color: green` termina con AMBAS declaraciones en el mismo
+// `style="…"`. En el navegador (vista previa/editor) se ve bien porque el
+// último valor gana, pero varios clientes de correo (Outlook en particular)
+// no resuelven igual esa duplicidad y se quedan con el color viejo — el
+// usuario ve "no toma en cuenta mis cambios, manda la plantilla base".
+const PROPIEDAD_EQUIVALENTE: Record<string, string> = {
+  background: 'background-color',
+  'background-color': 'background',
+}
+
 // Pasa las reglas del CSS del editor a estilos INLINE en cada elemento del HTML,
 // para que la plantilla quede en UN solo HTML autocontenido (que es además lo
 // que mejor soportan los clientes de correo). Las @media (estilos de móvil) no
@@ -95,9 +108,29 @@ export const inlinearCss = (html: string, css: string): { html: string; restoCss
       let els: NodeListOf<HTMLElement>
       try { els = tpl.content.querySelectorAll(rule.selectorText) } catch { continue }
       els.forEach((el) => {
-        const prev = el.getAttribute('style')?.trim() ?? ''
-        const sep = prev && !prev.endsWith(';') ? '; ' : prev ? ' ' : ''
-        el.setAttribute('style', prev + sep + rule.style.cssText)
+        // Se funde por propiedad (mapa) en vez de concatenar el texto: así
+        // cada propiedad queda UNA sola vez en el style final, sin depender
+        // de que el cliente de correo respete el orden de declaraciones
+        // duplicadas.
+        const props = new Map<string, string>()
+        const prev = el.getAttribute('style')
+        if (prev) {
+          for (const decl of prev.split(';')) {
+            const i = decl.indexOf(':')
+            if (i === -1) continue
+            const prop = decl.slice(0, i).trim().toLowerCase()
+            const val = decl.slice(i + 1).trim()
+            if (prop && val) props.set(prop, val)
+          }
+        }
+        for (let i = 0; i < rule.style.length; i++) {
+          const prop = rule.style.item(i)
+          const equivalente = PROPIEDAD_EQUIVALENTE[prop]
+          if (equivalente) props.delete(equivalente)
+          props.set(prop, rule.style.getPropertyValue(prop).trim())
+        }
+        const styleFinal = [...props.entries()].map(([p, v]) => `${p}: ${v}`).join('; ')
+        el.setAttribute('style', styleFinal)
       })
     } else {
       resto.push(rule.cssText) // @media, @font-face, etc.
