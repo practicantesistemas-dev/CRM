@@ -16,7 +16,6 @@ const modo = ref<'persona' | 'grupo'>('persona')
 const correoPersona = ref('')
 const grupoTexto = ref('')
 const grupoSelId = ref('')
-const asuntoFinal = ref('')
 
 const nuevoGrupo = ref(false)
 const nombreNuevoGrupo = ref('')
@@ -35,7 +34,6 @@ watch(visible, (v) => {
   nombreNuevoGrupo.value = ''
   error.value = null
   resultado.value = null
-  asuntoFinal.value = props.plantilla?.asunto ?? ''
 })
 
 const usarGrupoGuardado = (id: string) => {
@@ -68,7 +66,7 @@ async function enviar() {
   try {
     const r = await enviarPlantilla({
       plantilla: props.plantilla.nombre,
-      asunto: asuntoFinal.value.trim() || props.plantilla.nombre,
+      asunto: props.plantilla.asunto?.trim() || props.plantilla.nombre,
       html: props.plantilla.html,
       destinatarios: destinatarios.value,
     })
@@ -115,12 +113,6 @@ async function enviar() {
         </div>
 
         <template v-if="!resultado">
-          <!-- Asunto -->
-          <div>
-            <label class="block text-[11px] font-bold text-body mb-1.5 uppercase tracking-wide">Asunto</label>
-            <input v-model="asuntoFinal" placeholder="Asunto del correo" class="w-full h-10 px-3 rounded-lg input-surface text-[12px] outline-none focus:border-[#2447F9] transition-all" />
-          </div>
-
           <!-- Persona / Grupo -->
           <div>
             <label class="block text-[11px] font-bold text-body mb-1.5 uppercase tracking-wide">Destinatarios</label>
