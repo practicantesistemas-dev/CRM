@@ -1,161 +1,123 @@
-from sqlalchemy import bindparam, text
+from datetime import date, datetime
+
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-ESTADOS_FILTRO = {"activo": "A", "inactivo": "I"}
+from .schemas import AudienciaSegmentoItem
 
-# INTRANET_PLANLIGA.CIUDAD/DEPARTAMENTO NO guardan el nombre: guardan el
-# codigo DIVIPOLA partido en dos columnas (depto 2 digitos + municipio 3
-# digitos, ej. '66' + '001' = Pereira). Para filtrar/mostrar el nombre hay
-# que re-armar ese codigo de 5 digitos y cruzarlo contra INMUN/INDEP, los
-# mismos catalogos que usa app/modules/compartidos/ubicaciones/repository.py
-# (por eso 'ciudades' en este modulo recibe el MUNCOD completo, ej. '66001',
-# tal como lo devuelve GET /compartidos/ubicaciones/municipios).
-#
-# El CASE con REGEXP_LIKE es defensivo: evita que una fila con CIUDAD o
-# DEPARTAMENTO sucios (vacios, con letras, con ceros de mas como se vio en
-# produccion) rompa la consulta o matchee mal; simplemente no cruza y esa
-# fila sale con CIUDAD/DEPARTAMENTO en NULL.
-_JOIN_UBICACION = """
-    LEFT JOIN INMUN m ON m.MUNCOD = (
+# Consolidado de marketing: servicios clinicos (TMPBI1) cruzados con
+# afiliados activos de Plan Liga (INTRANET_VISTA_PLANLIGA). Una fila por
+# persona (RN=1 = ultimo servicio).
+_SQL_AUDIENCIA = """
+SELECT *
+FROM (
+    SELECT
+        t.IDENTIFICACION,
+        t.NOMBRES,
+        t.EMPRESA,
+        t.SEXO,
+        t.EDAD,
+        t.MUNICIPIO AS CIUDAD,
+        t.DEPARTAMENTO,
+        t.PACCOE AS CORREO,
+        t.PACCEL AS TELEFONO,
+        t.TIPO_PLAN,
+        t.CONCEPTO,
+        t.SERVICIO,
+        t.ESPECIALIDAD,
+        COUNT(*) OVER (PARTITION BY t.IDENTIFICACION) AS SERVICIOS_USADOS,
+        MAX(t.FECHA) OVER (PARTITION BY t.IDENTIFICACION) AS ULTIMO_USO,
         CASE
-            WHEN REGEXP_LIKE(p.DEPARTAMENTO, '^[0-9]{1,2}$')
-             AND REGEXP_LIKE(p.CIUDAD, '^[0-9]{1,3}$')
-            THEN LPAD(TRIM(p.DEPARTAMENTO), 2, '0') || LPAD(TRIM(p.CIUDAD), 3, '0')
-        END
-    )
-    LEFT JOIN INDEP d ON d.DEPCOD = m.MUNDEP
+            WHEN UPPER(t.TIPO_PLAN) = 'PARTICULAR' THEN 'Particular'
+            ELSE 'Empresa'
+        END AS TIPO_VINCULACION,
+        ROW_NUMBER() OVER (
+            PARTITION BY t.IDENTIFICACION
+            ORDER BY t.FECHA DESC
+        ) AS RN
+    FROM TMPBI1 t
+    INNER JOIN (
+        SELECT DISTINCT DOCUMENTO, ESTADO
+        FROM INTRANET_VISTA_PLANLIGA
+    ) p
+        ON p.DOCUMENTO = t.IDENTIFICACION
+    WHERE p.ESTADO = 'A'
+      AND (:sexo IS NULL OR UPPER(t.SEXO) = UPPER(:sexo))
+      AND (:edad_min IS NULL OR t.EDAD >= :edad_min)
+      AND (:edad_max IS NULL OR t.EDAD <= :edad_max)
+      AND (:ciudad IS NULL OR UPPER(t.MUNICIPIO) = UPPER(:ciudad))
+      AND (:departamento IS NULL OR UPPER(t.DEPARTAMENTO) = UPPER(:departamento))
+      AND (:concepto IS NULL OR UPPER(t.CONCEPTO) = UPPER(:concepto))
+      AND (:servicio IS NULL OR UPPER(t.SERVICIO) = UPPER(:servicio))
+      AND (
+            :tipo_vinculacion IS NULL
+            OR (UPPER(:tipo_vinculacion) = 'PARTICULAR' AND UPPER(t.TIPO_PLAN) = 'PARTICULAR')
+            OR (
+                UPPER(:tipo_vinculacion) = 'EMPRESA'
+                AND (t.TIPO_PLAN IS NULL OR UPPER(t.TIPO_PLAN) != 'PARTICULAR')
+            )
+      )
+)
+WHERE RN = 1
+  AND (
+        :ultimo_uso IS NULL
+        OR (:ultimo_uso = '90' AND ULTIMO_USO <= SYSDATE - 90)
+        OR (:ultimo_uso = '60' AND ULTIMO_USO <= SYSDATE - 60)
+        OR (:ultimo_uso = '30' AND ULTIMO_USO <= SYSDATE - 30)
+  )
+ORDER BY ULTIMO_USO DESC NULLS LAST
 """
 
 
+def _fecha_iso(valor) -> str | None:
+    if valor is None:
+        return None
+    if isinstance(valor, datetime):
+        return valor.date().isoformat()
+    if isinstance(valor, date):
+        return valor.isoformat()
+    return str(valor)
+
+
 class SegmentosRepository:
-    """SQL crudo sobre INTRANET_PLANLIGA para el segmentador de campanas
-    (modulo Marketing). Solo consulta: no modifica nada."""
+    """Consulta el consolidado TMPBI1 para el segmentador de campanas."""
 
     def __init__(self, db: Session) -> None:
         self.db = db
 
-    def _condiciones(
+    def listar_audiencia(
         self,
-        estado: str | None,
-        sexo: str | None,
-        edad_min: int | None,
-        edad_max: int | None,
-        ciudades: list[str] | None,
-        vinculacion: str | None,
-    ) -> tuple[str, dict]:
-        condiciones: list[str] = []
-        params: dict = {}
-
-        codigo_estado = ESTADOS_FILTRO.get((estado or "").lower())
-        if codigo_estado:
-            condiciones.append("p.ESTADO = :estado")
-            params["estado"] = codigo_estado
-
-        if sexo:
-            condiciones.append("p.SEXO = :sexo")
-            params["sexo"] = sexo.upper()
-
-        if edad_min is not None:
-            condiciones.append(
-                "TRUNC(MONTHS_BETWEEN(SYSDATE, p.FECHA_NACIMIENTO) / 12) >= :edad_min"
-            )
-            params["edad_min"] = edad_min
-
-        if edad_max is not None:
-            condiciones.append(
-                "TRUNC(MONTHS_BETWEEN(SYSDATE, p.FECHA_NACIMIENTO) / 12) <= :edad_max"
-            )
-            params["edad_max"] = edad_max
-
-        if ciudades:
-            condiciones.append("m.MUNCOD IN :ciudades")
-            params["ciudades"] = list(ciudades)
-
-        if vinculacion == "particular":
-            condiciones.append("NVL(TRIM(p.EMPRESA), ' ') = ' '")
-        elif vinculacion == "empresa":
-            condiciones.append("NVL(TRIM(p.EMPRESA), ' ') <> ' '")
-
-        where = ("WHERE " + " AND ".join(condiciones)) if condiciones else ""
-        return where, params
-
-    def _bind(self, stmt, params: dict):
-        if "ciudades" in params:
-            stmt = stmt.bindparams(bindparam("ciudades", expanding=True))
-        return stmt
-
-    def contar_titulares(
-        self,
-        estado: str | None = None,
         sexo: str | None = None,
         edad_min: int | None = None,
         edad_max: int | None = None,
-        ciudades: list[str] | None = None,
-        vinculacion: str | None = None,
-    ) -> int:
-        where, params = self._condiciones(
-            estado, sexo, edad_min, edad_max, ciudades, vinculacion
-        )
-        stmt = self._bind(
-            text(
-                f"""
-                SELECT COUNT(*)
-                FROM INTRANET_PLANLIGA p
-                {_JOIN_UBICACION}
-                {where}
-                """
-            ),
-            params,
-        )
-        return self.db.execute(stmt, params).scalar() or 0
-
-    def listar_titulares(
-        self,
-        offset: int,
-        limit: int,
-        estado: str | None = None,
-        sexo: str | None = None,
-        edad_min: int | None = None,
-        edad_max: int | None = None,
-        ciudades: list[str] | None = None,
-        vinculacion: str | None = None,
-    ) -> list[dict]:
-        where, params = self._condiciones(
-            estado, sexo, edad_min, edad_max, ciudades, vinculacion
-        )
-        params = {**params, "desplazamiento": offset, "cantidad": limit}
-        stmt = self._bind(
-            text(
-                f"""
-                SELECT
-                    p.ID AS ID_TITULAR,
-                    p.TIPO AS TIPO_DOCUMENTO,
-                    p.DOCUMENTO,
-                    TRIM(p.NOMBRE1 || ' ' || NVL(p.NOMBRE2, '') || ' '
-                         || NVL(p.APELLIDO1, '') || ' ' || NVL(p.APELLIDO2, '')) AS NOMBRE,
-                    p.SEXO,
-                    TRUNC(MONTHS_BETWEEN(SYSDATE, p.FECHA_NACIMIENTO) / 12) AS EDAD,
-                    m.MUNNOM AS CIUDAD,
-                    d.DEPNOM AS DEPARTAMENTO,
-                    p.TIPO_PLAN,
-                    p.EMPRESA,
-                    CASE WHEN NVL(TRIM(p.EMPRESA), ' ') = ' '
-                         THEN 'Particular' ELSE 'Empresa' END AS VINCULACION,
-                    p.CORREO,
-                    p.TELEFONO,
-                    p.ESTADO,
-                    TO_CHAR(p.FECHA_INGRESO, 'YYYY-MM-DD') AS FECHA_INGRESO
-                FROM INTRANET_PLANLIGA p
-                {_JOIN_UBICACION}
-                {where}
-                ORDER BY NOMBRE
-                OFFSET :desplazamiento ROWS FETCH NEXT :cantidad ROWS ONLY
-                """
-            ),
-            params,
-        )
-        # El dialecto de Oracle normaliza los nombres de columna de un text()
-        # a minusculas (ver mismo comentario en notificaciones/correos/service.py);
-        # el schema Pydantic los espera en mayuscula.
-        filas = self.db.execute(stmt, params).mappings().all()
-        return [{clave.upper(): valor for clave, valor in fila.items()} for fila in filas]
+        ciudad: str | None = None,
+        departamento: str | None = None,
+        concepto: str | None = None,
+        servicio: str | None = None,
+        tipo_vinculacion: str | None = None,
+        ultimo_uso: str | None = None,
+    ) -> list[AudienciaSegmentoItem]:
+        params = {
+            "sexo": sexo,
+            "edad_min": edad_min,
+            "edad_max": edad_max,
+            "ciudad": ciudad,
+            "departamento": departamento,
+            "concepto": concepto,
+            "servicio": servicio,
+            "tipo_vinculacion": tipo_vinculacion,
+            "ultimo_uso": ultimo_uso,
+        }
+        filas = self.db.execute(text(_SQL_AUDIENCIA), params).mappings().all()
+        items: list[AudienciaSegmentoItem] = []
+        for fila in filas:
+            datos = {clave.upper(): valor for clave, valor in fila.items()}
+            datos.pop("RN", None)
+            if "ULTIMO_USO" in datos:
+                datos["ULTIMO_USO"] = _fecha_iso(datos["ULTIMO_USO"])
+            if datos.get("EDAD") is not None:
+                datos["EDAD"] = int(datos["EDAD"])
+            if datos.get("SERVICIOS_USADOS") is not None:
+                datos["SERVICIOS_USADOS"] = int(datos["SERVICIOS_USADOS"])
+            items.append(AudienciaSegmentoItem(**datos))
+        return items

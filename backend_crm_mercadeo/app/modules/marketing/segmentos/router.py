@@ -4,55 +4,60 @@ from fastapi import APIRouter, Depends, Query
 
 from app.core.dependencies import get_current_username
 from app.modules.marketing.segmentos.dependencies import get_segmentos_service
-from app.modules.marketing.segmentos.schemas import ListadoTitularesSegmento
+from app.modules.marketing.segmentos.schemas import (
+    FiltrosAudiencia,
+    ListadoAudienciaSegmento,
+)
 from app.modules.marketing.segmentos.service import SegmentosService
 
 router = APIRouter(
-    prefix="/segmentos", tags=["Segmentos"], dependencies=[Depends(get_current_username)]
+    prefix="/segmentos",
+    tags=["Segmentos"],
+    dependencies=[Depends(get_current_username)],
 )
 
 
-@router.get("/titulares", response_model=ListadoTitularesSegmento)
-def buscar_titulares(
+@router.get("/audiencias", response_model=ListadoAudienciaSegmento)
+def obtener_audiencia(
     plan: Literal["plan_liga", "no_plan_liga"] | None = Query(
-        None,
+        "plan_liga",
         description=(
-            "'plan_liga' consulta INTRANET_PLANLIGA (unica fuente disponible). "
-            "'no_plan_liga' todavia no tiene fuente de datos: responde vacio."
+            "'plan_liga' ejecuta el consolidado TMPBI1 + INTRANET_VISTA_PLANLIGA. "
+            "'no_plan_liga' responde vacio (sin fuente todavia)."
         ),
     ),
-    sexo: Literal["F", "M"] | None = Query(None, description="Vacio = todos"),
+    sexo: Literal["F", "M", "todos"] | None = Query(
+        None, description="None o 'todos' = sin filtro."
+    ),
     edad_min: int | None = Query(None, ge=0, le=120),
     edad_max: int | None = Query(None, ge=0, le=120),
-    ciudades: list[str] | None = Query(
+    ciudad: str | None = Query(
+        None, description="TMPBI1.MUNICIPIO (ej. 'PEREIRA')."
+    ),
+    departamento: str | None = Query(None),
+    concepto: str | None = Query(None),
+    servicio: str | None = Query(None),
+    tipo_vinculacion: Literal["particular", "empresa", "todos"] | None = Query(
         None,
-        description=(
-            "Codigos DIVIPOLA completos (MUNCOD, ej. '66001' = Pereira) "
-            "tal como los devuelve GET /compartidos/ubicaciones/municipios."
-        ),
+        description="Segun TIPO_PLAN = PARTICULAR u otro.",
     ),
-    vinculacion: Literal["empresa", "particular"] | None = Query(None),
-    estado: Literal["activo", "inactivo", "todos"] = Query(
-        "activo", description="Estado del titular en Plan Liga"
+    ultimo_uso: Literal["90", "60", "30"] | None = Query(
+        None,
+        description="Sin uso en los ultimos N dias (ULTIMO_USO <= SYSDATE - N).",
     ),
-    # Concepto / Servicio / Ultimo uso: no hay tabla de citas/servicios
-    # prestados en esta base (vive en el sistema clinico, no mapeado aqui).
-    # Se reciben para no romper al frontend, pero por ahora no filtran nada.
-    concepto: list[str] | None = Query(None, include_in_schema=False),
-    servicios: list[str] | None = Query(None, include_in_schema=False),
-    ultimo_uso: str | None = Query(None, include_in_schema=False),
-    offset: int = Query(0, ge=0),
-    limit: int = Query(50, ge=1, le=500),
     service: SegmentosService = Depends(get_segmentos_service),
-) -> ListadoTitularesSegmento:
-    return service.buscar_titulares(
-        plan=plan,
-        estado=estado,
-        sexo=sexo,
-        edad_min=edad_min,
-        edad_max=edad_max,
-        ciudades=ciudades,
-        vinculacion=vinculacion,
-        offset=offset,
-        limit=limit,
+) -> ListadoAudienciaSegmento:
+    return service.obtener_audiencia(
+        FiltrosAudiencia(
+            plan=plan,
+            sexo=sexo,
+            edad_min=edad_min,
+            edad_max=edad_max,
+            ciudad=ciudad,
+            departamento=departamento,
+            concepto=concepto,
+            servicio=servicio,
+            tipo_vinculacion=tipo_vinculacion,
+            ultimo_uso=ultimo_uso,
+        )
     )
