@@ -22,8 +22,9 @@ def obtener_audiencia(
     plan: Literal["plan_liga", "no_plan_liga"] | None = Query(
         "plan_liga",
         description=(
-            "'plan_liga' ejecuta el consolidado TMPBI1 + INTRANET_VISTA_PLANLIGA. "
-            "'no_plan_liga' responde vacio (sin fuente todavia)."
+            "'plan_liga' ejecuta el consolidado TMPBI1 + INTRANET_VISTA_PLANLIGA "
+            "(solo afiliados activos). 'no_plan_liga' ejecuta TMPBI1 + ABPAC "
+            "excluyendo a los afiliados ACTIVOS de Plan Liga (incluye inactivos)."
         ),
     ),
     sexo: Literal["F", "M", "todos"] | None = Query(

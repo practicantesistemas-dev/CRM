@@ -79,11 +79,12 @@ class SegmentosService:
     def obtener_audiencia(self, filtros: FiltrosAudiencia) -> ListadoAudienciaSegmento:
         filtros_normalizados = self._normalizar_filtros(filtros)
 
-        # El consolidado solo cubre afiliados Plan Liga activos.
-        if filtros_normalizados.plan == "no_plan_liga":
-            return ListadoAudienciaSegmento(total=0, items=[])
-
-        items = self.repository.listar_audiencia(
+        listar = (
+            self.repository.listar_audiencia_no_plan_liga
+            if filtros_normalizados.plan == "no_plan_liga"
+            else self.repository.listar_audiencia
+        )
+        items = listar(
             sexo=filtros_normalizados.sexo,
             edad_min=filtros_normalizados.edad_min,
             edad_max=filtros_normalizados.edad_max,
