@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { X, Mail, MessageCircle, Check, Send } from 'lucide-vue-next'
+import { X, Mail, MessageCircle, Check, Send, AlertTriangle } from 'lucide-vue-next'
 import { PLANTILLAS_CORREO, PLANTILLAS_WHATSAPP, type PlantillaRef } from '../constants/ciclo-afiliado.constants'
 import ConfirmDialog from './ConfirmDialog.vue'
 
@@ -52,6 +52,11 @@ async function enviar() {
       <div class="p-6 space-y-4">
         <div v-if="resultado" class="rounded-xl border border-emerald-200 dark:border-emerald-900 bg-emerald-50 dark:bg-emerald-950/40 px-4 py-3 text-[12px] text-emerald-700 dark:text-emerald-300 flex items-start gap-2">
           <Check :size="15" class="mt-0.5 shrink-0" /><span>{{ resultado }}</span>
+        </div>
+
+        <div v-if="!resultado" class="rounded-xl border border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-950/40 px-4 py-3 text-[11px] text-amber-700 dark:text-amber-300 flex items-start gap-2">
+          <AlertTriangle :size="14" class="mt-0.5 shrink-0" />
+          <span>El envío real de correos y WhatsApp todavía no está conectado a ningún proveedor — esto es solo una vista previa, no se enviará nada de verdad.</span>
         </div>
 
         <template v-if="!resultado">

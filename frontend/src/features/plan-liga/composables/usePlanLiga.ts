@@ -241,6 +241,27 @@ export function usePlanLiga() {
     }
   }
 
+  // A diferencia de toggleEstadoTitular (que decide activar/desactivar segun el
+  // estado actual), esto SIEMPRE llama a activarTitular sin importar si el
+  // titular ya estaba activo o no: el backend de todas formas fija estado=Activo,
+  // FECHA_INGRESO y RENOVADO='S' en la misma operacion (repository.py:812-820),
+  // asi que reusarlo tambien sirve para solo "editar" la fecha de un titular que
+  // ya esta activo (queda activo igual, solo cambia la fecha).
+  const editarFechaIngresoTitular = async (t: Titular, fechaIngreso: string, aplicarAGrupo = true) => {
+    guardandoTitular.value = true
+    errorGuardarTitular.value = null
+    try {
+      await activarTitular(t.id, fechaIngreso, aplicarAGrupo)
+      const idx = titulares.value.findIndex(x => x.id === t.id)
+      if (idx !== -1) titulares.value[idx] = { ...t, estado: 'Activo', fechaInscripcion: fechaIngreso }
+      cargarResumen()
+    } catch (e) {
+      errorGuardarTitular.value = e instanceof Error ? e.message : 'No se pudo actualizar la fecha de inscripción.'
+    } finally {
+      guardandoTitular.value = false
+    }
+  }
+
   const reemplazandoTitular = ref(false)
   const errorReemplazarTitular = ref<string | null>(null)
   const resultadoReemplazoTitular = ref<ReemplazoTitularResultado | null>(null)
@@ -431,7 +452,7 @@ export function usePlanLiga() {
     exportarListado, exportando, errorExportar,
     activosPorTitular, puedeAgregar,
     cargandoDetalleTitular, obtenerTitular,
-    crearTitular, actualizarTitular, toggleEstadoTitular,
+    crearTitular, actualizarTitular, toggleEstadoTitular, editarFechaIngresoTitular,
     guardandoTitular, errorGuardarTitular,
     reemplazarTitularAccion, reemplazandoTitular, errorReemplazarTitular, resultadoReemplazoTitular,
     beneficiariosDeTitular, crearBeneficiario, actualizarBeneficiario,

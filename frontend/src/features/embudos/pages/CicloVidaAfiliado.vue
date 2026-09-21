@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onActivated, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { ChevronRight, ChevronLeft, RefreshCw, SlidersHorizontal, Send, X, Mail, Phone, Bookmark, Check, Loader2 } from 'lucide-vue-next'
+import { ChevronRight, ChevronLeft, RefreshCw, SlidersHorizontal, Send, X, Mail, Phone, Bookmark, Check, Loader2, AlertTriangle } from 'lucide-vue-next'
 import { clonarFiltro, resumirFiltros } from '../constants/ciclo-afiliado.constants'
 import { getSegmentoPreseleccionado } from '../composables/useSegmentoPreseleccionado'
 import { useSegmentosGuardados } from '../composables/useSegmentosGuardados'
@@ -126,9 +126,14 @@ const confirmarGuardar = () => {
             <button
               @click="enviarVisible = true"
               :disabled="!seleccion.length || cargando"
+              title="El envío real de correos/WhatsApp desde este módulo todavía no está conectado."
               class="flex items-center gap-1.5 h-9 px-4 rounded-lg bg-[#2447F9] text-white text-[11px] font-bold shadow hover:bg-[#1D3DD9] transition-all disabled:opacity-50"
             ><Send :size="13" /> Enviar al segmento</button>
           </div>
+        </div>
+
+        <div class="flex items-center gap-1.5 text-[10px] text-amber-600 dark:text-amber-400 font-semibold shrink-0">
+          <AlertTriangle :size="12" /> El envío de correos y WhatsApp desde Audiencias todavía no está conectado a un proveedor real — por ahora es solo una vista previa.
         </div>
 
         <div v-if="error" class="rounded-xl bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 text-[12px] font-semibold px-4 py-3 shrink-0">

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Edit2, Loader2, ToggleLeft, ToggleRight, Users, ClipboardList, RefreshCw } from 'lucide-vue-next'
+import { Edit2, Loader2, ToggleLeft, ToggleRight, Users, ClipboardList, RefreshCw, CalendarClock } from 'lucide-vue-next'
 import type { Titular } from '../types/plan-liga'
 import { estadoTitularStyle, planStyle, cupoMaximoTitular } from '../constants/plan-liga.constants'
 import PersonaAvatar from '../components/PersonaAvatar.vue'
@@ -17,6 +17,7 @@ const emit = defineEmits<{
   seguimiento: [t: Titular]
   editar: [t: Titular]
   'toggle-estado': [t: Titular]
+  'editar-fecha': [t: Titular]
   beneficiarios: [t: Titular]
   reemplazar: [t: Titular]
 }>()
@@ -42,7 +43,7 @@ const cuposTitular = (t: Titular, activosLocal: number) => ({
             <th class="text-left px-3 py-3 w-[125px] text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Beneficiarios</th>
             <th class="text-left px-3 py-3 w-[90px] text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Inscripción</th>
             <th class="text-left px-3 py-3 w-[75px] text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Estado</th>
-            <th class="text-center px-4 py-3 w-[185px] text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Acciones</th>
+            <th class="text-center px-4 py-3 w-[215px] text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Acciones</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
@@ -90,6 +91,11 @@ const cuposTitular = (t: Titular, activosLocal: number) => ({
                   title="Editar">
                   <Loader2 v-if="cargandoEditarId === t.id" :size="12" class="animate-spin" />
                   <Edit2 v-else :size="12" />
+                </button>
+                <button v-if="puedeGestionar" @click="emit('editar-fecha', t)"
+                  class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-[#EEF2FF] dark:hover:bg-blue-950/50 hover:text-[#2447F9] dark:hover:text-blue-400 text-slate-500 dark:text-slate-400 flex items-center justify-center transition-all"
+                  title="Editar fecha de inscripción">
+                  <CalendarClock :size="12" />
                 </button>
                 <button v-if="t.estado === 'Activo' ? puedeDesactivar : puedeGestionar" @click="emit('toggle-estado', t)"
                   class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 flex items-center justify-center transition-all"

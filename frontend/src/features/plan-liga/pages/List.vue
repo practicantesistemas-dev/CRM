@@ -32,7 +32,7 @@ const {
   exportarListado, exportando, errorExportar,
   activosPorTitular,
   obtenerTitular,
-  crearTitular, actualizarTitular, toggleEstadoTitular,
+  crearTitular, actualizarTitular, toggleEstadoTitular, editarFechaIngresoTitular,
   guardandoTitular, errorGuardarTitular,
   reemplazarTitularAccion, reemplazandoTitular, errorReemplazarTitular, resultadoReemplazoTitular,
   crearBeneficiario, actualizarBeneficiario,
@@ -107,6 +107,22 @@ const confirmarDesactivarTitular = async () => {
   if (!titularDesactivando.value) return
   await toggleEstadoTitular(titularDesactivando.value)
   if (!errorGuardarTitular.value) modalDesactivarTitularVisible.value = false
+}
+
+// Editar fecha de inscripcion: disponible para cualquier titular (activo o
+// inactivo), sin restriccion de que tan atras puede quedar la fecha. Si el
+// titular estaba inactivo, tambien queda activado (ver editarFechaIngresoTitular).
+const modalEditarFechaVisible = ref(false)
+const titularEditandoFecha = ref<Titular | null>(null)
+const abrirEditarFecha = (t: Titular) => {
+  errorGuardarTitular.value = null
+  titularEditandoFecha.value = t
+  modalEditarFechaVisible.value = true
+}
+const confirmarEditarFecha = async (fechaIngreso: string, aplicarAGrupo: boolean) => {
+  if (!titularEditandoFecha.value) return
+  await editarFechaIngresoTitular(titularEditandoFecha.value, fechaIngreso, aplicarAGrupo)
+  if (!errorGuardarTitular.value) modalEditarFechaVisible.value = false
 }
 
 const modalReemplazarTitularVisible = ref(false)
@@ -362,6 +378,7 @@ const modalImportVisible = ref(false)
       @seguimiento="abrirSeguimiento"
       @editar="abrirEditarTitular"
       @toggle-estado="toggleEstadoTitularConFecha"
+      @editar-fecha="abrirEditarFecha"
       @beneficiarios="abrirBeneficiarios"
       @reemplazar="abrirReemplazarTitular"
     />
@@ -432,6 +449,21 @@ const modalImportVisible = ref(false)
       :error="errorGuardarTitular"
       pedir-fecha
       @confirmar="confirmarActivarTitular"
+      @cancelar="errorGuardarTitular = null"
+    />
+
+    <ActivarFechaDialog
+      v-model:visible="modalEditarFechaVisible"
+      titulo="Editar fecha de inscripción"
+      :nombre="titularEditandoFecha?.nombre"
+      :guardando="guardandoTitular"
+      :error="errorGuardarTitular"
+      pedir-fecha
+      :mensaje="titularEditandoFecha?.estado === 'Activo'
+        ? `Elige la nueva fecha de inscripción para ${titularEditandoFecha?.nombre}.`
+        : `${titularEditandoFecha?.nombre} está inactivo: al guardar la fecha también queda activado.`"
+      texto-boton="Guardar"
+      @confirmar="confirmarEditarFecha"
       @cancelar="errorGuardarTitular = null"
     />
 

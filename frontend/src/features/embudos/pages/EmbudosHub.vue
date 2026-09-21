@@ -1,35 +1,20 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { ChevronRight } from 'lucide-vue-next'
 import { HUB_CARDS } from '../constants/hub.constants'
 import { useSegmentosGuardados } from '../composables/useSegmentosGuardados'
-import { getAudiencias } from '../services/segmentos.api'
-import { filtroVacio } from '../constants/ciclo-afiliado.constants'
 
 const router = useRouter()
 const nf = new Intl.NumberFormat('es-CO')
 
 const { segmentos } = useSegmentosGuardados()
 
-// Numeros reales por tarjeta (ver hub.constants.ts: dato/datoLabel ahi son
-// solo el placeholder inicial mientras esto carga).
-const personasSinUso = ref<number | null>(null)
-onMounted(async () => {
-  try {
-    const { total } = await getAudiencias({ ...filtroVacio(), ultimoUso: '90' }, 1, 1)
-    personasSinUso.value = total
-  } catch {
-    personasSinUso.value = null
-  }
-})
-
-const datoReal = computed<Record<string, { dato: string; datoLabel: string; datoDescripcion?: string }>>(() => ({
-  '/embudos/afiliado': {
-    dato: personasSinUso.value === null ? '—' : nf.format(personasSinUso.value),
-    datoLabel: 'sin uso hace +90 días',
-    datoDescripcion: 'Afiliados activos de Plan Liga que no han usado ningún servicio en los últimos 90 días.',
-  },
+// Solo la tarjeta de Segmentos guardados tiene un numero real (viene de
+// localStorage, es instantaneo). La de Audiencias no muestra ningun dato:
+// calcularlo en vivo pegaba contra TMPBI1 (millones de filas) y tardaba
+// demasiado para una tarjeta del hub.
+const datoReal = computed<Record<string, { dato: string; datoLabel: string }>>(() => ({
   '/segmentos': {
     dato: nf.format(segmentos.value.length),
     datoLabel: 'segmentos activos',
@@ -71,14 +56,9 @@ const datoReal = computed<Record<string, { dato: string; datoLabel: string; dato
         <h3 class="text-[14px] font-bold text-heading">{{ c.titulo }}</h3>
         <p class="text-[12px] text-muted mt-1 leading-relaxed">{{ c.descripcion }}</p>
 
-        <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-700">
-          <div class="flex items-baseline gap-1.5">
-            <span class="text-[20px] font-extrabold tabular-nums" :style="{ color: c.color }">{{ (datoReal[c.ruta] ?? c).dato }}</span>
-            <span class="text-[11px] text-muted">{{ (datoReal[c.ruta] ?? c).datoLabel }}</span>
-          </div>
-          <p v-if="datoReal[c.ruta]?.datoDescripcion" class="text-[10px] text-muted/80 mt-1 leading-relaxed">
-            {{ datoReal[c.ruta]!.datoDescripcion }}
-          </p>
+        <div v-if="datoReal[c.ruta]" class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-700 flex items-baseline gap-1.5">
+          <span class="text-[20px] font-extrabold tabular-nums" :style="{ color: c.color }">{{ datoReal[c.ruta].dato }}</span>
+          <span class="text-[11px] text-muted">{{ datoReal[c.ruta].datoLabel }}</span>
         </div>
       </button>
     </div>

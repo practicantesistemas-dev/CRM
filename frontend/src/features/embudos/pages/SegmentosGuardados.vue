@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { ChevronRight, Bookmark, Mail, MessageCircle, ClipboardList, Users, Search, SlidersHorizontal, ArrowRight, Trash2 } from 'lucide-vue-next'
+import { ChevronRight, Bookmark, Mail, MessageCircle, ClipboardList, Users, Search, SlidersHorizontal, ArrowRight, Trash2, AlertTriangle } from 'lucide-vue-next'
 import { type Segmento } from '../constants/segmentos.constants'
 import { setSegmentoPreseleccionado } from '../composables/useSegmentoPreseleccionado'
 import { useSegmentosGuardados } from '../composables/useSegmentosGuardados'
@@ -50,17 +50,18 @@ const mensajeAccion = computed(() => {
   if (!pendienteAccion.value) return ''
   const { s, tipo } = pendienteAccion.value
   const base = tipo === 'Correo' ? s.conCorreo : tipo === 'WhatsApp' ? s.conCelular : s.personas
-  return tipo === 'Tarea'
-    ? `Se van a crear ${nf.format(base)} tareas para el segmento "${s.nombre}". ¿Continuar?`
-    : `Se va a enviar ${tipo} a ${nf.format(base)} personas del segmento "${s.nombre}". ¿Continuar?`
+  const accion = tipo === 'Tarea'
+    ? `Se van a crear ${nf.format(base)} tareas para el segmento "${s.nombre}".`
+    : `Se va a enviar ${tipo} a ${nf.format(base)} personas del segmento "${s.nombre}".`
+  return `${accion} Esta acción todavía no está conectada a un proveedor/módulo real — es solo una vista previa. ¿Continuar?`
 })
 const confirmarAccion = () => {
   if (!pendienteAccion.value) return
   const { s, tipo } = pendienteAccion.value
   const base = tipo === 'Correo' ? s.conCorreo : tipo === 'WhatsApp' ? s.conCelular : s.personas
   aviso.value = tipo === 'Tarea'
-    ? `Se crearían ${nf.format(base)} tareas para el segmento "${s.nombre}".`
-    : `Se enviaría ${tipo} a ${nf.format(base)} personas del segmento "${s.nombre}".`
+    ? `Se crearían ${nf.format(base)} tareas para el segmento "${s.nombre}". (Vista previa: no se creó nada.)`
+    : `Se enviaría ${tipo} a ${nf.format(base)} personas del segmento "${s.nombre}". (Vista previa: no se envió nada.)`
   clearTimeout(t)
   t = setTimeout(() => { aviso.value = '' }, 3500)
   pendienteAccion.value = null
@@ -95,6 +96,9 @@ const abrirEnSegmentador = (s: Segmento) => {
         <span class="bg-[#FEF9C3] dark:bg-amber-950/40 text-[#C9A227] dark:text-amber-300 text-[11px] font-bold px-2.5 py-0.5 rounded-full">{{ segmentos.length }}</span>
       </h2>
       <p class="text-[12px] text-body mt-0.5">Grupos de personas listos para actuar. "Abrir en Audiencias" para refinar con más filtros. Datos de ejemplo.</p>
+      <p class="flex items-center gap-1.5 text-[10px] text-amber-600 dark:text-amber-400 font-semibold mt-1.5">
+        <AlertTriangle :size="12" /> Correo, WhatsApp y Tarea aún no están conectados a un proveedor/módulo real — por ahora son solo vista previa.
+      </p>
     </div>
 
     <!-- Filtros de la lista -->
