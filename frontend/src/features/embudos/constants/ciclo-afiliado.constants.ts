@@ -17,8 +17,9 @@ export const ETAPAS_AFILIADO: EtapaAfiliado[] = [
 export const ETAPA_COLOR: Record<string, string> = Object.fromEntries(ETAPAS_AFILIADO.map(e => [e.n, e.color]))
 
 // ── Opciones de los filtros de segmento ──────────────────────────────
-export const CIUDADES = ['Pereira', 'Dosquebradas', 'Cartago', 'Santa Rosa de Cabal', 'La Virginia', 'Marsella']
-export const CONCEPTOS = ['Consulta', 'Ecografía', 'Laboratorio clínico', 'Descuento consultas']
+// Nombres como en TMPBI1.MUNICIPIO (el API compara en mayúsculas).
+export const CIUDADES = ['PEREIRA', 'DOSQUEBRADAS', 'CARTAGO', 'SANTA ROSA DE CABAL', 'LA VIRGINIA', 'MARSELLA']
+export const CONCEPTOS = ['ECOGRAFIA', 'CONSULTA GINECOLOGIA', 'CONSULTA DERMATOLOGICA', 'MEDICAMENTO ONCOLOGICO', 'LABORATORIO']
 export const VINCULACIONES = ['Empresa', 'Particular'] as const
 export const CANALES_ORIGEN = ['Web', 'Feria de salud', 'Referido', 'Campaña', 'Convenio empresarial']
 export const CALLES = [
