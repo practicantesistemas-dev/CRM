@@ -5,8 +5,13 @@ from fastapi import APIRouter, Depends, Query
 from app.core.dependencies import get_current_username
 from app.modules.marketing.segmentos.dependencies import get_segmentos_service
 from app.modules.marketing.segmentos.schemas import (
+    ConceptoServicio,
     FiltrosAudiencia,
     ListadoAudienciaSegmento,
+    ListadoConceptosServicios,
+    ListadoUbicaciones,
+    Ubicacion,
+    ValoresDistintos,
 )
 from app.modules.marketing.segmentos.service import SegmentosService
 
@@ -46,6 +51,10 @@ def obtener_audiencia(
         None,
         description="Sin uso en los ultimos N dias (ULTIMO_USO <= SYSDATE - N).",
     ),
+    pagina: int = Query(1, ge=1, description="Pagina a mostrar (1-indexada)."),
+    por_pagina: int = Query(
+        10, ge=1, le=500, description="Cuantas personas traer por pagina."
+    ),
     service: SegmentosService = Depends(get_segmentos_service),
 ) -> ListadoAudienciaSegmento:
     return service.obtener_audiencia(
@@ -60,5 +69,72 @@ def obtener_audiencia(
             servicio=servicio,
             tipo_vinculacion=tipo_vinculacion,
             ultimo_uso=ultimo_uso,
+            pagina=pagina,
+            por_pagina=por_pagina,
         )
     )
+
+
+@router.get(
+    "/ciudades",
+    response_model=ValoresDistintos,
+    summary="Ciudades/municipios distintos en TMPBI1 (para el desplegable de filtro).",
+)
+def obtener_ciudades(
+    service: SegmentosService = Depends(get_segmentos_service),
+) -> ValoresDistintos:
+    return ValoresDistintos(valores=service.obtener_ciudades())
+
+
+@router.get(
+    "/ubicaciones",
+    response_model=ListadoUbicaciones,
+    summary=(
+        "Pares (departamento, municipio) distintos en TMPBI1, para el "
+        "desplegable en cascada Departamento -> Ciudad/municipio."
+    ),
+)
+def obtener_ubicaciones(
+    service: SegmentosService = Depends(get_segmentos_service),
+) -> ListadoUbicaciones:
+    return ListadoUbicaciones(
+        ubicaciones=[Ubicacion(**u) for u in service.obtener_ubicaciones()]
+    )
+
+
+@router.get(
+    "/conceptos",
+    response_model=ValoresDistintos,
+    summary="Conceptos distintos en TMPBI1 (para el desplegable de filtro).",
+)
+def obtener_conceptos(
+    service: SegmentosService = Depends(get_segmentos_service),
+) -> ValoresDistintos:
+    return ValoresDistintos(valores=service.obtener_conceptos())
+
+
+@router.get(
+    "/conceptos-servicios",
+    response_model=ListadoConceptosServicios,
+    summary=(
+        "Pares (concepto, servicio) distintos en TMPBI1, para el "
+        "desplegable en cascada Concepto -> Servicio."
+    ),
+)
+def obtener_conceptos_servicios(
+    service: SegmentosService = Depends(get_segmentos_service),
+) -> ListadoConceptosServicios:
+    return ListadoConceptosServicios(
+        pares=[ConceptoServicio(**p) for p in service.obtener_conceptos_servicios()]
+    )
+
+
+@router.get(
+    "/servicios",
+    response_model=ValoresDistintos,
+    summary="Servicios distintos en TMPBI1 (para el desplegable de filtro).",
+)
+def obtener_servicios(
+    service: SegmentosService = Depends(get_segmentos_service),
+) -> ValoresDistintos:
+    return ValoresDistintos(valores=service.obtener_servicios())

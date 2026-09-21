@@ -27,22 +27,73 @@ export interface ListadoAudienciaApi {
   items: AudienciaItemApi[]
 }
 
+/** Trae los valores distintos de TMPBI1 para poblar un desplegable de filtro
+ * (el backend los cachea un rato, TMPBI1 tiene millones de filas). */
+async function getValoresDistintos(recurso: 'ciudades' | 'conceptos' | 'servicios'): Promise<string[]> {
+  const response = await fetch(`${API_URL}/api/segmentos/${recurso}`, {
+    headers: authHeader(),
+  })
+  if (!response.ok) await lanzarErrorConDetalle(response, `No se pudo cargar ${recurso}.`)
+  const data = (await response.json()) as { valores: string[] }
+  return data.valores
+}
+
+export const getCiudades = (): Promise<string[]> => getValoresDistintos('ciudades')
+export const getConceptos = (): Promise<string[]> => getValoresDistintos('conceptos')
+export const getServicios = (): Promise<string[]> => getValoresDistintos('servicios')
+
+export interface UbicacionApi {
+  departamento: string
+  municipio: string
+}
+
+/** Pares (departamento, municipio) distintos de TMPBI1, para el desplegable
+ * en cascada Departamento -> Ciudad/municipio. */
+export async function getUbicaciones(): Promise<UbicacionApi[]> {
+  const response = await fetch(`${API_URL}/api/segmentos/ubicaciones`, {
+    headers: authHeader(),
+  })
+  if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudieron cargar las ubicaciones.')
+  const data = (await response.json()) as { ubicaciones: UbicacionApi[] }
+  return data.ubicaciones
+}
+
+export interface ConceptoServicioApi {
+  concepto: string
+  servicio: string
+}
+
+/** Pares (concepto, servicio) distintos de TMPBI1, para el desplegable en
+ * cascada Concepto -> Servicio. */
+export async function getConceptosServicios(): Promise<ConceptoServicioApi[]> {
+  const response = await fetch(`${API_URL}/api/segmentos/conceptos-servicios`, {
+    headers: authHeader(),
+  })
+  if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudieron cargar los conceptos/servicios.')
+  const data = (await response.json()) as { pares: ConceptoServicioApi[] }
+  return data.pares
+}
+
 /** Fila de la tabla de Audiencias (mapeo del consolidado). */
 export interface PersonaAudiencia {
   id: string
   nombre: string
   documento: string
+  sexo: string | null
+  edad: number | null
+  empresa: string | null
   direccion: string
   plan: string
   vinculacion: string
+  concepto: string | null
+  servicio: string | null
+  especialidad: string | null
   ultimoUsoDias: number | null
   nServicios: number
   tieneCorreo: boolean
   tieneCelular: boolean
   correo: string | null
   telefono: string | null
-  concepto: string | null
-  servicio: string | null
 }
 
 async function lanzarErrorConDetalle(response: Response, mensajeError: string): Promise<never> {
@@ -69,22 +120,30 @@ export function mapAudienciaItem(item: AudienciaItemApi): PersonaAudiencia {
     id: documento || `${item.NOMBRES ?? 'sin-id'}-${item.ULTIMO_USO ?? ''}`,
     nombre: (item.NOMBRES ?? '').trim() || 'Sin nombre',
     documento,
+    sexo: item.SEXO,
+    edad: item.EDAD,
+    empresa: item.EMPRESA,
     direccion,
     plan: (item.TIPO_PLAN ?? '').trim() || '—',
     vinculacion: (item.TIPO_VINCULACION ?? '').trim() || '—',
+    concepto: item.CONCEPTO,
+    servicio: item.SERVICIO,
+    especialidad: item.ESPECIALIDAD,
     ultimoUsoDias: diasDesde(item.ULTIMO_USO),
     nServicios: item.SERVICIOS_USADOS ?? 0,
     tieneCorreo: Boolean(item.CORREO?.trim()),
     tieneCelular: Boolean(item.TELEFONO?.trim()),
     correo: item.CORREO,
     telefono: item.TELEFONO,
-    concepto: item.CONCEPTO,
-    servicio: item.SERVICIO,
   }
 }
 
 /** Traduce el filtro de Embudos a query params de GET /api/segmentos/audiencias. */
-export function filtroSegmentoAQuery(f: FiltroSegmento): URLSearchParams {
+export function filtroSegmentoAQuery(
+  f: FiltroSegmento,
+  pagina = 1,
+  porPagina = 10,
+): URLSearchParams {
   const q = new URLSearchParams()
 
   if (f.planLiga === 'No plan Liga') q.set('plan', 'no_plan_liga')
@@ -92,11 +151,20 @@ export function filtroSegmentoAQuery(f: FiltroSegmento): URLSearchParams {
 
   if (f.sexo === 'F' || f.sexo === 'M') q.set('sexo', f.sexo)
 
-  const edadMin = f.edadMin.trim() === '' ? null : Number(f.edadMin)
-  const edadMax = f.edadMax.trim() === '' ? null : Number(f.edadMax)
+  // String(...) primero: los inputs son type="number", y Vue convierte
+  // v-model a Number automaticamente en ese caso (aunque el tipo declarado
+  // de FiltroSegmento diga string) -- f.edadMin puede llegar aqui como
+  // numero real, no como string.
+  const edadMinTexto = String(f.edadMin ?? '').trim()
+  const edadMaxTexto = String(f.edadMax ?? '').trim()
+  const edadMin = edadMinTexto === '' ? null : Number(edadMinTexto)
+  const edadMax = edadMaxTexto === '' ? null : Number(edadMaxTexto)
   if (edadMin !== null && !Number.isNaN(edadMin)) q.set('edad_min', String(edadMin))
   if (edadMax !== null && !Number.isNaN(edadMax)) q.set('edad_max', String(edadMax))
 
+  // Departamento y ciudad: desplegables de una sola opcion, en cascada
+  // (ver FiltrosSegmento.vue).
+  if (f.departamento) q.set('departamento', f.departamento.toUpperCase())
   if (f.ciudades.length) q.set('ciudad', f.ciudades[0].toUpperCase())
   if (f.conceptos.length) q.set('concepto', f.conceptos[0])
   if (f.servicios.length) q.set('servicio', f.servicios[0])
@@ -108,31 +176,65 @@ export function filtroSegmentoAQuery(f: FiltroSegmento): URLSearchParams {
     q.set('ultimo_uso', f.ultimoUso)
   }
 
+  q.set('pagina', String(pagina))
+  q.set('por_pagina', String(porPagina))
+
   return q
 }
 
-export async function getAudiencias(f: FiltroSegmento): Promise<{ total: number; items: PersonaAudiencia[] }> {
-  // Varias ciudades: una petición por ciudad y se unen por documento.
-  const ciudades = f.ciudades.length ? f.ciudades : [null]
-  const resultados = await Promise.all(
-    ciudades.map(async (ciudad) => {
-      const filtro = ciudad === null ? f : { ...f, ciudades: [ciudad] }
-      const params = filtroSegmentoAQuery(filtro)
-      const response = await fetch(`${API_URL}/api/segmentos/audiencias?${params}`, {
-        headers: authHeader(),
-      })
-      if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo cargar la audiencia.')
-      return (await response.json()) as ListadoAudienciaApi
-    }),
-  )
+/** Trae una sola pagina (util para paginacion real del backend). */
+export async function getAudiencias(
+  f: FiltroSegmento,
+  pagina = 1,
+  porPagina = 10,
+): Promise<{ total: number; items: PersonaAudiencia[] }> {
+  const params = filtroSegmentoAQuery(f, pagina, porPagina)
+  const response = await fetch(`${API_URL}/api/segmentos/audiencias?${params}`, {
+    headers: authHeader(),
+  })
+  if (!response.ok) await lanzarErrorConDetalle(response, 'No se pudo cargar la audiencia.')
+  const data = (await response.json()) as ListadoAudienciaApi
+  return { total: data.total, items: data.items.map(mapAudienciaItem) }
+}
 
-  const porId = new Map<string, PersonaAudiencia>()
-  for (const r of resultados) {
-    for (const item of r.items) {
-      const persona = mapAudienciaItem(item)
-      if (!porId.has(persona.id)) porId.set(persona.id, persona)
-    }
-  }
-  const items = [...porId.values()]
-  return { total: items.length, items }
+// Se carga de a BLOQUES (no toda la audiencia de una vez): solo el bloque
+// que el usuario esta viendo; si avanza mas alla, ahi se pide el siguiente.
+//
+// HILOS_POR_BLOQUE = 1 (sin paralelismo real) a proposito: TMPBI1 tiene
+// ~5.17 millones de filas, y con una tabla de ese tamaño varias consultas
+// simultaneas no "reparten" el trabajo, compiten por el mismo I/O y CPU de
+// Oracle y terminan mas lentas que una sola (medido: 300 filas solas = 7s,
+// 4 en paralelo = 30s+). El cuello de botella es el tamaño de la tabla, no
+// la falta de paralelismo del lado del cliente.
+export const TAMANO_BLOQUE = 500
+const HILOS_POR_BLOQUE = 1
+const TAMANO_HILO = TAMANO_BLOQUE / HILOS_POR_BLOQUE
+
+/**
+ * Trae el bloque `indiceBloque` (0 = primeras 500, 1 = las siguientes 500,
+ * etc.), dividido en HILOS_POR_BLOQUE peticiones paralelas. Devuelve el
+ * total real de la audiencia (igual en cualquier bloque) y las filas de
+ * este bloque, en el orden correcto (ULTIMO_USO DESC) aunque las peticiones
+ * de los hilos no terminen en orden.
+ */
+export async function getBloqueAudiencia(
+  f: FiltroSegmento,
+  indiceBloque: number,
+): Promise<{ total: number; items: PersonaAudiencia[] }> {
+  const inicioBloque = indiceBloque * TAMANO_BLOQUE
+  const hilos = Array.from({ length: HILOS_POR_BLOQUE }, (_, h) => h)
+
+  // pagina/por_pagina del backend calculan offset = (pagina-1)*por_pagina;
+  // con por_pagina = TAMANO_HILO, la pagina que corresponde a cada hilo es:
+  const paginaDeHilo = (h: number) => (inicioBloque + h * TAMANO_HILO) / TAMANO_HILO + 1
+
+  // Promise.all conserva el orden de "hilos" en el resultado (no el orden
+  // en que cada peticion termina), asi que el orden final de las filas
+  // queda igual que si se hubieran pedido una por una.
+  const resultados = await Promise.all(
+    hilos.map(h => getAudiencias(f, paginaDeHilo(h), TAMANO_HILO)),
+  )
+  const total = resultados[0]?.total ?? 0
+  const items = resultados.flatMap(r => r.items)
+  return { total, items }
 }

@@ -2,6 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { X, Mail, MessageCircle, Check, Send } from 'lucide-vue-next'
 import { PLANTILLAS_CORREO, PLANTILLAS_WHATSAPP, type PlantillaRef } from '../constants/ciclo-afiliado.constants'
+import ConfirmDialog from './ConfirmDialog.vue'
 
 const props = defineProps<{ total: number }>()
 const visible = defineModel<boolean>('visible', { required: true })
@@ -10,22 +11,29 @@ const canal = ref<'correo' | 'whatsapp'>('correo')
 const plantillaId = ref('')
 const enviando = ref(false)
 const resultado = ref('')
+const confirmando = ref(false)
 
 const plantillas = computed<PlantillaRef[]>(() => canal.value === 'correo' ? PLANTILLAS_CORREO : PLANTILLAS_WHATSAPP)
+const plantillaElegida = computed(() => plantillas.value.find(x => x.id === plantillaId.value))
 
 watch(visible, (v) => {
-  if (v) { canal.value = 'correo'; plantillaId.value = ''; resultado.value = ''; enviando.value = false }
+  if (v) { canal.value = 'correo'; plantillaId.value = ''; resultado.value = ''; enviando.value = false; confirmando.value = false }
 })
 watch(canal, () => { plantillaId.value = '' })
 
 const puedeEnviar = computed(() => !!plantillaId.value && !enviando.value)
 
+const mensajeConfirmacion = computed(() => {
+  const via = canal.value === 'correo' ? 'correo' : 'WhatsApp'
+  return `Se va a enviar por ${via} a ${props.total} personas, con la plantilla "${plantillaElegida.value?.nombre}". ¿Continuar?`
+})
+
 async function enviar() {
+  confirmando.value = false
   enviando.value = true
   await new Promise(r => setTimeout(r, 600))
-  const p = plantillas.value.find(x => x.id === plantillaId.value)
   const via = canal.value === 'correo' ? 'correos' : 'WhatsApp'
-  resultado.value = `Se enviarían ${props.total} ${via} con la plantilla "${p?.nombre}". (Demo: no se envía nada.)`
+  resultado.value = `Se enviarían ${props.total} ${via} con la plantilla "${plantillaElegida.value?.nombre}". (Demo: no se envía nada.)`
   enviando.value = false
 }
 </script>
@@ -90,11 +98,21 @@ async function enviar() {
         </button>
         <button
           v-if="!resultado"
-          @click="enviar"
+          @click="confirmando = true"
           :disabled="!puedeEnviar"
           class="flex items-center gap-1.5 h-9 px-6 rounded-lg bg-[#2447F9] text-white text-[11px] font-bold shadow hover:bg-[#1D3DD9] transition-all disabled:opacity-50"
         ><Send :size="13" /> {{ enviando ? 'Enviando…' : `Enviar (${total})` }}</button>
       </div>
     </div>
+
+    <ConfirmDialog
+      :visible="confirmando"
+      titulo="Confirmar envío"
+      :mensaje="mensajeConfirmacion"
+      texto-confirmar="Enviar"
+      :cargando="enviando"
+      @confirmar="enviar"
+      @cancelar="confirmando = false"
+    />
   </div>
 </template>

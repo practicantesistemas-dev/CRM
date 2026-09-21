@@ -27,6 +27,8 @@ class FiltrosAudiencia(BaseModel):
         default=None,
         description="'90' | '60' | '30' = sin uso en esos dias. None = sin filtro.",
     )
+    pagina: int = Field(default=1, ge=1)
+    por_pagina: int = Field(default=10, ge=1, le=500)
 
 
 class AudienciaSegmentoItem(BaseModel):
@@ -53,6 +55,37 @@ class AudienciaSegmentoItem(BaseModel):
 class ListadoAudienciaSegmento(BaseModel):
     total: int
     items: list[AudienciaSegmentoItem]
+
+
+class ValoresDistintos(BaseModel):
+    """Lista de valores distintos de una columna de TMPBI1, para poblar
+    desplegables de filtro (ciudad, concepto, servicio)."""
+
+    valores: list[str]
+
+
+class Ubicacion(BaseModel):
+    departamento: str
+    municipio: str
+
+
+class ListadoUbicaciones(BaseModel):
+    """Pares (departamento, municipio) distintos de TMPBI1, para el
+    desplegable en cascada de Departamento -> Ciudad/municipio."""
+
+    ubicaciones: list[Ubicacion]
+
+
+class ConceptoServicio(BaseModel):
+    concepto: str
+    servicio: str
+
+
+class ListadoConceptosServicios(BaseModel):
+    """Pares (concepto, servicio) distintos de TMPBI1, para el desplegable
+    en cascada de Concepto -> Servicio."""
+
+    pares: list[ConceptoServicio]
 
 
 # Alias por compatibilidad con imports previos del modulo.

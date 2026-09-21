@@ -5,6 +5,7 @@ import { ChevronRight, Bookmark, Mail, MessageCircle, ClipboardList, Users, Sear
 import { type Segmento } from '../constants/segmentos.constants'
 import { setSegmentoPreseleccionado } from '../composables/useSegmentoPreseleccionado'
 import { useSegmentosGuardados } from '../composables/useSegmentosGuardados'
+import ConfirmDialog from '../components/ConfirmDialog.vue'
 
 const router = useRouter()
 const nf = new Intl.NumberFormat('es-CO')
@@ -39,13 +40,38 @@ const segmentos = computed<Segmento[]>(() => {
 /* ── Acciones ───────────────────────────────────────────────────── */
 const aviso = ref('')
 let t: ReturnType<typeof setTimeout> | undefined
-const accion = (s: Segmento, tipo: 'Correo' | 'WhatsApp' | 'Tarea') => {
+
+// Confirmacion antes de enviar (correo/whatsapp/tarea).
+const pendienteAccion = ref<{ s: Segmento; tipo: 'Correo' | 'WhatsApp' | 'Tarea' } | null>(null)
+const pedirAccion = (s: Segmento, tipo: 'Correo' | 'WhatsApp' | 'Tarea') => {
+  pendienteAccion.value = { s, tipo }
+}
+const mensajeAccion = computed(() => {
+  if (!pendienteAccion.value) return ''
+  const { s, tipo } = pendienteAccion.value
+  const base = tipo === 'Correo' ? s.conCorreo : tipo === 'WhatsApp' ? s.conCelular : s.personas
+  return tipo === 'Tarea'
+    ? `Se van a crear ${nf.format(base)} tareas para el segmento "${s.nombre}". ¿Continuar?`
+    : `Se va a enviar ${tipo} a ${nf.format(base)} personas del segmento "${s.nombre}". ¿Continuar?`
+})
+const confirmarAccion = () => {
+  if (!pendienteAccion.value) return
+  const { s, tipo } = pendienteAccion.value
   const base = tipo === 'Correo' ? s.conCorreo : tipo === 'WhatsApp' ? s.conCelular : s.personas
   aviso.value = tipo === 'Tarea'
     ? `Se crearían ${nf.format(base)} tareas para el segmento "${s.nombre}".`
     : `Se enviaría ${tipo} a ${nf.format(base)} personas del segmento "${s.nombre}".`
   clearTimeout(t)
   t = setTimeout(() => { aviso.value = '' }, 3500)
+  pendienteAccion.value = null
+}
+
+// Confirmacion antes de eliminar un segmento guardado.
+const pendienteEliminar = ref<Segmento | null>(null)
+const confirmarEliminar = () => {
+  if (!pendienteEliminar.value) return
+  eliminar(pendienteEliminar.value.id)
+  pendienteEliminar.value = null
 }
 
 const abrirEnSegmentador = (s: Segmento) => {
@@ -108,7 +134,7 @@ const abrirEnSegmentador = (s: Segmento) => {
           <div class="flex items-center gap-2 shrink-0">
             <span class="text-[10px] text-muted whitespace-nowrap">{{ s.actualizado }}</span>
             <button
-              @click="eliminar(s.id)"
+              @click="pendienteEliminar = s"
               title="Eliminar segmento"
               class="w-6 h-6 rounded-lg flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 transition-all"
             ><Trash2 :size="12" /></button>
@@ -126,13 +152,13 @@ const abrirEnSegmentador = (s: Segmento) => {
         </div>
 
         <div class="flex flex-wrap gap-2 mt-4 pt-3 border-t border-slate-100 dark:border-slate-700">
-          <button @click="accion(s, 'Correo')" class="flex items-center gap-1.5 h-8 px-3 rounded-lg border border-default bg-white dark:bg-slate-800 text-[11px] font-semibold text-body hover:border-[#2447F9] hover:text-[#2447F9] transition-all">
+          <button @click="pedirAccion(s, 'Correo')" class="flex items-center gap-1.5 h-8 px-3 rounded-lg border border-default bg-white dark:bg-slate-800 text-[11px] font-semibold text-body hover:border-[#2447F9] hover:text-[#2447F9] transition-all">
             <Mail :size="13" /> Correo
           </button>
-          <button @click="accion(s, 'WhatsApp')" class="flex items-center gap-1.5 h-8 px-3 rounded-lg border border-default bg-white dark:bg-slate-800 text-[11px] font-semibold text-body hover:border-[#059669] hover:text-[#059669] transition-all">
+          <button @click="pedirAccion(s, 'WhatsApp')" class="flex items-center gap-1.5 h-8 px-3 rounded-lg border border-default bg-white dark:bg-slate-800 text-[11px] font-semibold text-body hover:border-[#059669] hover:text-[#059669] transition-all">
             <MessageCircle :size="13" /> WhatsApp
           </button>
-          <button @click="accion(s, 'Tarea')" class="flex items-center gap-1.5 h-8 px-3 rounded-lg border border-default bg-white dark:bg-slate-800 text-[11px] font-semibold text-body hover:border-[#C9A227] hover:text-[#C9A227] transition-all">
+          <button @click="pedirAccion(s, 'Tarea')" class="flex items-center gap-1.5 h-8 px-3 rounded-lg border border-default bg-white dark:bg-slate-800 text-[11px] font-semibold text-body hover:border-[#C9A227] hover:text-[#C9A227] transition-all">
             <ClipboardList :size="13" /> Tarea
           </button>
           <button @click="abrirEnSegmentador(s)" class="flex items-center gap-1.5 h-8 px-3 rounded-lg bg-[#EEF2FF] dark:bg-blue-950/40 text-[11px] font-bold text-[#2447F9] dark:text-blue-300 hover:bg-[#E0E7FF] dark:hover:bg-blue-950/60 transition-all ml-auto">
@@ -143,5 +169,24 @@ const abrirEnSegmentador = (s: Segmento) => {
 
       <div v-if="!segmentos.length" class="lg:col-span-2 text-center text-[12px] text-muted py-12">Ningún segmento coincide con la búsqueda.</div>
     </div>
+
+    <ConfirmDialog
+      :visible="!!pendienteEliminar"
+      titulo="Eliminar segmento"
+      :mensaje="`¿Eliminar el segmento «${pendienteEliminar?.nombre}»? Esta acción no se puede deshacer.`"
+      texto-confirmar="Eliminar"
+      peligro
+      @confirmar="confirmarEliminar"
+      @cancelar="pendienteEliminar = null"
+    />
+
+    <ConfirmDialog
+      :visible="!!pendienteAccion"
+      titulo="Confirmar envío"
+      :mensaje="mensajeAccion"
+      texto-confirmar="Enviar"
+      @confirmar="confirmarAccion"
+      @cancelar="pendienteAccion = null"
+    />
   </div>
 </template>
