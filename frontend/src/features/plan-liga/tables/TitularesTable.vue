@@ -11,6 +11,7 @@ defineProps<{
   cargandoEditarId?: number | null
   puedeGestionar: boolean
   puedeDesactivar: boolean
+  puedeEditarFecha: boolean
 }>()
 
 const emit = defineEmits<{
@@ -92,7 +93,7 @@ const cuposTitular = (t: Titular, activosLocal: number) => ({
                   <Loader2 v-if="cargandoEditarId === t.id" :size="12" class="animate-spin" />
                   <Edit2 v-else :size="12" />
                 </button>
-                <button v-if="puedeGestionar" @click="emit('editar-fecha', t)"
+                <button v-if="puedeEditarFecha" @click="emit('editar-fecha', t)"
                   class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-[#EEF2FF] dark:hover:bg-blue-950/50 hover:text-[#2447F9] dark:hover:text-blue-400 text-slate-500 dark:text-slate-400 flex items-center justify-center transition-all"
                   title="Editar fecha de inscripción">
                   <CalendarClock :size="12" />

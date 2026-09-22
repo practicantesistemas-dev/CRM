@@ -20,6 +20,9 @@ import { tienePermiso, permisosDeModulo } from '@/features/auth/composables/useA
 // El catalogo de permisos de este modulo usa "desactivar" en vez de "eliminar".
 const { gestionar: puedeGestionar } = permisosDeModulo('planliga')
 const puedeDesactivar = tienePermiso('planliga:desactivar')
+// Permiso propio para "Editar fecha de inscripcion" (separado de "gestionar"):
+// sin el, el boton ni siquiera aparece en la tabla.
+const puedeEditarFecha = tienePermiso('planliga:editar_fecha_ingreso')
 
 const modalFechaGrupoVisible = ref(false)
 
@@ -293,7 +296,7 @@ const modalImportVisible = ref(false)
           class="flex items-center gap-1.5 h-9 px-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-[11px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all">
           <Upload :size="13" /> Importar Excel
         </button>
-        <button v-if="puedeGestionar" @click="modalFechaGrupoVisible = true"
+        <button v-if="puedeEditarFecha" @click="modalFechaGrupoVisible = true"
           class="flex items-center gap-1.5 h-9 px-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-[11px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all">
           <CalendarClock :size="13" /> Fecha de ingreso por grupo o empresa
         </button>
@@ -375,6 +378,7 @@ const modalImportVisible = ref(false)
       :cargando-editar-id="cargandoEditarId"
       :puede-gestionar="puedeGestionar"
       :puede-desactivar="puedeDesactivar"
+      :puede-editar-fecha="puedeEditarFecha"
       @seguimiento="abrirSeguimiento"
       @editar="abrirEditarTitular"
       @toggle-estado="toggleEstadoTitularConFecha"

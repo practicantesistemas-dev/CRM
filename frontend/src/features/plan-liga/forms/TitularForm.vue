@@ -54,8 +54,22 @@ defineExpose({ submit: onValidSubmit(() => { if (!apellidoFaltante.value) emit('
 
 // Fecha de inscripción y estado quedan fijados al crear el titular: se muestran de
 // solo lectura en edición para evitar registrar cambios que nunca se guardan.
-// El estado solo se cambia desde el botón de activar/desactivar en la tabla.
+// El estado solo se cambia desde el botón de activar/desactivar en la tabla, y la
+// fecha desde "Editar fecha de inscripción" (sin límite ahí, a diferencia de aquí).
 const soloLecturaEnEdicion = computed(() => props.modo === 'editar')
+
+// Al CREAR un titular, la fecha de inscripción no puede quedar mas de 2 meses
+// atras (dato de alta reciente). No aplica al editar (el campo ya queda de solo
+// lectura ahi) ni a las correcciones desde "Editar fecha de inscripción"/"Fecha
+// de ingreso por grupo o empresa", que son ajustes administrativos aparte.
+const fechaInscripcionMinima = computed(() => {
+  if (props.modo !== 'nuevo') return undefined
+  const d = new Date()
+  d.setMonth(d.getMonth() - 2)
+  // Fecha local (no toISOString, que es UTC y puede correrse un dia en
+  // zonas horarias negativas como Colombia), igual que el resto de la app.
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+})
 </script>
 
 <template>
@@ -177,6 +191,7 @@ const soloLecturaEnEdicion = computed(() => props.modo === 'editar')
     <div>
       <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1.5 uppercase tracking-wide">Fecha de inscripción *</label>
       <FechaInput v-model="draft.fechaInscripcion" @blur="tocar('fechaInscripcion')" :disabled="soloLecturaEnEdicion"
+        :min="fechaInscripcionMinima"
         :invalid="esVisible('fechaInscripcion') && !!errors.fechaInscripcion"
         :valid="esVisible('fechaInscripcion') && !errors.fechaInscripcion && !!draft.fechaInscripcion" />
       <FieldError :message="esVisible('fechaInscripcion') ? errors.fechaInscripcion : undefined" />
