@@ -1,9 +1,25 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { ChevronRight } from 'lucide-vue-next'
 import { HUB_CARDS } from '../constants/hub.constants'
+import { useSegmentosGuardados } from '../composables/useSegmentosGuardados'
 
 const router = useRouter()
+const nf = new Intl.NumberFormat('es-CO')
+
+const { segmentos } = useSegmentosGuardados()
+
+// Solo la tarjeta de Segmentos guardados tiene un numero real (viene de
+// localStorage, es instantaneo). La de Audiencias no muestra ningun dato:
+// calcularlo en vivo pegaba contra TMPBI1 (millones de filas) y tardaba
+// demasiado para una tarjeta del hub.
+const datoReal = computed<Record<string, { dato: string; datoLabel: string }>>(() => ({
+  '/segmentos': {
+    dato: nf.format(segmentos.value.length),
+    datoLabel: 'segmentos activos',
+  },
+}))
 </script>
 
 <template>
@@ -40,9 +56,9 @@ const router = useRouter()
         <h3 class="text-[14px] font-bold text-heading">{{ c.titulo }}</h3>
         <p class="text-[12px] text-muted mt-1 leading-relaxed">{{ c.descripcion }}</p>
 
-        <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-700 flex items-baseline gap-1.5">
-          <span class="text-[20px] font-extrabold tabular-nums" :style="{ color: c.color }">{{ c.dato }}</span>
-          <span class="text-[11px] text-muted">{{ c.datoLabel }}</span>
+        <div v-if="datoReal[c.ruta]" class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-700 flex items-baseline gap-1.5">
+          <span class="text-[20px] font-extrabold tabular-nums" :style="{ color: c.color }">{{ datoReal[c.ruta].dato }}</span>
+          <span class="text-[11px] text-muted">{{ datoReal[c.ruta].datoLabel }}</span>
         </div>
       </button>
     </div>

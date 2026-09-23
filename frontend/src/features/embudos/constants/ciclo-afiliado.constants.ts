@@ -17,8 +17,9 @@ export const ETAPAS_AFILIADO: EtapaAfiliado[] = [
 export const ETAPA_COLOR: Record<string, string> = Object.fromEntries(ETAPAS_AFILIADO.map(e => [e.n, e.color]))
 
 // ── Opciones de los filtros de segmento ──────────────────────────────
-export const CIUDADES = ['Pereira', 'Dosquebradas', 'Cartago', 'Santa Rosa de Cabal', 'La Virginia', 'Marsella']
-export const CONCEPTOS = ['Consulta', 'Ecografía', 'Laboratorio clínico', 'Descuento consultas']
+// Nombres como en TMPBI1.MUNICIPIO (el API compara en mayúsculas).
+export const CIUDADES = ['PEREIRA', 'DOSQUEBRADAS', 'CARTAGO', 'SANTA ROSA DE CABAL', 'LA VIRGINIA', 'MARSELLA']
+export const CONCEPTOS = ['ECOGRAFIA', 'CONSULTA GINECOLOGIA', 'CONSULTA DERMATOLOGICA', 'MEDICAMENTO ONCOLOGICO', 'LABORATORIO']
 export const VINCULACIONES = ['Empresa', 'Particular'] as const
 export const CANALES_ORIGEN = ['Web', 'Feria de salud', 'Referido', 'Campaña', 'Convenio empresarial']
 export const CALLES = [
@@ -136,6 +137,7 @@ export interface FiltroSegmento {
   sexo: '' | 'F' | 'M'
   edadMin: string
   edadMax: string
+  departamento: string
   ciudades: string[]
   etapas: string[]
   origen: string
@@ -151,7 +153,7 @@ export interface FiltroSegmento {
 
 export const filtroVacio = (): FiltroSegmento => ({
   planLiga: '', sexo: '', edadMin: '', edadMax: '',
-  ciudades: [], etapas: [], origen: '', responsable: '',
+  departamento: '', ciudades: [], etapas: [], origen: '', responsable: '',
   conceptos: [], servicios: [],
   ultimoUso: '', antiguedad: '', vinculacion: '',
   conCorreo: false, conCelular: false,
@@ -161,7 +163,7 @@ export const clonarFiltro = (f: FiltroSegmento): FiltroSegmento => JSON.parse(JS
 
 export const contarFiltros = (f: FiltroSegmento): number =>
   (f.planLiga ? 1 : 0) + (f.sexo ? 1 : 0) + (f.edadMin || f.edadMax ? 1 : 0)
-  + f.ciudades.length + f.etapas.length + (f.origen ? 1 : 0) + (f.responsable ? 1 : 0)
+  + (f.departamento ? 1 : 0) + f.ciudades.length + f.etapas.length + (f.origen ? 1 : 0) + (f.responsable ? 1 : 0)
   + f.conceptos.length + f.servicios.length
   + (f.ultimoUso ? 1 : 0) + (f.antiguedad ? 1 : 0)
   + (f.vinculacion ? 1 : 0) + (f.conCorreo ? 1 : 0) + (f.conCelular ? 1 : 0)
@@ -172,6 +174,7 @@ export function resumirFiltros(f: FiltroSegmento): string[] {
   if (f.planLiga) c.push(f.planLiga)
   if (f.sexo) c.push(f.sexo === 'F' ? 'Mujeres' : 'Hombres')
   if (f.edadMin || f.edadMax) c.push(`Edad ${f.edadMin || '0'}–${f.edadMax || '∞'}`)
+  if (f.departamento) c.push(`Departamento: ${f.departamento}`)
   if (f.ciudades.length) c.push(`Ciudad: ${f.ciudades.join(', ')}`)
   if (f.etapas.length) c.push(`Etapa: ${f.etapas.join(', ')}`)
   if (f.origen) c.push(`Origen: ${f.origen}`)

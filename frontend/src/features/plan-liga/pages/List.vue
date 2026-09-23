@@ -20,6 +20,9 @@ import { tienePermiso, permisosDeModulo } from '@/features/auth/composables/useA
 // El catalogo de permisos de este modulo usa "desactivar" en vez de "eliminar".
 const { gestionar: puedeGestionar } = permisosDeModulo('planliga')
 const puedeDesactivar = tienePermiso('planliga:desactivar')
+// Permiso propio para "Editar fecha de inscripcion" (separado de "gestionar"):
+// sin el, el boton ni siquiera aparece en la tabla.
+const puedeEditarFecha = tienePermiso('planliga:editar_fecha_ingreso')
 
 const modalFechaGrupoVisible = ref(false)
 
@@ -32,7 +35,7 @@ const {
   exportarListado, exportando, errorExportar,
   activosPorTitular,
   obtenerTitular,
-  crearTitular, actualizarTitular, toggleEstadoTitular,
+  crearTitular, actualizarTitular, toggleEstadoTitular, editarFechaIngresoTitular,
   guardandoTitular, errorGuardarTitular,
   reemplazarTitularAccion, reemplazandoTitular, errorReemplazarTitular, resultadoReemplazoTitular,
   crearBeneficiario, actualizarBeneficiario,
@@ -107,6 +110,22 @@ const confirmarDesactivarTitular = async () => {
   if (!titularDesactivando.value) return
   await toggleEstadoTitular(titularDesactivando.value)
   if (!errorGuardarTitular.value) modalDesactivarTitularVisible.value = false
+}
+
+// Editar fecha de inscripcion: disponible para cualquier titular (activo o
+// inactivo), sin restriccion de que tan atras puede quedar la fecha. Si el
+// titular estaba inactivo, tambien queda activado (ver editarFechaIngresoTitular).
+const modalEditarFechaVisible = ref(false)
+const titularEditandoFecha = ref<Titular | null>(null)
+const abrirEditarFecha = (t: Titular) => {
+  errorGuardarTitular.value = null
+  titularEditandoFecha.value = t
+  modalEditarFechaVisible.value = true
+}
+const confirmarEditarFecha = async (fechaIngreso: string, aplicarAGrupo: boolean) => {
+  if (!titularEditandoFecha.value) return
+  await editarFechaIngresoTitular(titularEditandoFecha.value, fechaIngreso, aplicarAGrupo)
+  if (!errorGuardarTitular.value) modalEditarFechaVisible.value = false
 }
 
 const modalReemplazarTitularVisible = ref(false)
@@ -277,7 +296,7 @@ const modalImportVisible = ref(false)
           class="flex items-center gap-1.5 h-9 px-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-[11px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all">
           <Upload :size="13" /> Importar Excel
         </button>
-        <button v-if="puedeGestionar" @click="modalFechaGrupoVisible = true"
+        <button v-if="puedeEditarFecha" @click="modalFechaGrupoVisible = true"
           class="flex items-center gap-1.5 h-9 px-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-[11px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all">
           <CalendarClock :size="13" /> Fecha de ingreso por grupo o empresa
         </button>
@@ -359,9 +378,11 @@ const modalImportVisible = ref(false)
       :cargando-editar-id="cargandoEditarId"
       :puede-gestionar="puedeGestionar"
       :puede-desactivar="puedeDesactivar"
+      :puede-editar-fecha="puedeEditarFecha"
       @seguimiento="abrirSeguimiento"
       @editar="abrirEditarTitular"
       @toggle-estado="toggleEstadoTitularConFecha"
+      @editar-fecha="abrirEditarFecha"
       @beneficiarios="abrirBeneficiarios"
       @reemplazar="abrirReemplazarTitular"
     />
@@ -432,6 +453,21 @@ const modalImportVisible = ref(false)
       :error="errorGuardarTitular"
       pedir-fecha
       @confirmar="confirmarActivarTitular"
+      @cancelar="errorGuardarTitular = null"
+    />
+
+    <ActivarFechaDialog
+      v-model:visible="modalEditarFechaVisible"
+      titulo="Editar fecha de inscripción"
+      :nombre="titularEditandoFecha?.nombre"
+      :guardando="guardandoTitular"
+      :error="errorGuardarTitular"
+      pedir-fecha
+      :mensaje="titularEditandoFecha?.estado === 'Activo'
+        ? `Elige la nueva fecha de inscripción para ${titularEditandoFecha?.nombre}.`
+        : `${titularEditandoFecha?.nombre} está inactivo: al guardar la fecha también queda activado.`"
+      texto-boton="Guardar"
+      @confirmar="confirmarEditarFecha"
       @cancelar="errorGuardarTitular = null"
     />
 

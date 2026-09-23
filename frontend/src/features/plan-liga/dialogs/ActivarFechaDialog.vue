@@ -12,6 +12,11 @@ const props = defineProps<{
   // El beneficiario hereda la fecha de ingreso del titular, así que no se le pide;
   // el titular sí la elige porque no hay de dónde heredarla.
   pedirFecha?: boolean
+  // Texto de confirmación y del botón; por defecto son los de "activar" (el uso
+  // original de este dialogo), pero se pueden pisar para reusarlo en "editar
+  // fecha de inscripción" de un titular que ya está activo.
+  mensaje?: string
+  textoBoton?: string
 }>()
 
 const emit = defineEmits<{
@@ -24,8 +29,9 @@ const visible = defineModel<boolean>('visible', { required: true })
 // El DatePicker trabaja con Date; el resto de la app maneja la fecha como string 'YYYY-MM-DD'.
 const formatFechaLocal = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 const hoy = new Date()
-const dosMesesAtras = new Date()
-dosMesesAtras.setMonth(dosMesesAtras.getMonth() - 2)
+// Sin limite de "hace cuanto": la fecha de inscripcion se puede organizar
+// libremente (6 meses, un año atras, lo que sea) -- antes tenia un minimo de
+// 2 meses atras que ya no aplica.
 const fechaIngresoDate = ref<Date>(hoy)
 // Desmarcado por defecto: hay que elegirlo a propósito para aplicar la fecha
 // también a los beneficiarios de este titular.
@@ -55,12 +61,11 @@ const confirmar = () => emit(
         <button @click="cerrar" class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 flex items-center justify-center text-slate-500 dark:text-slate-400"><X :size="14" /></button>
       </div>
       <div class="p-6 space-y-4">
-        <p class="text-[12px] text-slate-500 dark:text-slate-400">¿Confirma que desea activar a {{ props.nombre }}?</p>
+        <p class="text-[12px] text-slate-500 dark:text-slate-400">{{ props.mensaje ?? `¿Confirma que desea activar a ${props.nombre}?` }}</p>
         <div v-if="props.pedirFecha">
           <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1.5 uppercase tracking-wide">Fecha de ingreso *</label>
           <DatePicker
             v-model="fechaIngresoDate"
-            :min-date="dosMesesAtras"
             date-format="dd/mm/yy"
             show-icon
             icon-display="input"
@@ -80,7 +85,7 @@ const confirmar = () => emit(
         <button @click="confirmar" :disabled="props.guardando"
           class="flex items-center gap-1.5 h-9 px-6 rounded-lg bg-emerald-600 text-white text-[11px] font-bold shadow hover:bg-emerald-700 disabled:opacity-60 disabled:cursor-not-allowed transition-all">
           <Loader2 v-if="props.guardando" :size="12" class="animate-spin" />
-          {{ props.guardando ? (props.pedirFecha ? 'Activando...' : 'Enviando notificación por correo...') : 'Activar' }}
+          {{ props.guardando ? (props.pedirFecha ? 'Guardando...' : 'Enviando notificación por correo...') : (props.textoBoton ?? 'Activar') }}
         </button>
       </div>
     </div>

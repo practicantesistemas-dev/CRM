@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { X, Mail, MessageCircle, Check, Send } from 'lucide-vue-next'
+import { X, Mail, MessageCircle, Check, Send, AlertTriangle } from 'lucide-vue-next'
 import { PLANTILLAS_CORREO, PLANTILLAS_WHATSAPP, type PlantillaRef } from '../constants/ciclo-afiliado.constants'
+import ConfirmDialog from './ConfirmDialog.vue'
 
 const props = defineProps<{ total: number }>()
 const visible = defineModel<boolean>('visible', { required: true })
@@ -10,22 +11,29 @@ const canal = ref<'correo' | 'whatsapp'>('correo')
 const plantillaId = ref('')
 const enviando = ref(false)
 const resultado = ref('')
+const confirmando = ref(false)
 
 const plantillas = computed<PlantillaRef[]>(() => canal.value === 'correo' ? PLANTILLAS_CORREO : PLANTILLAS_WHATSAPP)
+const plantillaElegida = computed(() => plantillas.value.find(x => x.id === plantillaId.value))
 
 watch(visible, (v) => {
-  if (v) { canal.value = 'correo'; plantillaId.value = ''; resultado.value = ''; enviando.value = false }
+  if (v) { canal.value = 'correo'; plantillaId.value = ''; resultado.value = ''; enviando.value = false; confirmando.value = false }
 })
 watch(canal, () => { plantillaId.value = '' })
 
 const puedeEnviar = computed(() => !!plantillaId.value && !enviando.value)
 
+const mensajeConfirmacion = computed(() => {
+  const via = canal.value === 'correo' ? 'correo' : 'WhatsApp'
+  return `Se va a enviar por ${via} a ${props.total} personas, con la plantilla "${plantillaElegida.value?.nombre}". ¿Continuar?`
+})
+
 async function enviar() {
+  confirmando.value = false
   enviando.value = true
   await new Promise(r => setTimeout(r, 600))
-  const p = plantillas.value.find(x => x.id === plantillaId.value)
   const via = canal.value === 'correo' ? 'correos' : 'WhatsApp'
-  resultado.value = `Se enviarían ${props.total} ${via} con la plantilla "${p?.nombre}". (Demo: no se envía nada.)`
+  resultado.value = `Se enviarían ${props.total} ${via} con la plantilla "${plantillaElegida.value?.nombre}". (Demo: no se envía nada.)`
   enviando.value = false
 }
 </script>
@@ -44,6 +52,11 @@ async function enviar() {
       <div class="p-6 space-y-4">
         <div v-if="resultado" class="rounded-xl border border-emerald-200 dark:border-emerald-900 bg-emerald-50 dark:bg-emerald-950/40 px-4 py-3 text-[12px] text-emerald-700 dark:text-emerald-300 flex items-start gap-2">
           <Check :size="15" class="mt-0.5 shrink-0" /><span>{{ resultado }}</span>
+        </div>
+
+        <div v-if="!resultado" class="rounded-xl border border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-950/40 px-4 py-3 text-[11px] text-amber-700 dark:text-amber-300 flex items-start gap-2">
+          <AlertTriangle :size="14" class="mt-0.5 shrink-0" />
+          <span>El envío real de correos y WhatsApp todavía no está conectado a ningún proveedor — esto es solo una vista previa, no se enviará nada de verdad.</span>
         </div>
 
         <template v-if="!resultado">
@@ -90,11 +103,21 @@ async function enviar() {
         </button>
         <button
           v-if="!resultado"
-          @click="enviar"
+          @click="confirmando = true"
           :disabled="!puedeEnviar"
           class="flex items-center gap-1.5 h-9 px-6 rounded-lg bg-[#2447F9] text-white text-[11px] font-bold shadow hover:bg-[#1D3DD9] transition-all disabled:opacity-50"
         ><Send :size="13" /> {{ enviando ? 'Enviando…' : `Enviar (${total})` }}</button>
       </div>
     </div>
+
+    <ConfirmDialog
+      :visible="confirmando"
+      titulo="Confirmar envío"
+      :mensaje="mensajeConfirmacion"
+      texto-confirmar="Enviar"
+      :cargando="enviando"
+      @confirmar="enviar"
+      @cancelar="confirmando = false"
+    />
   </div>
 </template>
