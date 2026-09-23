@@ -230,15 +230,23 @@ class TitularesBeneficiariosRepository:
         titular = self.db.get(PlanLiga, id_titular)
         return titular.fecha_ingreso if titular else None
 
-    def listar_beneficiarios(self, id_titular: int) -> list[dict]:
+    def listar_beneficiarios(self, id_titular: int, estado: str | None = None) -> list[dict]:
+        condiciones = [PlanLigaBeneficiario.planliga_id == id_titular]
+
+        estado = None if estado and estado.strip().lower() == "todos" else estado
+        if estado:
+            codigo = ESTADOS_FILTRO.get(estado.lower())
+            if codigo:
+                condiciones.append(PlanLigaBeneficiario.estado == codigo)
+
         stmt = (
             select(*_columnas_beneficiario())
             .outerjoin(PlanLiga, PlanLiga.id == PlanLigaBeneficiario.planliga_id)
-            .where(PlanLigaBeneficiario.planliga_id == id_titular)
+            .where(*condiciones)
             .order_by(PlanLigaBeneficiario.orden, PlanLigaBeneficiario.id)
         )
-
         return [dict(row) for row in self.db.execute(stmt).mappings().all()]
+
 
     def obtener_beneficiario(self, id_titular: int, id_beneficiario: int) -> dict | None:
         stmt = (

@@ -157,9 +157,10 @@ def cambiar_fecha_ingreso_grupo(
 @router.get("/{id_titular}/beneficiarios", response_model=list[BeneficiarioDetalle])
 def get_beneficiarios(
     id_titular: int,
+    estado: str | None = None,
     service: TitularesBeneficiariosService = Depends(get_titulares_beneficiarios_service),
-) -> list[BeneficiarioDetalle]:
-    return service.listar_beneficiarios(id_titular)
+):
+    return service.listar_beneficiarios(id_titular, estado)
 
 
 @router.post(
