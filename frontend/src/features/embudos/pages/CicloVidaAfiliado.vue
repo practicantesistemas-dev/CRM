@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onActivated, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { ChevronRight, ChevronLeft, RefreshCw, SlidersHorizontal, Send, X, Mail, Phone, Bookmark, Check, Loader2, AlertTriangle } from 'lucide-vue-next'
+import { ChevronRight, ChevronLeft, RefreshCw, SlidersHorizontal, PanelLeftOpen, Send, X, Mail, Phone, Bookmark, Check, Loader2, AlertTriangle } from 'lucide-vue-next'
 import { clonarFiltro, resumirFiltros } from '../constants/ciclo-afiliado.constants'
 import { getSegmentoPreseleccionado } from '../composables/useSegmentoPreseleccionado'
 import { useSegmentosGuardados } from '../composables/useSegmentosGuardados'
@@ -21,6 +21,8 @@ const {
 } = useSegmentador()
 
 const mostrarFiltros = ref(false)
+/** En desktop: oculta el panel izquierdo para ceder el ancho a la tabla. */
+const filtrosColapsados = ref(false)
 const aplicar = async () => {
   await aplicarFiltro()
   mostrarFiltros.value = false
@@ -95,13 +97,34 @@ const confirmarGuardar = () => {
     </button>
 
     <div class="flex flex-col lg:flex-row gap-4">
-      <aside class="w-full lg:w-72 shrink-0" :class="mostrarFiltros ? 'block' : 'hidden lg:block'">
-        <FiltrosSegmento v-model="f" @aplicar="aplicar" @limpiar="limpiar" />
+      <aside
+        class="w-full lg:w-72 shrink-0 transition-[width,opacity] duration-200"
+        :class="[
+          mostrarFiltros ? 'block' : 'hidden',
+          filtrosColapsados ? 'lg:hidden' : 'lg:block',
+        ]"
+      >
+        <FiltrosSegmento
+          v-model="f"
+          @aplicar="aplicar"
+          @limpiar="limpiar"
+          @colapsar="filtrosColapsados = true"
+        />
       </aside>
 
       <div class="flex-1 min-w-0 flex flex-col gap-4 lg:h-[calc(100vh-190px)]">
         <div class="surface-card rounded-xl shadow-sm px-4 py-3 flex flex-wrap items-center justify-between gap-3 shrink-0">
           <div class="flex items-center gap-3 flex-wrap">
+            <button
+              v-if="filtrosColapsados"
+              type="button"
+              class="hidden lg:inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg border border-default bg-white dark:bg-slate-800 text-[11px] font-bold text-body hover:border-[#2447F9] hover:text-[#2447F9] transition-all"
+              title="Mostrar filtros"
+              @click="filtrosColapsados = false"
+            >
+              <PanelLeftOpen :size="13" /> Filtros
+              <span v-if="nFiltros" class="bg-[#2447F9] text-white text-[9px] font-bold px-1.5 rounded-full">{{ nFiltros }}</span>
+            </button>
             <span class="text-[15px] font-extrabold text-heading flex items-center gap-2">
               <Loader2 v-if="cargando" :size="16" class="animate-spin text-[#2447F9]" />
               <template v-if="total">{{ nf.format(rangoDesde) }}–{{ nf.format(rangoHasta) }}</template>

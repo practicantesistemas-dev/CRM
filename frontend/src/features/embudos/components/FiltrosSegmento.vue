@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import { ChevronDown, Search } from 'lucide-vue-next'
+import { ChevronDown, PanelLeftClose, Search } from 'lucide-vue-next'
 import {
   VINCULACIONES, OPC_ULTIMO_USO,
   type FiltroSegmento,
@@ -8,7 +8,7 @@ import {
 import { getUbicaciones, getConceptosServicios, type UbicacionApi, type ConceptoServicioApi } from '../services/segmentos.api'
 
 const f = defineModel<FiltroSegmento>({ required: true })
-const emit = defineEmits<{ aplicar: []; limpiar: [] }>()
+const emit = defineEmits<{ aplicar: []; limpiar: []; colapsar: [] }>()
 
 const buscarFiltro = ref('')
 const buscarDepartamento = ref('')
@@ -123,9 +123,19 @@ const chipCls = (on: boolean) => on
 
 <template>
   <div class="surface-card rounded-xl shadow-sm overflow-hidden lg:sticky lg:top-3 flex flex-col lg:h-[calc(100vh-190px)]">
-    <div class="px-4 py-3 border-b border-default flex items-center justify-between shrink-0">
+    <div class="px-4 py-3 border-b border-default flex items-center justify-between gap-2 shrink-0">
       <h3 class="text-[12px] font-bold text-heading">Filtros de segmento</h3>
-      <button class="text-[10px] font-bold text-[#2447F9] hover:underline" @click="emit('limpiar')">Limpiar</button>
+      <div class="flex items-center gap-2">
+        <button type="button" class="text-[10px] font-bold text-[#2447F9] hover:underline" @click="emit('limpiar')">Limpiar</button>
+        <button
+          type="button"
+          class="hidden lg:inline-flex w-7 h-7 items-center justify-center rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-[#2447F9] transition-colors"
+          title="Minimizar filtros"
+          @click="emit('colapsar')"
+        >
+          <PanelLeftClose :size="14" />
+        </button>
+      </div>
     </div>
 
     <div class="px-4 py-3 border-b border-default shrink-0">
