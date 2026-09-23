@@ -218,6 +218,7 @@ class BeneficiarioDetalle(BaseModel):
     TELEFONO: Optional[str] = None
     FECHA_INGRESO: Optional[str] = None
     EMPRESA: Optional[str] = None
+    TIPO_PLAN: Optional[str] = None
     ESTADO: Optional[str] = None
 
 

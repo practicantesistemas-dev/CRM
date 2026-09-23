@@ -68,8 +68,8 @@ export function usePlanLiga() {
   // llega — son pocas peticiones porque la página solo tiene TITULARES_POR_PAGINA titulares.
   const sincronizarConteoRealTitular = async (t: Titular) => {
     try {
-      const lista = await getBeneficiariosTitular(t.id)
-      const activos = lista.filter(b => b.estado === 'Activo').length
+      const lista = await getBeneficiariosTitular(t.id, 'A')
+      const activos = lista.length
       const idx = titulares.value.findIndex(x => x.id === t.id)
       if (idx === -1) return
       const actual = titulares.value[idx]
@@ -306,17 +306,35 @@ export function usePlanLiga() {
   const beneficiariosTitular = ref<Beneficiario[]>([])
   const cargandoBeneficiariosTitular = ref(false)
   const errorBeneficiariosTitular = ref<string | null>(null)
+  /** Filtro del drawer: A = activos, I = inactivos. */
+  const filtroEstadoBeneficiarios = ref<'A' | 'I'>('A')
+  /** Conteo de activos para el cupo (no depende del filtro visible). */
+  const activosBeneficiariosCount = ref(0)
+  let cargaBeneficiariosSeq = 0
 
-  const cargarBeneficiariosTitular = async (titularId: number) => {
+  const cargarBeneficiariosTitular = async (
+    titularId: number,
+    estado: 'A' | 'I' = filtroEstadoBeneficiarios.value,
+  ) => {
+    const seq = ++cargaBeneficiariosSeq
+    if (filtroEstadoBeneficiarios.value !== estado) {
+      filtroEstadoBeneficiarios.value = estado
+    }
     cargandoBeneficiariosTitular.value = true
     errorBeneficiariosTitular.value = null
+    // Limpia la lista al instante para no mostrar activos cuando se pide inactivos (y viceversa).
+    beneficiariosTitular.value = []
     try {
-      beneficiariosTitular.value = await getBeneficiariosTitular(titularId)
+      const lista = await getBeneficiariosTitular(titularId, estado)
+      if (seq !== cargaBeneficiariosSeq) return
+      beneficiariosTitular.value = lista
+      if (estado === 'A') activosBeneficiariosCount.value = lista.length
     } catch (e) {
+      if (seq !== cargaBeneficiariosSeq) return
       errorBeneficiariosTitular.value = e instanceof Error ? e.message : 'No se pudo cargar los beneficiarios del titular.'
       beneficiariosTitular.value = []
     } finally {
-      cargandoBeneficiariosTitular.value = false
+      if (seq === cargaBeneficiariosSeq) cargandoBeneficiariosTitular.value = false
     }
   }
 
@@ -329,7 +347,12 @@ export function usePlanLiga() {
     try {
       await createBeneficiario(titularId, data)
       await cargarBeneficiariosTitular(titularId)
-      if (data.estado === 'Activo') ajustarConteoActivosTitular(titularId, 1)
+      if (data.estado === 'Activo') {
+        ajustarConteoActivosTitular(titularId, 1)
+        if (filtroEstadoBeneficiarios.value === 'I') {
+          activosBeneficiariosCount.value += 1
+        }
+      }
       cargarResumen()
       return true
     } catch (e) {
@@ -414,10 +437,12 @@ export function usePlanLiga() {
     guardandoEstadoBeneficiario.value = true
     errorEstadoBeneficiario.value = null
     try {
-      const actualizado = await activarBeneficiarioApi(titularId, b.id, fechaIngreso)
-      const idx = beneficiariosTitular.value.findIndex(x => x.id === b.id)
-      if (idx !== -1) beneficiariosTitular.value[idx] = actualizado
+      await activarBeneficiarioApi(titularId, b.id, fechaIngreso)
       ajustarConteoActivosTitular(titularId, 1)
+      if (filtroEstadoBeneficiarios.value === 'I') {
+        activosBeneficiariosCount.value += 1
+      }
+      await cargarBeneficiariosTitular(titularId)
       cargarResumen()
     } catch (e) {
       errorEstadoBeneficiario.value = e instanceof Error ? e.message : 'No se pudo activar el beneficiario.'
@@ -430,10 +455,12 @@ export function usePlanLiga() {
     guardandoEstadoBeneficiario.value = true
     errorEstadoBeneficiario.value = null
     try {
-      const actualizado = await desactivarBeneficiarioApi(titularId, b.id)
-      const idx = beneficiariosTitular.value.findIndex(x => x.id === b.id)
-      if (idx !== -1) beneficiariosTitular.value[idx] = actualizado
+      await desactivarBeneficiarioApi(titularId, b.id)
       ajustarConteoActivosTitular(titularId, -1)
+      if (filtroEstadoBeneficiarios.value === 'I') {
+        activosBeneficiariosCount.value = Math.max(0, activosBeneficiariosCount.value - 1)
+      }
+      await cargarBeneficiariosTitular(titularId)
       cargarResumen()
     } catch (e) {
       errorEstadoBeneficiario.value = e instanceof Error ? e.message : 'No se pudo desactivar el beneficiario.'
@@ -462,5 +489,6 @@ export function usePlanLiga() {
     reemplazarBeneficiarioAccion, reemplazandoBeneficiario, errorReemplazarBeneficiario, resultadoReemplazoBeneficiario,
     cambiarTitularBeneficiarioAccion, cambiandoTitularBeneficiario, errorCambiarTitularBeneficiario,
     beneficiariosTitular, cargandoBeneficiariosTitular, errorBeneficiariosTitular, cargarBeneficiariosTitular,
+    filtroEstadoBeneficiarios, activosBeneficiariosCount,
   }
 }
