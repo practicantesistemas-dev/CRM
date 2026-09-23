@@ -181,6 +181,11 @@ def _columnas_beneficiario() -> list[ColumnElement]:
             "FECHA_INGRESO"
         ),
         PlanLigaBeneficiario.empresa.label("EMPRESA"),
+        # Si el beneficiario no tiene tipo_plan propio, se muestra el del titular.
+        func.coalesce(
+            func.nullif(func.trim(PlanLigaBeneficiario.tipo_plan), ""),
+            PlanLiga.tipo_plan,
+        ).label("TIPO_PLAN"),
         PlanLigaBeneficiario.estado.label("ESTADO"),
     ]
 
@@ -228,6 +233,7 @@ class TitularesBeneficiariosRepository:
     def listar_beneficiarios(self, id_titular: int) -> list[dict]:
         stmt = (
             select(*_columnas_beneficiario())
+            .outerjoin(PlanLiga, PlanLiga.id == PlanLigaBeneficiario.planliga_id)
             .where(PlanLigaBeneficiario.planliga_id == id_titular)
             .order_by(PlanLigaBeneficiario.orden, PlanLigaBeneficiario.id)
         )
@@ -235,19 +241,27 @@ class TitularesBeneficiariosRepository:
         return [dict(row) for row in self.db.execute(stmt).mappings().all()]
 
     def obtener_beneficiario(self, id_titular: int, id_beneficiario: int) -> dict | None:
-        stmt = select(*_columnas_beneficiario()).where(
-            PlanLigaBeneficiario.id == id_beneficiario,
-            PlanLigaBeneficiario.planliga_id == id_titular,
+        stmt = (
+            select(*_columnas_beneficiario())
+            .outerjoin(PlanLiga, PlanLiga.id == PlanLigaBeneficiario.planliga_id)
+            .where(
+                PlanLigaBeneficiario.id == id_beneficiario,
+                PlanLigaBeneficiario.planliga_id == id_titular,
+            )
         )
 
         fila = self.db.execute(stmt).mappings().first()
         return dict(fila) if fila is not None else None
 
     def obtener_beneficiario_por_id(self, id_beneficiario: int) -> dict | None:
-        stmt = select(
-            *_columnas_beneficiario(),
-            PlanLigaBeneficiario.planliga_id.label("PLANLIGA_ID"),
-        ).where(PlanLigaBeneficiario.id == id_beneficiario)
+        stmt = (
+            select(
+                *_columnas_beneficiario(),
+                PlanLigaBeneficiario.planliga_id.label("PLANLIGA_ID"),
+            )
+            .outerjoin(PlanLiga, PlanLiga.id == PlanLigaBeneficiario.planliga_id)
+            .where(PlanLigaBeneficiario.id == id_beneficiario)
+        )
         fila = self.db.execute(stmt).mappings().first()
         return dict(fila) if fila is not None else None
 

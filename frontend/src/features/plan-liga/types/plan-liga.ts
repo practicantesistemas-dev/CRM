@@ -222,6 +222,7 @@ export interface BeneficiarioDetalleResponse {
   TELEFONO: string | null
   FECHA_INGRESO: string | null
   EMPRESA: string | null
+  TIPO_PLAN: string | null
   ESTADO: string | null
 }
 

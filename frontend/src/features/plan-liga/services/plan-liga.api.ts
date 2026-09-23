@@ -512,8 +512,6 @@ export async function reemplazarBeneficiario(idTitular: number, idBeneficiario: 
   }
 }
 
-// La respuesta de /cambiar-titular no trae los campos de plan (EPS, plan de salud, etc.):
-// se dejan vacíos, igual que hace mapBeneficiarioListado cuando el backend no los envía.
 function mapBeneficiarioDetalle(r: BeneficiarioDetalleResponse, titularId: number): Beneficiario {
   return {
     id: r.ID,
@@ -534,7 +532,8 @@ function mapBeneficiarioDetalle(r: BeneficiarioDetalleResponse, titularId: numbe
     ciudad: r.CIUDAD ?? '',
     departamento: r.DEPARTAMENTO ?? '',
     empresa: r.EMPRESA ?? '',
-    tipoPlan: '',
+    tipoPlan: r.TIPO_PLAN ?? '',
+    // EPS / plan de salud no vienen en BeneficiarioDetalle; se dejan vacíos.
     eps: '',
     otraEps: '',
     planSalud: '',
