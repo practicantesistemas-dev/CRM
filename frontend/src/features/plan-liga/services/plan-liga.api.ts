@@ -443,9 +443,12 @@ function mapBeneficiarioListado(r: BeneficiarioListadoResponse, titularId: numbe
   }
 }
 
-export async function getBeneficiariosTitular(idTitular: number): Promise<Beneficiario[]> {
+export async function getBeneficiariosTitular(
+  idTitular: number,
+  estado: 'A' | 'I' = 'A',
+): Promise<Beneficiario[]> {
   const data = await obtenerJson<BeneficiarioListadoResponse[]>(
-    `/api/titulares-beneficiarios/${idTitular}/beneficiarios`,
+    `/api/titulares-beneficiarios/${idTitular}/beneficiarios?estado=${estado}`,
     'No se pudo cargar los beneficiarios del titular.',
   )
   return data.map(r => mapBeneficiarioListado(r, idTitular))

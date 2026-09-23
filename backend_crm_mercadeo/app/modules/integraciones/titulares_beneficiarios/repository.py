@@ -233,11 +233,15 @@ class TitularesBeneficiariosRepository:
     def listar_beneficiarios(self, id_titular: int, estado: str | None = None) -> list[dict]:
         condiciones = [PlanLigaBeneficiario.planliga_id == id_titular]
 
-        estado = None if estado and estado.strip().lower() == "todos" else estado
         if estado:
-            codigo = ESTADOS_FILTRO.get(estado.lower())
-            if codigo:
+            codigo = estado.strip().upper()
+            if codigo in (ESTADO_ACTIVO, ESTADO_INACTIVO):
                 condiciones.append(PlanLigaBeneficiario.estado == codigo)
+            else:
+                # Compat: "activo" / "inactivo"
+                mapeado = ESTADOS_FILTRO.get(estado.strip().lower())
+                if mapeado:
+                    condiciones.append(PlanLigaBeneficiario.estado == mapeado)
 
         stmt = (
             select(*_columnas_beneficiario())

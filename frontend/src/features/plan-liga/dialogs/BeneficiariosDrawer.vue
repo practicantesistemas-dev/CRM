@@ -1,10 +1,11 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { X, Users, AlertCircle, Plus, Loader2 } from 'lucide-vue-next'
 import type { Beneficiario, Titular } from '../types/plan-liga'
 import CuposIndicador from '../components/CuposIndicador.vue'
 import BeneficiarioItem from '../components/BeneficiarioItem.vue'
 
-defineProps<{
+const props = defineProps<{
   titular: Titular | null
   beneficiarios: Beneficiario[]
   activosActual: number
@@ -28,6 +29,24 @@ const emit = defineEmits<{
 
 const visible = defineModel<boolean>('visible', { required: true })
 const errLimite = defineModel<boolean>('errLimite', { required: true })
+const filtroEstado = defineModel<'A' | 'I'>('filtroEstado', { required: true })
+
+const CHIP = 'text-[11px] font-semibold px-2.5 py-1 rounded-full border transition-all'
+const chipCls = (on: boolean) => on
+  ? 'bg-[#EC4899] border-[#EC4899] text-white'
+  : 'border-slate-300 dark:border-slate-600 text-body hover:border-[#EC4899]'
+
+const visibles = computed(() =>
+  props.beneficiarios.filter(b =>
+    filtroEstado.value === 'A' ? b.estado === 'Activo' : b.estado === 'Inactivo',
+  ),
+)
+
+const mensajeVacio = computed(() =>
+  filtroEstado.value === 'A'
+    ? 'Este titular no tiene beneficiarios activos.'
+    : 'Este titular no tiene beneficiarios inactivos.',
+)
 </script>
 
 <template>
@@ -41,20 +60,26 @@ const errLimite = defineModel<boolean>('errLimite', { required: true })
         </div>
         <button @click="visible = false" class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 flex items-center justify-center text-slate-500 dark:text-slate-400"><X :size="14" /></button>
       </div>
-      <div class="px-5 py-3 border-b border-slate-100 dark:border-slate-700 shrink-0">
-        <div class="flex items-center justify-between mb-2">
-          <span class="text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wide">Cupos utilizados</span>
-          <span class="text-[12px] font-bold" :class="activosActual >= cupoMaximo ? 'text-[#EC4899]' : 'text-[#059669] dark:text-emerald-400'">{{ activosActual }} / {{ cupoMaximo }} activos</span>
+      <div class="px-5 py-3 border-b border-slate-100 dark:border-slate-700 shrink-0 space-y-3">
+        <div class="flex items-center gap-1.5">
+          <button type="button" :class="[CHIP, chipCls(filtroEstado === 'A')]" @click="filtroEstado = 'A'">Activos</button>
+          <button type="button" :class="[CHIP, chipCls(filtroEstado === 'I')]" @click="filtroEstado = 'I'">Inactivos</button>
         </div>
-        <CuposIndicador :activos="activosActual" :max="cupoMaximo" variant="bar" />
-        <div v-if="errLimite" class="mt-2 flex items-center gap-2 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 rounded-xl px-3 py-2">
-          <AlertCircle :size="13" class="text-red-500 dark:text-red-400 shrink-0" />
-          <p class="text-[11px] text-red-600 dark:text-red-400 font-medium">El titular ya cuenta con el máximo permitido de <strong>{{ cupoMaximo }} beneficiarios activos</strong>.</p>
-          <button @click="errLimite = false" class="ml-auto text-red-400 hover:text-red-600 dark:hover:text-red-300 shrink-0"><X :size="11" /></button>
-        </div>
-        <div v-if="error" class="mt-2 flex items-center gap-2 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 rounded-xl px-3 py-2">
-          <AlertCircle :size="13" class="text-red-500 dark:text-red-400 shrink-0" />
-          <p class="text-[11px] text-red-600 dark:text-red-400 font-medium">{{ error }}</p>
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wide">Cupos utilizados</span>
+            <span class="text-[12px] font-bold" :class="activosActual >= cupoMaximo ? 'text-[#EC4899]' : 'text-[#059669] dark:text-emerald-400'">{{ activosActual }} / {{ cupoMaximo }} activos</span>
+          </div>
+          <CuposIndicador :activos="activosActual" :max="cupoMaximo" variant="bar" />
+          <div v-if="errLimite" class="mt-2 flex items-center gap-2 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 rounded-xl px-3 py-2">
+            <AlertCircle :size="13" class="text-red-500 dark:text-red-400 shrink-0" />
+            <p class="text-[11px] text-red-600 dark:text-red-400 font-medium">El titular ya cuenta con el máximo permitido de <strong>{{ cupoMaximo }} beneficiarios activos</strong>.</p>
+            <button @click="errLimite = false" class="ml-auto text-red-400 hover:text-red-600 dark:hover:text-red-300 shrink-0"><X :size="11" /></button>
+          </div>
+          <div v-if="error" class="mt-2 flex items-center gap-2 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 rounded-xl px-3 py-2">
+            <AlertCircle :size="13" class="text-red-500 dark:text-red-400 shrink-0" />
+            <p class="text-[11px] text-red-600 dark:text-red-400 font-medium">{{ error }}</p>
+          </div>
         </div>
       </div>
       <div class="flex-1 overflow-y-auto p-4 space-y-3">
@@ -63,7 +88,7 @@ const errLimite = defineModel<boolean>('errLimite', { required: true })
         </div>
         <template v-else>
           <BeneficiarioItem
-            v-for="b in beneficiarios"
+            v-for="b in visibles"
             :key="b.id"
             :beneficiario="b"
             :puede-gestionar="puedeGestionar"
@@ -75,8 +100,9 @@ const errLimite = defineModel<boolean>('errLimite', { required: true })
             @cambiar-titular="emit('cambiar-titular', b)"
             @seguimiento="emit('seguimiento', b)"
           />
-          <div v-if="beneficiarios.length === 0" class="text-center py-10 text-slate-400 dark:text-slate-500 text-[12px]">
-            <Users :size="28" class="text-slate-300 dark:text-slate-600 mx-auto mb-2" />No hay beneficiarios registrados.
+          <div v-if="visibles.length === 0" class="text-center py-10 text-slate-400 dark:text-slate-500 text-[12px]">
+            <Users :size="28" class="text-slate-300 dark:text-slate-600 mx-auto mb-2" />
+            {{ mensajeVacio }}
           </div>
         </template>
       </div>

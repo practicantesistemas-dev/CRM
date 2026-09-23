@@ -78,7 +78,7 @@ class TitularesBeneficiariosService:
             raise TitularNotFoundError(id_titular)
         return TitularDetalle(**fila)
 
-    def listar_beneficiarios(self, id_titular: int, estado:str | None = None) -> list[BeneficiarioDetalle]:
+    def listar_beneficiarios(self, id_titular: int, estado: str = "A") -> list[BeneficiarioDetalle]:
         if self.repository.obtener_titular(id_titular) is None:
             raise TitularNotFoundError(id_titular)
         filas = self.repository.listar_beneficiarios(id_titular, estado)

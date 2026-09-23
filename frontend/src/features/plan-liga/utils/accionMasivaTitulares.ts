@@ -103,8 +103,8 @@ export async function procesarAccionMasivaTitulares(
         await desactivarTitular(idTitular)
         // Al desactivar el titular, sus beneficiarios activos quedan sin titular vigente:
         // se desactivan también para que no queden huérfanos en estado Activo.
-        const beneficiarios = await getBeneficiariosTitular(idTitular)
-        for (const beneficiario of beneficiarios.filter(b => b.estado === 'Activo')) {
+        const beneficiarios = await getBeneficiariosTitular(idTitular, 'A')
+        for (const beneficiario of beneficiarios) {
           try {
             await desactivarBeneficiario(idTitular, beneficiario.id)
           } catch (e) {

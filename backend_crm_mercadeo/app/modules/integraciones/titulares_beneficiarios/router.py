@@ -1,6 +1,7 @@
 import io
+from typing import Literal
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
 from fastapi.responses import Response
 from openpyxl import Workbook
 from openpyxl.cell import WriteOnlyCell
@@ -157,7 +158,10 @@ def cambiar_fecha_ingreso_grupo(
 @router.get("/{id_titular}/beneficiarios", response_model=list[BeneficiarioDetalle])
 def get_beneficiarios(
     id_titular: int,
-    estado: str | None = None,
+    estado: Literal["A", "I"] = Query(
+        "A",
+        description="A = activos, I = inactivos.",
+    ),
     service: TitularesBeneficiariosService = Depends(get_titulares_beneficiarios_service),
 ):
     return service.listar_beneficiarios(id_titular, estado)

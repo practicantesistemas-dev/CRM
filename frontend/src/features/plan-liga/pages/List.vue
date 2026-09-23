@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { Heart, Users, Plus, Search, Download, Upload, CalendarClock, ChevronLeft, ChevronRight, Loader2, CheckCircle2, X } from 'lucide-vue-next'
 import type { Beneficiario, BeneficiarioDraft, Titular, TitularDraft, ReemplazoPersonaDraft } from '../types/plan-liga'
 import { BENEFICIARIO_DRAFT_VACIO, TITULAR_DRAFT_VACIO, REEMPLAZO_PERSONA_DRAFT_VACIO, cupoMaximoTitular } from '../constants/plan-liga.constants'
@@ -43,7 +43,8 @@ const {
   activarEstadoBeneficiario, desactivarEstadoBeneficiario, errorEstadoBeneficiario, guardandoEstadoBeneficiario,
   reemplazarBeneficiarioAccion, reemplazandoBeneficiario, errorReemplazarBeneficiario, resultadoReemplazoBeneficiario,
   cambiarTitularBeneficiarioAccion, cambiandoTitularBeneficiario, errorCambiarTitularBeneficiario,
-  beneficiariosTitular, cargandoBeneficiariosTitular, cargarBeneficiariosTitular,
+  beneficiariosTitular, cargandoBeneficiariosTitular, errorBeneficiariosTitular, cargarBeneficiariosTitular,
+  filtroEstadoBeneficiarios, activosBeneficiariosCount,
 } = usePlanLiga()
 
 // ─── Aviso de éxito tras un reemplazo (no hay sistema de toasts en la app) ────────
@@ -158,11 +159,23 @@ const abrirBeneficiarios = (t: Titular) => {
   titularSeleccionado.value = t
   drawerVisible.value = true
   errLimite.value = false
-  cargarBeneficiariosTitular(t.id)
+  // Si ya estaba en Activos, el watch no dispara: cargar explícitamente.
+  // Si venía de Inactivos, al poner 'A' el watch recarga solo.
+  if (filtroEstadoBeneficiarios.value === 'A') {
+    cargarBeneficiariosTitular(t.id, 'A')
+  } else {
+    filtroEstadoBeneficiarios.value = 'A'
+  }
 }
-const activosActual = computed(() => beneficiariosTitular.value.filter(b => b.estado === 'Activo').length)
+const activosActual = computed(() => activosBeneficiariosCount.value)
 const cupoMaximoActual = computed(() => titularSeleccionado.value ? cupoMaximoTitular(titularSeleccionado.value) : 0)
 const puedeAgregarActual = computed(() => activosActual.value < cupoMaximoActual.value)
+
+// Al cambiar Activos/Inactivos en el drawer, recarga en el acto.
+watch(filtroEstadoBeneficiarios, (estado) => {
+  if (!drawerVisible.value || !titularSeleccionado.value) return
+  cargarBeneficiariosTitular(titularSeleccionado.value.id, estado)
+})
 
 // ─── Modal Beneficiario ──────────────────────────────────────────
 const modalBeneVisible = ref(false)
@@ -407,6 +420,7 @@ const modalImportVisible = ref(false)
     <BeneficiariosDrawer
       v-model:visible="drawerVisible"
       v-model:err-limite="errLimite"
+      v-model:filtro-estado="filtroEstadoBeneficiarios"
       :titular="titularSeleccionado"
       :beneficiarios="beneficiariosTitular"
       :cargando="cargandoBeneficiariosTitular"
@@ -415,7 +429,7 @@ const modalImportVisible = ref(false)
       :puede-agregar="puedeAgregarActual"
       :puede-gestionar="puedeGestionar"
       :puede-desactivar="puedeDesactivar"
-      :error="errorEstadoBeneficiario"
+      :error="errorBeneficiariosTitular || errorEstadoBeneficiario"
       @editar="abrirEditarBeneficiario"
       @activar="activarBeneficiario"
       @desactivar="desactivarBeneficiario"
